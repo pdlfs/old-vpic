@@ -124,7 +124,7 @@ inline void StandardIOPolicy::print(const char * format, va_list & args)
 template<typename T>
 inline void StandardIOPolicy::read(T * data, size_t elements)
 	{
-		fread(reinterpret_cast<void *>(data), sizeof(T), elements, handle_);
+		int ret = fread(reinterpret_cast<void *>(data), sizeof(T), elements, handle_);
 	} // StandardIOPolicy::read
 
 template<typename T>

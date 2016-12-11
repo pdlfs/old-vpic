@@ -6,7 +6,6 @@
 //
 ///////////////////////////////////////////////////////////////////////
 
-//#include <H5Part.h>
 #include <mpi.h>
 #include <math.h>
 
@@ -16,8 +15,8 @@
 
 // structure to hold the data for energy diagnostics
 struct edata {
-  species_id sp_id;         /* species id */ 
-  double     vth;          /* thermal energy */ 
+  species_id sp_id;       /* species id */ 
+  double     vth;         /* thermal energy */ 
   char fname[256];        /* file to save data */ 
 };
 
@@ -95,13 +94,13 @@ begin_initialization {
 
   // Physics parameters
 
-  double mi_me   = 1.0;    // Ion mass / electron mass
+  double mi_me   = 1.0;      // Ion mass / electron mass
   double L_di    = 6.0;      // Sheet thickness / ion inertial length
   double Ti_Te   = 1.0;      // Ion temperature / electron temperature
-  double vthe    = 0.6;     //  Electron thermal speed over c
+  double vthe    = 0.6;      //  Electron thermal speed over c
   double wpe_wce = 0.1;      // electron plasma freq / electron cyclotron freq
-  double bg = 1e-6;           // electron plasma freq / electron cyclotron freq
-  double taui    = 2000/wpe_wce;      // simulation wci's to run
+  double bg      = 1e-6;     // electron plasma freq / electron cyclotron freq
+  double taui    = 200/wpe_wce; // simulation wci's to run (Fan: 2000/wpe_wce)
   
   double quota   = 15.;   // run quota in hours
   double quota_sec = quota*3600;  // Run quota in seconds
@@ -129,17 +128,13 @@ begin_initialization {
   double Ly    = 500.0*di/256;     // size of box in y dimension
   double Lz    = 500.0*di; // size of box in z dimension
 
-  double topology_x = 32;  // Number of domains in x, y, and z
+  double topology_x = 2; //XXX: 32;  // Number of domains in x, y, and z
   double topology_y = 1; 
   double topology_z = 1;  
 
-  double nx = 2048;
-  double ny = 1;
-  double nz = 1024;
-
-  // double nx = 792;
-  // double ny = 528;
-  // double nz = 528;
+  double nx = 64; // (Fan: 2048, default: 792)
+  double ny = 1;  // (Fan: 1, default: 528)
+  double nz = 32; // (Fan: 1024, default: 528)
 
   double hx = Lx/nx;
   double hy = Ly/ny;
@@ -326,6 +321,7 @@ begin_initialization {
   sim_log ( "nppc = " << nppc );
   sim_log ( " b0 = " << b0 );
   sim_log ( " di = " << di );
+  sim_log ( " dt = " << dt );
   sim_log ( " Ne = " << Ne );
   sim_log ( "total # of particles = " << 2*Ne );
   sim_log ( " qi = " << qi );
@@ -772,9 +768,9 @@ begin_initialization {
         global->iBotdParams.output_variables( current_density | charge_density);
 
 //        global->eTopdParams.output_variables( current_density | charge_density | stress_tensor );
- //       global->eBotdParams.output_variables( current_density | charge_density | stress_tensor );
- //       global->iTopdParams.output_variables( current_density | charge_density | stress_tensor );
- //       global->iBotdParams.output_variables( current_density | charge_density | stress_tensor );
+//        global->eBotdParams.output_variables( current_density | charge_density | stress_tensor );
+//        global->iTopdParams.output_variables( current_density | charge_density | stress_tensor );
+//        global->iBotdParams.output_variables( current_density | charge_density | stress_tensor );
 
 
 	//global->fdParams.output_variables( all );
@@ -827,19 +823,19 @@ begin_initialization {
 
         global->edeTop.sp_id = electronTop->id;
         global->edeTop.vth = sqrt(2.0)*vthe;
-        sprintf(global->edeTop.fname,global->eTopdParams.baseFileName);
+        sprintf(global->edeTop.fname, "%s", global->eTopdParams.baseFileName);
 
         global->edeBot.sp_id = electronBot->id;
         global->edeBot.vth = sqrt(2.0)*vthe;
-        sprintf(global->edeBot.fname,global->eBotdParams.baseFileName);
+        sprintf(global->edeBot.fname, "%s", global->eBotdParams.baseFileName);
 
         global->ediTop.sp_id = ionTop->id;
         global->ediTop.vth = sqrt(2.0)*vthi;
-        sprintf(global->ediTop.fname, global->iTopdParams.baseFileName);
+        sprintf(global->ediTop.fname, "%s", global->iTopdParams.baseFileName);
 
         global->ediBot.sp_id = ionBot->id;
         global->ediBot.vth = sqrt(2.0)*vthi;
-        sprintf(global->ediBot.fname, global->iBotdParams.baseFileName);
+        sprintf(global->ediBot.fname, "%s", global->iBotdParams.baseFileName);
 
 	global->nex  = 6;
 	global->emax = 300;
@@ -984,10 +980,11 @@ begin_diagnostics {
         if(global->particle_tracing==1){
         //  if( should_dump(tracer) ) dump_tracers("tracer");
           if (should_dump(tracer)){
+            sim_log("** Dumping trajectory data! **");
             char subdir[36];
-            //sprintf(subdir,"tracer/T.%d",step);
-            //dump_mkdir(subdir);
-            //#include "dumptracer_h5part.cxx"
+            sprintf(subdir,"tracer/T.%d",step);
+            dump_mkdir(subdir);
+            #include "dumptracer.cxx"
             dump_traj("traj");
           }
         }

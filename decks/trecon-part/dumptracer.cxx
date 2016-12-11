@@ -1,21 +1,23 @@
 {
+  species_t *sp; 
+/*
 	char fname[256];
-
 	h5part_int64_t ierr;
 	int np_local,ngrid[3];
   float location[6];
-	species_t *sp; 
 
 	H5PartFile * h5pf;
 
 	h5part_float32_t *Pf ;
 	h5part_int32_t *Pi ;
+*/
 
-	// get the total number of particles. in this example, output only electrons
-	//sp = find_species ("electron_tracer");
+  // get the total number of particles. in this example, output only electrons
+  //sp = find_species ("electron_tracer");
   sp = global->tracers_list;
 
-  while(sp){
+  while(sp) {
+/*
 	np_local = sp->np; // number of particles on this rank
 
 	Pf = (h5part_float32_t *) sp->p;
@@ -164,8 +166,7 @@
 	if (ierr != H5PART_SUCCESS) sim_log ("Error occured in closing " << meta_fname << ". Error code: " << ierr);
 	el4 = mp_elapsed(grid->mp) - el4;
 	sim_log("Time in writing metadata: "<< el4 << " s"); 
-
-  sp = sp->next;
-
+*/
+    sp = sp->next;
   }
 }
