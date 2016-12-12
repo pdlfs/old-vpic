@@ -127,21 +127,23 @@ begin_initialization {
    *    Total number of particles = 2 * (nppc * nx * ny * nz)
    *  - particle_select: Particle sampling rate. We would like this to be 1,
    *    which will output (nppc * nx * ny * nz) / particle_select file pairs
+   *  - tracer_int: Particle dump rate (in time steps)
    */
 
-  double taui      = 2000/wpe_wce; //Simulation wci's to run (number of timesteps)
+  double taui      = 200/wpe_wce;  //Simulation wci's to run (number of timesteps)
   double quota     = 15.;          // run quota in hours
   double quota_sec = quota*3600;   // Run quota in seconds
 
   double topology_x = 2; // Number of domains in x, y, and z. Fan: 32
-  double topology_y = 1; 
-  double topology_z = 1;  
+  double topology_y = 1;
+  double topology_z = 1;
 
   double nx = 16; // (Fan: 2048, default: 792)
   double ny = 1;  // (Fan: 1, default: 528)
   double nz = 16; // (Fan: 1024, default: 528)
 
   int particle_select = 10; // Adjusts particle sampling rate
+  int tracer_int = 15; // Adjusts dump rate (def = int(1.0/(wpe*dt));)
 
   // Numerical parameters
 
@@ -158,7 +160,7 @@ begin_initialization {
   double b0  = me*c*wce/ec; // Asymptotic magnetic field strength
   double n0  = me*eps0*wpe*wpe/(ec*ec);  // Peak electron (ion) density
   double Ne  = nppc*nx*ny*nz;  // total macro electrons in box
-  double Np  = n0*Lx*Ly*Lz;  //  total number of physical electrons     
+  double Np  = n0*Lx*Ly*Lz;  //  total number of physical electrons
   Ne  = trunc_granular(Ne,nproc()); // Make it divisible by number of processors
   double qe = -ec*Np/Ne;  // Charge per macro electron
   double qi =  ec*Np/Ne;  // Charge per macro ion       
@@ -177,7 +179,6 @@ begin_initialization {
   int restart_interval = 5000;
   int energies_interval = 100;
   int interval = int(1.0/(wpe*dt)); 
-  int tracer_int = int(1.0/(wpe*dt));
   int fields_interval = 10*interval;
   int ehydro_interval = 10*interval;
   int Hhydro_interval = 10*interval;
