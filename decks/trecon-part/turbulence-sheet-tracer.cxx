@@ -90,7 +90,6 @@ begin_initialization {
   double damp      = 0.0;   // Level of radiation damping
   int rng_seed     = 1;     // Random number seed increment
   int particle_tracing = 1;
-  int particle_select = 100000;
 
   // Physics parameters
 
@@ -100,10 +99,6 @@ begin_initialization {
   double vthe    = 0.6;      //  Electron thermal speed over c
   double wpe_wce = 0.1;      // electron plasma freq / electron cyclotron freq
   double bg      = 1e-6;     // electron plasma freq / electron cyclotron freq
-  double taui    = 200/wpe_wce; // simulation wci's to run (Fan: 2000/wpe_wce)
-  
-  double quota   = 15.;   // run quota in hours
-  double quota_sec = quota*3600;  // Run quota in seconds
 
   double pi = 3.1415927;
 
@@ -119,7 +114,35 @@ begin_initialization {
 
   double ion_sort_interval = 25;        //  Injector moments are also updated at this internal
   double electron_sort_interval=25;    //  Injector moments are also updated at this internal
-  
+ 
+  // George: experiment size/length parameters (only tune these!)
+
+  /*
+   * Brief primer on tuning your VPIC run:
+   *  - Taui: number of timesteps for the run. wpe_wce = 0.36 (if you didn't
+   *    touch anything), so the default 2000/wpe_wce is 5555 time steps
+   *  - Quota: max number of ours before experiment is stopped
+   *  - Topology_*: Number of domains (=nodes!) in simulation
+   *  - nx, ny, nz: Number of particles per dimension
+   *    Total number of particles = 2 * (nppc * nx * ny * nz)
+   *  - particle_select: Particle sampling rate. We would like this to be 1,
+   *    which will output (nppc * nx * ny * nz) / particle_select file pairs
+   */
+
+  double taui      = 2000/wpe_wce; //Simulation wci's to run (number of timesteps)
+  double quota     = 15.;          // run quota in hours
+  double quota_sec = quota*3600;   // Run quota in seconds
+
+  double topology_x = 2; // Number of domains in x, y, and z. Fan: 32
+  double topology_y = 1; 
+  double topology_z = 1;  
+
+  double nx = 16; // (Fan: 2048, default: 792)
+  double ny = 1;  // (Fan: 1, default: 528)
+  double nz = 16; // (Fan: 1024, default: 528)
+
+  int particle_select = 10; // Adjusts particle sampling rate
+
   // Numerical parameters
 
   double nppc  =  100; // Average number of macro particle per cell per species
@@ -127,14 +150,6 @@ begin_initialization {
   double Lx    = 1000.0*di; // size of box in x dimension
   double Ly    = 500.0*di/256;     // size of box in y dimension
   double Lz    = 500.0*di; // size of box in z dimension
-
-  double topology_x = 2; //XXX: 32;  // Number of domains in x, y, and z
-  double topology_y = 1; 
-  double topology_z = 1;  
-
-  double nx = 64; // (Fan: 2048, default: 792)
-  double ny = 1;  // (Fan: 1, default: 528)
-  double nz = 32; // (Fan: 1024, default: 528)
 
   double hx = Lx/nx;
   double hy = Ly/ny;
@@ -321,7 +336,6 @@ begin_initialization {
   sim_log ( "nppc = " << nppc );
   sim_log ( " b0 = " << b0 );
   sim_log ( " di = " << di );
-  sim_log ( " dt = " << dt );
   sim_log ( " Ne = " << Ne );
   sim_log ( "total # of particles = " << 2*Ne );
   sim_log ( " qi = " << qi );
@@ -519,7 +533,7 @@ begin_initialization {
     if (particle_tracing == 1){
      if (i%particle_select == 0){
       itp1++;
-      int tag = ((rank_int<<17) | (itp1 & 0x1ffff)); // 15 bits (~30000) for rank and 19 bits (~520k)
+      int tag = ((rank_int<<17) | (itp1 & 0x1ffff)); // 15 bits (~30000) for rank and 17 bits (~520k)
       if (z>0)
         tag_tracer( (electronTop->p + electronTop->np-1), e_tracer, tag );
       else
@@ -981,10 +995,9 @@ begin_diagnostics {
         //  if( should_dump(tracer) ) dump_tracers("tracer");
           if (should_dump(tracer)){
             sim_log("** Dumping trajectory data! **");
-            char subdir[36];
-            sprintf(subdir,"tracer/T.%d",step);
-            dump_mkdir(subdir);
-            #include "dumptracer.cxx"
+            //char subdir[36];
+            //sprintf(subdir,"tracer/T.%d",step);
+            //dump_mkdir(subdir);
             dump_traj("traj");
           }
         }
