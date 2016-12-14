@@ -143,7 +143,8 @@ begin_initialization {
   double nz = 16; // (Fan: 1024, default: 528)
 
   int particle_select = 10; // Adjusts particle sampling rate
-  int tracer_int = 15; // Adjusts dump rate (def = int(1.0/(wpe*dt));)
+  int tracer_int = 15; // Adjusts per-particle dump rate (def = int(1.0/(wpe*dt));)
+  int eparticle_interval = 15; // Adjusts per-process dump rate (def = 100*interval;)
 
   // Numerical parameters
 
@@ -182,7 +183,6 @@ begin_initialization {
   int fields_interval = 10*interval;
   int ehydro_interval = 10*interval;
   int Hhydro_interval = 10*interval;
-  int eparticle_interval = 100*interval;
   int Hparticle_interval = 100*interval;
   int quota_check_interval     = 100;
   int tracer_interval = tracer_int;
@@ -996,6 +996,7 @@ begin_diagnostics {
 
   #include "energy.cxx"   //  Subroutine to compute energy spectrum diagnostic
 
+/*
         if(global->particle_tracing==1){
         //  if( should_dump(tracer) ) dump_tracers("tracer");
           if (should_dump(tracer)){
@@ -1006,6 +1007,7 @@ begin_diagnostics {
             dump_traj("traj");
           }
         }
+*/
 
 	/*--------------------------------------------------------------------------
 	 * Restart dump
