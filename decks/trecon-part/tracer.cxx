@@ -231,39 +231,51 @@ inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
 } END_PRIMITIVE
 
 // dump tracer by particle trajectory
+/*
+ * Original 52b output:
+ *
+ * pout[0]  = step*grid->dt;
+ * pout[1]  = (float) tracer_x;
+ * pout[2]  = (float) tracer_y;
+ * pout[3]  = (float) tracer_z;
+ * pout[4]  = (float) p[j].ux;
+ * pout[5]  = (float) p[j].uy;
+ * pout[6]  = (float) p[j].uz;
+ * pout[7]  = (float) field[p->i].ex;
+ * pout[8]  = (float) field[p->i].ey;
+ * pout[9]  = (float) field[p->i].ez;
+ * pout[10] = (float) field[p->i].cbx;
+ * pout[11] = (float) field[p->i].cby;
+ * pout[12] = (float) field[p->i].cbz;
+ */
 #define dump_traj(fbase) 		BEGIN_PRIMITIVE{	\
   char dname[256], fname[256] ;					\
   species_t *s = global->tracers_list ;				\
   particle_t *p; 						\
   int j;							\
-  float pout[13];						\
+  float pout[8];						\
   FileIO f;							\
 								\
-  sprintf(dname, "%s", fbase );			\
+  sprintf(dname, "%s", fbase );					\
   dump_mkdir(dname);						\
 								\
   while( s ){							\
     if ( s->np > 0 ){						\
-      p = s->p;	\
-      for (j=0; j<s->np ; ++j){  \
-      int64_t tag = p[j].tag; \
-      if (tag !=  0 ) { \
-       sprintf(fname, "%s/%s.%ld", dname , s->name, tag); \
+      p = s->p;							\
+      for (j=0; j<s->np ; ++j){ 				\
+      int64_t tag = p[j].tag;					\
+      if (tag !=  0 ) {						\
+       sprintf(fname, "%s/%s.%ld", dname , s->name, tag);	\
        f.open(fname,io_append);					\
-    	 pout[0] = step*grid->dt ;					\
-	     pout[1] = (float) tracer_x ;				\
-	     pout[2] = (float) tracer_y ;				\
-	     pout[3] = (float) tracer_z ;				\
-	     pout[4] = (float) p[j].ux;			\
-	     pout[5] = (float) p[j].uy;			\
-	     pout[6] = (float) p[j].uz;			\
-    	 pout[7] = (float) field[p->i].ex;			\
-	     pout[8] = (float) field[p->i].ey;			\
-	     pout[9] = (float) field[p->i].ez;			\
-	     pout[10] = (float) field[p->i].cbx;			\
-	     pout[11] = (float) field[p->i].cby;			\
-	     pout[12] = (float) field[p->i].cbz;			\
-	     f.write(pout,13);					\
+	 pout[0] = step*grid->dt;				\
+	 pout[1] = (float) p[j].dx;				\
+	 pout[2] = (float) p[j].dy;				\
+	 pout[3] = (float) p[j].dz;				\
+	 pout[4] = (float) p[j].i;				\
+	 pout[5] = (float) p[j].ux;				\
+	 pout[6] = (float) p[j].uy;				\
+	 pout[7] = (float) p[j].uz;				\
+	 f.write(pout,8);					\
        f.close();						\
       }               \
       }								\
