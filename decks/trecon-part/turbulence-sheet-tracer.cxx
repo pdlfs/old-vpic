@@ -71,7 +71,7 @@ begin_globals {
   int nex;                           // number of energy bins
 
   species_t *tracers_list;
-  int tag;
+  int64_t tag;
 
 };
 
@@ -491,8 +491,8 @@ begin_initialization {
   double zmin = grid->z0 , zmax = grid->z0+(grid->dz)*(grid->nz);
 
   int i=0;
-  int itp1=0;
-  int itp2=0;
+  int64_t itp1=0;
+  int64_t itp2=0;
 
   // Load Harris population
 
@@ -534,7 +534,9 @@ begin_initialization {
     if (particle_tracing == 1){
      if (i%particle_select == 0){
       itp1++;
-      int tag = ((rank_int<<17) | (itp1 & 0x1ffff)); // 15 bits (~30000) for rank and 17 bits (~520k)
+      // Tag format: 18 bits for rank (up to 250K nodes) and
+      //             46 bits for particle ID (up to 70T particles/node)
+      int64_t tag = ((rank_int << 18) | (itp1 & 0x3ffffffffff));
       if (z>0)
         tag_tracer( (electronTop->p + electronTop->np-1), e_tracer, tag );
       else
@@ -567,7 +569,9 @@ begin_initialization {
     if (particle_tracing == 1){
      if (i%particle_select == 0){
       itp2++;
-      int tag = ((rank_int<<17) | (itp2 & 0x1ffff)); // 15 bits (~30000) for rank and 19 bits (~520k)
+      // Tag format: 18 bits for rank (up to 250K nodes) and
+      //             46 bits for particle ID (up to 70T particles/node)
+      int64_t tag = ((rank_int << 18) | (itp2 & 0x3ffffffffff));
       if (z>0)
         tag_tracer( (ionTop->p + ionTop->np-1),           i_tracer, tag );
       else 

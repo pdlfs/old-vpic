@@ -57,11 +57,12 @@
 // check for free storage space, so we're silently assuming all nodes 
 // have enough room to hold all tracers. Not a bad assumption since
 // typically number of tracers will be small due to output size constaraints.
-#define tag_tracer(p, tracer, tag) BEGIN_PRIMITIVE{		\
-  float q = * reinterpret_cast<float *>( &tag ) ;		\
-  inject_particle_raw(tracer, p->dx, p->dy, p->dz, p->i,	\
-		      	      p->ux, p->uy, p->uz, q);		\
-} END_PRIMITIVE
+inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
+  particle_t *tp = tracer->p + (tracer->np++);
+  tp->dx = p->dx; tp->dy = p->dy; tp->dz = p->dz; tp->i = p->i;
+  tp->ux = p->ux; tp->uy = p->uy; tp->uz = p->uz; tp->q = 0;
+  tp->tag = tag;
+}
 
 // I'm lazy, so here we are assuming tracers are at the head
 // of the species list (defined last), and that we know
@@ -245,9 +246,9 @@
     if ( s->np > 0 ){						\
       p = s->p;	\
       for (j=0; j<s->np ; ++j){  \
-      int tag = *reinterpret_cast<int*>(&p[j].q); \
+      int64_t tag = p[j].tag; \
       if (tag !=  0 ) { \
-       sprintf(fname, "%s/%s.%i", dname , s->name, tag); \
+       sprintf(fname, "%s/%s.%ld", dname , s->name, tag); \
        f.open(fname,io_append);					\
     	 pout[0] = step*grid->dt ;					\
 	     pout[1] = (float) tracer_x ;				\

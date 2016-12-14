@@ -26,6 +26,7 @@ typedef struct particle {
   int32_t i;
   float ux, uy, uz; // Particle normalized momentum
   float q;          // Particle charge
+  int64_t tag, tag2; // 16b for particle identification (must be ALIGNED(128))
 } particle_t;
 
 // WARNING: FUNCTIONS THAT USE A PARTICLE_MOVER ASSUME THAT EVERYBODY
