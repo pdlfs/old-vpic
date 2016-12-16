@@ -134,13 +134,13 @@ begin_initialization {
   double quota     = 15.;          // run quota in hours
   double quota_sec = quota*3600;   // Run quota in seconds
 
-  double topology_x = 2; // Number of domains in x, y, and z. Fan: 32
+  double topology_x = 12; // Number of domains in x, y, and z. Fan: 32
   double topology_y = 1;
   double topology_z = 1;
 
-  double nx = 16; // (Fan: 2048, default: 792)
+  double nx = 600; // (Fan: 2048, default: 792)
   double ny = 1;  // (Fan: 1, default: 528)
-  double nz = 16; // (Fan: 1024, default: 528)
+  double nz = 100; // (Fan: 1024, default: 528)
 
   int particle_select = 10; // Adjusts particle sampling rate
   int tracer_int = 15; // Adjusts per-particle dump rate (def = int(1.0/(wpe*dt));)
