@@ -134,13 +134,13 @@ begin_initialization {
   double quota     = 15.;          // run quota in hours
   double quota_sec = quota*3600;   // Run quota in seconds
 
-  double topology_x = 1; // Number of domains in x, y, and z. Fan: 32
+  double topology_x = 16; // Number of domains in x, y, and z. Fan: 32
   double topology_y = 1;
   double topology_z = 1;
 
   double nx = 16; // (Fan: 2048, default: 792)
   double ny = 1;  // (Fan: 1, default: 528)
-  double nz = 16; // (Fan: 1024, default: 528)
+  double nz = 4; // (Fan: 1024, default: 528)
 
   int particle_select = 10; // Adjusts particle sampling rate
   int tracer_int = 15; // Adjusts per-particle dump rate (def = int(1.0/(wpe*dt));)
@@ -536,7 +536,7 @@ begin_initialization {
       itp1++;
       // Tag format: 18 bits for rank (up to 250K nodes) and
       //             46 bits for particle ID (up to 70T particles/node)
-      int64_t tag = ((rank_int << 18) | (itp1 & 0x3ffffffffff));
+      int64_t tag = ((rank_int << 46) | (itp1 & 0x3ffffffffff));
       if (z>0)
         tag_tracer( (electronTop->p + electronTop->np-1), e_tracer, tag );
       else
@@ -571,7 +571,7 @@ begin_initialization {
       itp2++;
       // Tag format: 18 bits for rank (up to 250K nodes) and
       //             46 bits for particle ID (up to 70T particles/node)
-      int64_t tag = ((rank_int << 18) | (itp2 & 0x3ffffffffff));
+      int64_t tag = ((rank_int << 46) | (itp2 & 0x3ffffffffff));
       if (z>0)
         tag_tracer( (ionTop->p + ionTop->np-1),           i_tracer, tag );
       else 
