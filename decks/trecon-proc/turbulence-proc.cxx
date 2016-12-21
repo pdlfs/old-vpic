@@ -536,7 +536,7 @@ begin_initialization {
       itp1++;
       // Tag format: 18 bits for rank (up to 250K nodes) and
       //             46 bits for particle ID (up to 70T particles/node)
-      int64_t tag = ((rank_int << 46) | (itp1 & 0x3ffffffffff));
+      int64_t tag = (((int64_t) rank_int + 1) << 46) | (itp1 & 0x3ffffffffff);
       if (z>0)
         tag_tracer( (electronTop->p + electronTop->np-1), e_tracer, tag );
       else
@@ -571,7 +571,7 @@ begin_initialization {
       itp2++;
       // Tag format: 18 bits for rank (up to 250K nodes) and
       //             46 bits for particle ID (up to 70T particles/node)
-      int64_t tag = ((rank_int << 46) | (itp2 & 0x3ffffffffff));
+      int64_t tag = (((int64_t) rank_int + 1) << 46) | (itp2 & 0x3ffffffffff);
       if (z>0)
         tag_tracer( (ionTop->p + ionTop->np-1),           i_tracer, tag );
       else 

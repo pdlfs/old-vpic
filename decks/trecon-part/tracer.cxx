@@ -265,7 +265,7 @@ inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
       for (j=0; j<s->np ; ++j){ 				\
       int64_t tag = p[j].tag;					\
       if (tag !=  0 ) {						\
-       sprintf(fname, "%s/%s.%ld", dname , s->name, tag);	\
+       sprintf(fname, "%s/%s.%lx", dname , s->name, tag);	\
        f.open(fname,io_append);					\
 	 pout[0] = step*grid->dt;				\
 	 pout[1] = (float) p[j].dx;				\
