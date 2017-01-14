@@ -21,7 +21,7 @@ main( int argc,
 
   printf( "Destroying SPU context\n" );
   spe_context_destroy( context );
-  
+
   return 0;
 }
 

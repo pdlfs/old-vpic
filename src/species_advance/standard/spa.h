@@ -1,4 +1,4 @@
-/* 
+/*
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -21,7 +21,7 @@ BEGIN_C_DECLS
 // In sort_p.c
 
 void
-sort_p( species_t    * sp, 
+sort_p( species_t    * sp,
         const grid_t * g );
 
 // In boundary_p.c

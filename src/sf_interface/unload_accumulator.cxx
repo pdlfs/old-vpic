@@ -16,13 +16,13 @@ unload_accumulator_pipeline( unload_accumulator_pipeline_args_t * args,
   field_t             * ALIGNED(128) f = args->f;
   const accumulator_t * ALIGNED(128) a = args->a;
   const grid_t        *              g = args->g;
-  
+
   const accumulator_t * ALIGNED(16) a0;
   const accumulator_t * ALIGNED(16) ax,  * ALIGNED(16) ay,  * ALIGNED(16) az;
   const accumulator_t * ALIGNED(16) ayz, * ALIGNED(16) azx, * ALIGNED(16) axy;
   field_t * ALIGNED(16) f0;
   int x, y, z, n_voxel;
-  
+
   const int nx = g->nx;
   const int ny = g->ny;
   const int nz = g->nz;
@@ -32,7 +32,7 @@ unload_accumulator_pipeline( unload_accumulator_pipeline_args_t * args,
   const float cz = 0.25*g->rdx*g->rdy/g->dt;
 
   // Process the voxels assigned to this pipeline
-  
+
   n_voxel = distribute_voxels( 1,nx+1, 1,ny+1, 1,nz+1, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );

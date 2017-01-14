@@ -22,7 +22,7 @@
 // is the current structure.
 ////////////////////////////////////////////////////////////////////////////////
 
-// Must match definition in pipelines_spu.c; Geddy Lee rules 
+// Must match definition in pipelines_spu.c; Geddy Lee rules
 #define SPU_COMPLETE ((uint32_t)2112)
 
 typedef void

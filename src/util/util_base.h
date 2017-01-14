@@ -1,4 +1,4 @@
-/* 
+/*
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -104,7 +104,7 @@
 // allow correct autogeneration when no alignment necessary ... sigh
 // ...
 
-#define PAD(s,a) ( (a) - ( (s) & ( (a)-1 ) ) ) 
+#define PAD(s,a) ( (a) - ( (s) & ( (a)-1 ) ) )
 
 // POW2_CEIL rounds "u" up to the nearest multiple of the power of two
 // "a".  If u is a multiple of "a", its value is unchanged.  "a" should
@@ -237,7 +237,7 @@ BEGIN_C_DECLS
 #define MALLOC(x,n)                                                 \
   util_malloc( "MALLOC( "#x", "#n" (%lu bytes) ) at "               \
                __FILE__"("EXPAND_AND_STRINGIFY(__LINE__)") failed", \
-               &(x), (n)*sizeof(*(x)) ) 
+               &(x), (n)*sizeof(*(x)) )
 
 void
 util_malloc( const char * err_fmt, // Has exactly one %lu in it
@@ -263,7 +263,7 @@ util_free( void * mem_ref );
                                          #n" (%lu bytes), "                 \
                                          #a" (%lu bytes) ) at "             \
                        __FILE__"("EXPAND_AND_STRINGIFY(__LINE__)") failed", \
-                       &(x), (n)*sizeof(*(x)), (a) ) 
+                       &(x), (n)*sizeof(*(x)), (a) )
 
 
 void

@@ -12,7 +12,7 @@
 
 // FIXME: EXTERNAL DIAGNOSTICS THAT READ THESE WILL NEED TO BE UPDATED
 // TO REFLECT SPU USAGE ALIGNMENT CHANGES.
-  
+
 #include "../field_advance/field_advance.h"
 // FIXME: SHOULD INCLUDE SPECIES_ADVANCE TOO ONCE READY
 
@@ -144,7 +144,7 @@ reduce_accumulators( accumulator_t * ALIGNED(128) a,
 // accumulators have been reduced into the host accumulator.
 
 void
-unload_accumulator( field_t             * ALIGNED(128) f, 
+unload_accumulator( field_t             * ALIGNED(128) f,
                     const accumulator_t * ALIGNED(128) a,
                     const grid_t        *              g );
 
@@ -153,7 +153,7 @@ unload_accumulator( field_t             * ALIGNED(128) f,
 void
 synchronize_hydro( hydro_t      * ALIGNED(128) hydro,
                    const grid_t *              g );
-             
+
 void
 local_adjust_hydro( hydro_t      * ALIGNED(128) h,
                     const grid_t *              g );

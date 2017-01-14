@@ -36,7 +36,7 @@ _standard_v4_field_advance[1] = { {
   // Shared face cleaning interface
 
   synchronize_tang_e_norm_b,
-  
+
   // Electric field divergence cleaning interface
 
   compute_div_e_err,
@@ -50,4 +50,3 @@ _standard_v4_field_advance[1] = { {
   v4_clean_div_b
 
 } };
-

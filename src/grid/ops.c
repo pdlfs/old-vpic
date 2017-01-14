@@ -1,4 +1,4 @@
-/* 
+/*
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -28,7 +28,7 @@ size_grid( grid_t * g,
   int64_t x,y,z;
   //int rank, nproc, i, j, k, x, y, z, lnc;
   int rank, nproc, i, j, k, lnc;
-  int64_t ii, jj, kk; 
+  int64_t ii, jj, kk;
 
   if( g==NULL )                 ERROR(("Bad grid"));
   if( g->mp==NULL             ) ERROR(("Bad mp"));
@@ -43,7 +43,7 @@ size_grid( grid_t * g,
   g->nz = lnz;
   for( k=-1; k<=1; k++ )
     for( j=-1; j<=1; j++ )
-      for( i=-1; i<=1; i++ ) 
+      for( i=-1; i<=1; i++ )
         g->bc[ BOUNDARY(i,j,k) ] = pec_fields;
   g->bc[ BOUNDARY(0,0,0) ] = rank;
 
@@ -205,8 +205,8 @@ void set_pbc( grid_t *g, int boundary, int pbc ) {
       boundary>=27 ||
       boundary==BOUNDARY(0,0,0)     ) ERROR(("Bad boundary"));
   if( pbc>=0 && pbc<mp_nproc(g->mp) ) ERROR(("Use join_grid"));
-  if( pbc!=absorb_particles && pbc!=reflect_particles && 
-      (-pbc-3<0 || -pbc-3>=g->nb) ) ERROR(("Bad particle bc")); 
+  if( pbc!=absorb_particles && pbc!=reflect_particles &&
+      (-pbc-3<0 || -pbc-3>=g->nb) ) ERROR(("Bad particle bc"));
 
   lnx = g->nx;
   lny = g->ny;
@@ -221,7 +221,7 @@ void set_pbc( grid_t *g, int boundary, int pbc ) {
       return;                                                   \
     }                                                           \
   } END_PRIMITIVE
-  
+
   SET_PBC(0,-1, 0, 0,x,y,z);
   SET_PBC(1, 0,-1, 0,y,z,x);
   SET_PBC(2, 0, 0,-1,z,x,y);

@@ -1,4 +1,4 @@
-/* 
+/*
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -34,13 +34,13 @@ new_species( const char *name,
   // Note: strlen does not include terminating NULL
   len = (name==NULL) ? 0 : strlen(name);
   if( len<=0 ) ERROR(("Cannot create a nameless species."));
-  if( find_species_name(name,*sp_list)!=NULL ) 
+  if( find_species_name(name,*sp_list)!=NULL )
     ERROR(("There is already a species named \"%s\".",name));
   if( max_local_np<1 )
     ERROR(("Invalid max_local_np requested for species \"%s\".",name));
   if( max_local_nm<1 )
     ERROR(("Invalid max_local_nm requested for species \"%s\".",name));
-  
+
   // Note: Since a sp->name is declared as a 1-element char array, the
   // terminating NULL is included in sizeof(species_t)
   MALLOC( buf, sizeof(sp[0])+len ); sp = (species_t *)buf;
@@ -56,7 +56,7 @@ new_species( const char *name,
   sp->sort_out_of_place = sort_out_of_place;
   sp->partition = NULL; // FIXME: ALLOCATE THIS HERE! SP SHOULD KNOW ABOUT GRID
   strcpy( sp->name, name );
-  
+
   sp->next = *sp_list;
   *sp_list = sp;
   return sp;

@@ -1,4 +1,4 @@
-/* 
+/*
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -27,13 +27,13 @@ struct particle_injector;
 
 typedef void (*boundary_handler_t)( void                  * params,
                                     struct particle       * r,
-                                    struct particle_mover * pm,       
+                                    struct particle_mover * pm,
                                     struct field          * f,
                                     struct accumulator    * a,
                                     const struct grid     * g,
-                                    struct species        * s, 
-                                    struct particle_injector ** ppi, 
-                                    mt_rng_t              * rng, 
+                                    struct species        * s,
+                                    struct particle_injector ** ppi,
+                                    mt_rng_t              * rng,
                                     int           face );
 
 enum boundary_handler_enums {
@@ -45,7 +45,7 @@ enum boundary_handler_enums {
 
 typedef struct boundary {
  boundary_handler_t handler;
- char params[MAX_BOUNDARY_DATA_SIZE]; 
+ char params[MAX_BOUNDARY_DATA_SIZE];
 } boundary_t;
 
 #define BOUNDARY(i,j,k) INDEX_FORTRAN_3(i,j,k,-1,1,-1,1,-1,1)
@@ -81,7 +81,7 @@ enum grid_enums {
   // B_tang  -> Symmetric           | B_tang  -> Anti-symmetric
   // E_norm  -> Symmetric           | E_norm  -> Anti-symmetric (see note)
   // div B   -> Symmetric           | div B   -> Anti-symmetric
-  // 
+  //
   // Note: B_norm is tricky. For a symmetry plane, B_norm on the
   // boundary must be zero as there are no magnetic charges (a
   // non-zero B_norm would imply an infinitesimal layer of magnetic
@@ -334,7 +334,7 @@ end_send_port( int i, // x port coord ([-1,0,1])
 // ordering (e.g. inner loop increments x-index).
 //
 // jobs are indexed from 0 to n_job-1.  jobs are _always_ have the
-// number of voxels an integer multiple of the bundle size.  If job 
+// number of voxels an integer multiple of the bundle size.  If job
 // is set to n_job, this function will compute the voxel index of
 // the first voxel in the final incomplete bundle and return the
 // number of voxels in the final incomplete bundle.

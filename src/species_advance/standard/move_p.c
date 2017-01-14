@@ -43,7 +43,7 @@ move_p( particle_t       * ALIGNED(128) p0,
     s_dir[0] = (s_dispx>0) ? 1 : -1;
     s_dir[1] = (s_dispy>0) ? 1 : -1;
     s_dir[2] = (s_dispz>0) ? 1 : -1;
-    
+
     // Compute the twice the fractional distance to each potential
     // streak/cell face intersection.
     v0 = (s_dispx==0) ? 3.4e38 : (s_dir[0]-s_midx)/s_dispx;
@@ -53,7 +53,7 @@ move_p( particle_t       * ALIGNED(128) p0,
     // Determine the fractional length and type of current streak. The
     // streak ends on either the first face intersected by the
     // particle track or at the end of the particle track.
-    // 
+    //
     //   type 0,1 or 2 ... streak ends on a x,y or z-face respectively
     //   type 3        ... streak ends at end of the particle track
     /**/      v3=2,  type=3;

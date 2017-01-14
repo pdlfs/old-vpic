@@ -1,4 +1,4 @@
-/* 
+/*
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -39,7 +39,7 @@ mp_init_dmp( int argc,
 
 void
 mp_finalize_dmp( mp_handle h ) {
-  TRAP( MPI_Finalize() ); 
+  TRAP( MPI_Finalize() );
 }
 
 mp_handle
@@ -94,7 +94,7 @@ mp_send_buffer_dmp( int tag,
 
 void
 mp_abort_dmp( int reason,
-              mp_handle h ) {  
+              mp_handle h ) {
   MPI_Abort( MPI_COMM_WORLD, reason );
 }
 
@@ -116,7 +116,7 @@ mp_elapsed_dmp( mp_handle h ) {
   local_t = MPI_Wtime() - mp->elapsed_ref;
   TRAP( MPI_Allreduce( &local_t, &global_t, 1, MPI_DOUBLE,
                        MPI_MAX, MPI_COMM_WORLD ) );
-  
+
   return global_t;
 }
 
@@ -162,7 +162,7 @@ mp_size_recv_buffer_dmp( int tag,
 
   // Try to reduce the number of realloc calls
 
-  size*=RESIZE_FACTOR; 
+  size*=RESIZE_FACTOR;
 
   // Create the new recv buffer
 
@@ -203,7 +203,7 @@ mp_size_send_buffer_dmp( int tag,
 
   // Try to reduce the number of realloc calls
 
-  size *= RESIZE_FACTOR; 
+  size *= RESIZE_FACTOR;
 
   // Create the new send buffer
 
@@ -229,7 +229,7 @@ mp_begin_recv_dmp( int recv_buf,
   mp_t *mp = (mp_t *)h;
 
   if( mp==NULL                         ) ERROR(( "Bad handle" ));
-  if( recv_buf<0 || recv_buf>=NUM_BUF  ) ERROR(( "Bad recv_buf" )); 
+  if( recv_buf<0 || recv_buf>=NUM_BUF  ) ERROR(( "Bad recv_buf" ));
   if( msg_size<=0                      ) ERROR(( "Bad msg_size" ));
   if( sender<0 || sender>=mp->nproc    ) ERROR(( "Bad sender" ));
   if( mp->rbuf[recv_buf]==NULL         ) ERROR(( "NULL recv_buf" ));
@@ -299,7 +299,7 @@ mp_allsum_d_dmp( double *local,
                  int n,
                  mp_handle h ) {
   mp_t *mp = (mp_t *)h;
-  
+
   if( mp==NULL            ) ERROR(( "Bad handle" ));
   if( local==NULL         ) ERROR(( "Bad local" ));
   if( global==NULL        ) ERROR(( "Bad global" ));
@@ -315,12 +315,12 @@ mp_allsum_i_dmp( int *local,
                  int n,
                  mp_handle h ) {
   mp_t *mp = (mp_t *)h;
-  
+
   if( mp==NULL            ) ERROR(( "Bad handle" ));
   if( local==NULL         ) ERROR(( "Bad local" ));
   if( global==NULL        ) ERROR(( "Bad global" ));
   if( abs(local-global)<n ) ERROR(( "Overlapping local and global" ));
-  
+
   TRAP( MPI_Allreduce( local, global, n, MPI_INT,
                        MPI_SUM, MPI_COMM_WORLD ) );
 }
@@ -331,12 +331,12 @@ mp_allgather_i_dmp( int *sbuf,
                     int n,
                     mp_handle h ) {
   mp_t *mp = (mp_t *)h;
-  
+
   if( mp==NULL   ) ERROR(( "Bad handle" ));
   if( sbuf==NULL ) ERROR(( "Bad send" ));
   if( rbuf==NULL ) ERROR(( "Bad recv" ));
   if( n<1        ) ERROR(( "Bad n" ));
-  
+
   TRAP( MPI_Allgather( sbuf, n, MPI_INT,
                        rbuf, n, MPI_INT, MPI_COMM_WORLD ) );
 }
@@ -383,8 +383,8 @@ mp_send_i_dmp( int *buf,
                int dst,
                mp_handle h ) {
   mp_t *mp = (mp_t *)h;
-  
-  if( mp==NULL ) ERROR(( "Bad handle" )); 
+
+  if( mp==NULL ) ERROR(( "Bad handle" ));
   TRAP( MPI_Send( buf, n, MPI_INT, dst, 0, MPI_COMM_WORLD ) );
 }
 
@@ -395,8 +395,8 @@ mp_recv_i_dmp( int *buf,
                mp_handle h ) {
   mp_t *mp = (mp_t *)h;
   MPI_Status status;
-  
-  if( mp==NULL ) ERROR(( "Bad handle" )); 
+
+  if( mp==NULL ) ERROR(( "Bad handle" ));
   TRAP( MPI_Recv( buf, n, MPI_INT, src, 0, MPI_COMM_WORLD, &status ) );
 }
 

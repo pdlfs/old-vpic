@@ -45,7 +45,7 @@ pipeline( pipeline_args_t * args,
   const float pz = (nz>1) ? g->cvac*g->dt*g->rdz : 0;
 
   // Process the voxels assigned to this pipeline
-  
+
   n_voxel = distribute_voxels( 2,nx, 2,ny, 2,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
@@ -55,15 +55,15 @@ pipeline( pipeline_args_t * args,
   fx = &f(x-1,y,  z  ); \
   fy = &f(x,  y-1,z  ); \
   fz = &f(x,  y,  z-1)
-  
+
   LOAD_STENCIL();
 
   for( ; n_voxel; n_voxel-- ) {
     UPDATE_TCAX();
     UPDATE_TCAY();
-    UPDATE_TCAZ(); 
+    UPDATE_TCAZ();
     f0++; fx++;	fy++; fz++;
-    
+
     x++;
     if( x>nx ) {
       x=2, y++;
@@ -122,14 +122,14 @@ v4_pipeline( pipeline_args_t * args,
   field_t * ALIGNED(16) fy0, * ALIGNED(16) fy1, * ALIGNED(16) fy2, * ALIGNED(16) fy3; // Voxel quad +y neighbors
   field_t * ALIGNED(16) fz0, * ALIGNED(16) fz1, * ALIGNED(16) fz2, * ALIGNED(16) fz3; // Voxel quad +z neighbors
 
-  // Process the voxels assigned to this pipeline 
-  
+  // Process the voxels assigned to this pipeline
+
   n_voxel = distribute_voxels( 2,nx, 2,ny, 2,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
 
   // Process the bulk of the voxels 4 at a time
-                               
+
 # define LOAD_STENCIL() \
   f0 = &f(x,  y,  z  ); \
   fx = &f(x-1,y,  z  ); \
@@ -170,7 +170,7 @@ v4_pipeline( pipeline_args_t * args,
     LOAD_RMU(z,x); LOAD_RMU(z,y);
 
 #   undef LOAD_RMU
-    
+
     f0_cbx_rmux = f0_cbx * m_f0_rmux;
     f0_cby_rmuy = f0_cby * m_f0_rmuy;
     f0_cbz_rmuz = f0_cbz * m_f0_rmuz;
@@ -197,7 +197,7 @@ v4_compute_curl_b( field_t                      * ALIGNED(16) f,
                    const material_coefficient_t * ALIGNED(16) m,
                    const grid_t                 *             g ) {
   pipeline_args_t args[1];
-  
+
   float px, py, pz;
   field_t *f0, *fx, *fy, *fz;
   int x, y, z, nx, ny, nz;
@@ -216,7 +216,7 @@ v4_compute_curl_b( field_t                      * ALIGNED(16) f,
   /***************************************************************************
    * Begin tangential B ghost setup
    ***************************************************************************/
-  
+
   begin_remote_ghost_tang_b( f, g );
   local_ghost_tang_b( f, g );
 
@@ -251,13 +251,13 @@ v4_compute_curl_b( field_t                      * ALIGNED(16) f,
     }
   }
 # endif
-     
+
   args->f = f;
   args->m = m;
   args->g = g;
 
   EXEC_PIPELINES( pipeline, args, 0 );
-  
+
   // Do left over interior ex
   for( z=2; z<=nz; z++ ) {
     for( y=2; y<=ny; y++ ) {
@@ -295,7 +295,7 @@ v4_compute_curl_b( field_t                      * ALIGNED(16) f,
   }
 
   WAIT_PIPELINES();
-  
+
   /***************************************************************************
    * Finish tangential B ghost setup
    ***************************************************************************/
@@ -432,4 +432,3 @@ v4_compute_curl_b( field_t                      * ALIGNED(16) f,
     }
   }
 }
-

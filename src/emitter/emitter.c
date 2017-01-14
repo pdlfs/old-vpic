@@ -14,7 +14,7 @@ new_emitter( const char * name,
   len = (name==NULL) ? 0 : strlen(name);
   if( len<=0 ) ERROR(("Cannot create a nameless emitter."));
   if( find_emitter_name(name,*e_list)!=NULL )
-    ERROR(("There is already a emitter named \"%s\".",name)); 
+    ERROR(("There is already a emitter named \"%s\".",name));
   if( max_component<1 ) {
 
     // BJA: commented ERROR() out for the following reason: If an
@@ -70,4 +70,3 @@ find_emitter_name( const char *name, emitter_t *e_list ) {
   LIST_FIND_FIRST(e,e_list,strcmp(e->name,name)==0);
   return e;
 }
-

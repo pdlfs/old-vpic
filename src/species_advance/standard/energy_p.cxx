@@ -109,7 +109,7 @@ energy_p_pipeline_v4( energy_p_pipeline_args_t * args,
 
     // Accumulate energy
     v0  = fma( v0,v0, fma( v1,v1, v2*v2 ) );
-    v0 /= sqrt(one+v0)+one; 
+    v0 /= sqrt(one+v0)+one;
     en0 += (double)v0(0)*(double)q(0);
     en1 += (double)v0(1)*(double)q(1);
     en2 += (double)v0(2)*(double)q(2);

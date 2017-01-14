@@ -36,7 +36,7 @@ _standard_field_advance[1] = { {
   // Shared face cleaning interface
 
   synchronize_tang_e_norm_b,
-  
+
   // Electric field divergence cleaning interface
 
   compute_div_e_err,
@@ -173,7 +173,7 @@ new_material_coefficients( grid_t * g,
     mc->epsz = m->epsz;
   }
 
-  return material_coefficient;  
+  return material_coefficient;
 }
 
 void
@@ -191,7 +191,7 @@ clear_jf( field_t      * ALIGNED(128) f,
   int nx, ny, nz, x, y, z;
   field_t *f0;
 
-  if( f==NULL ) ERROR(("Bad field")); 
+  if( f==NULL ) ERROR(("Bad field"));
   if( g==NULL ) ERROR(("Bad grid"));
 
   nx = g->nx;

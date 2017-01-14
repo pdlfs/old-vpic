@@ -1,4 +1,4 @@
-/* 
+/*
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -41,7 +41,7 @@ new_mt_rng( unsigned int seed );
 
 void
 delete_mt_rng( mt_rng_t * rng );
- 
+
 /*********************************
  * Seeders and related functions *
  *********************************/
