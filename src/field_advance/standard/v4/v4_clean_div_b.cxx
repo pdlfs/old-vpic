@@ -20,7 +20,7 @@ pipeline( pipeline_args_t * args,
           int n_pipeline ) {
   field_t      * ALIGNED(128) f = args->f;
   const grid_t *              g = args->g;
-  
+
   field_t * ALIGNED(16) f0;
   field_t * ALIGNED(16) fx, * ALIGNED(16) fy, * ALIGNED(16) fz;
   int x, y, z, n_voxel;
@@ -40,7 +40,7 @@ pipeline( pipeline_args_t * args,
   pz *= alphadt;
 
   // Process voxels assigned to this pipeline
-  
+
   n_voxel = distribute_voxels( 2,nx, 2,ny, 2,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
@@ -52,19 +52,19 @@ pipeline( pipeline_args_t * args,
   fz = &f(x,  y,  z-1)
 
   LOAD_STENCIL();
-  
+
   for( ; n_voxel; n_voxel-- ) {
     MARDER_CBX();
     MARDER_CBY();
     MARDER_CBZ();
     f0++; fx++; fy++; fz++;
-    
+
     x++;
     if( x>nx ) {
       x=2, y++;
       if( y>ny ) y=2, z++;
       LOAD_STENCIL();
-    }      
+    }
   }
 
 # undef LOAD_STENCIL
@@ -84,7 +84,7 @@ v4_pipeline( pipeline_args_t * args,
   field_t * ALIGNED(16) f0;
   field_t * ALIGNED(16) fx, * ALIGNED(16) fy, * ALIGNED(16) fz;
   int x, y, z, n_voxel;
-  
+
   const int nx = g->nx;
   const int ny = g->ny;
   const int nz = g->nz;
@@ -114,8 +114,8 @@ v4_pipeline( pipeline_args_t * args,
   field_t * ALIGNED(16) fy0, * ALIGNED(16) fy1, * ALIGNED(16) fy2, * ALIGNED(16) fy3; // Voxel quad +x neighbors
   field_t * ALIGNED(16) fz0, * ALIGNED(16) fz1, * ALIGNED(16) fz2, * ALIGNED(16) fz3; // Voxel quad +x neighbors
 
-  // Process voxels assigned to this pipeline 
-  
+  // Process voxels assigned to this pipeline
+
   n_voxel = distribute_voxels( 2,nx, 2,ny, 2,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
@@ -167,7 +167,7 @@ void
 v4_clean_div_b( field_t      * ALIGNED(128) f,
                 const grid_t *              g ) {
   pipeline_args_t args[1];
-  
+
   float alphadt, px, py, pz;
   field_t *f0, *fx, *fy, *fz;
   int x, y, z, nx, ny, nz;
@@ -272,7 +272,7 @@ v4_clean_div_b( field_t      * ALIGNED(128) f,
   }
 
   // Finish setting derr ghosts
-  
+
   end_remote_ghost_div_b( f, g );
 
   // Do Marder pass in exterior
@@ -334,8 +334,8 @@ v4_clean_div_b( field_t      * ALIGNED(128) f,
   }
 
   // Wait for pipelines to finish up cleaning div_b in interior
-  
+
   WAIT_PIPELINES();
-  
+
   local_adjust_norm_b(f,g);
 }

@@ -27,7 +27,7 @@ main( int argc,
   else         NS = 8;
 
   MESSAGE(( "Booting" ));
-  
+
   spu.boot( NS, 0 );
 
   MESSAGE(( "Setting args" ));

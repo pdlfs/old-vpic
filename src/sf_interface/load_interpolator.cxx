@@ -39,7 +39,7 @@ load_interpolator_pipeline( load_interpolator_pipeline_args_t * args,
   float w0, w1, w2, w3;
 
   // Process the voxels assigned to this pipeline
-  
+
   n_voxel = distribute_voxels( 1,nx, 1,ny, 1,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
@@ -68,7 +68,7 @@ load_interpolator_pipeline( load_interpolator_pipeline_args_t * args,
 # endif
 
   LOAD_STENCIL();
-  
+
   for( ; n_voxel; n_voxel-- ) {
 
     // ex interpolation
@@ -187,11 +187,11 @@ load_interpolator_pipeline_v4( load_interpolator_pipeline_args_t * args,
   v4float w0, w1, w2, w3;
 
   // Process the voxels assigned to this pipeline
-  
+
   n_voxel = distribute_voxels( 1,nx, 1,ny, 1,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
-  
+
 # if HAS_SPU_INTERPOLATOR
 # define LOAD_STENCIL()    \
   pi   = &fi(x,  y,  z  ); \
@@ -216,10 +216,10 @@ load_interpolator_pipeline_v4( load_interpolator_pipeline_args_t * args,
 # endif
 
   LOAD_STENCIL();
-  
+
   for( ; n_voxel; n_voxel-- ) {
 
-    // ex interpolation coefficients 
+    // ex interpolation coefficients
     w0 = toggle_bits( sgn_1_2, v4float( pf0->ex) ); // [ w0 -w0 -w0 w0 ]
     w1 =                       v4float( pfy->ex);   // [ w1  w1  w1 w1 ]
     w2 = toggle_bits( sgn_1_2, v4float( pfz->ex) ); // [ w2 -w2 -w2 w2 ]
@@ -227,7 +227,7 @@ load_interpolator_pipeline_v4( load_interpolator_pipeline_args_t * args,
     store_4x1( fourth*( ( w3 + w0 ) + toggle_bits( sgn_2_3, w1 + w2 ) ),
                &pi->ex );
 
-    // ey interpolation coefficients 
+    // ey interpolation coefficients
     w0 = toggle_bits( sgn_1_2, v4float( pf0->ey) ); // [ w0 -w0 -w0 w0 ]
     w1 =                       v4float( pfz->ey);   // [ w1  w1  w1 w1 ]
     w2 = toggle_bits( sgn_1_2, v4float( pfx->ey) ); // [ w2 -w2 -w2 w2 ]
@@ -235,7 +235,7 @@ load_interpolator_pipeline_v4( load_interpolator_pipeline_args_t * args,
     store_4x1( fourth*( ( w3 + w0 ) + toggle_bits( sgn_2_3, w1 + w2 ) ),
                &pi->ey );
 
-    // ez interpolation coefficients 
+    // ez interpolation coefficients
     w0 = toggle_bits( sgn_1_2, v4float( pf0->ez) ); // [ w0 -w0 -w0 w0 ]
     w1 =                       v4float( pfx->ez);   // [ w1  w1  w1 w1 ]
     w2 = toggle_bits( sgn_1_2, v4float( pfy->ez) ); // [ w2 -w2 -w2 w2 ]
@@ -243,7 +243,7 @@ load_interpolator_pipeline_v4( load_interpolator_pipeline_args_t * args,
     store_4x1( fourth*( ( w3 + w0 ) + toggle_bits( sgn_2_3, w1 + w2 ) ),
                &pi->ez );
 
-    // bx and by interpolation coefficients 
+    // bx and by interpolation coefficients
     w0  = toggle_bits( sgn_1_3,
                        merge( sel_0_1,
                               v4float(pf0->cbx),
@@ -253,7 +253,7 @@ load_interpolator_pipeline_v4( load_interpolator_pipeline_args_t * args,
                               v4float(pfy->cby) );   // [ w1x  w1x w1y  w1y ]
     store_4x1( half*( w1 + w0 ), &pi->cbx );
 
-    // bz interpolation coefficients 
+    // bz interpolation coefficients
     w0  = toggle_bits( sgn_1_3, v4float(pf0->cbz) ); // [ w0 -w0 d/c d/c ]
     w1  =                       v4float(pfz->cbz);   // [ w1 -w1 d/c d/c ]
     store_4x1( half*( w1 + w0 ), &pi->cbz ); // Note: Padding after bz coeff!
@@ -315,7 +315,7 @@ load_interpolator( interpolator_t * ALIGNED(128) fi,
         pi->dexdy    = 0.25*( -w0 + w1 - w2 + w3 );
         pi->dexdz    = 0.25*( -w0 - w1 + w2 + w3 );
         pi->d2exdydz = 0.25*(  w0 - w1 - w2 + w3 );
-        
+
         // ey interpolation coefficients
         w0 = pf0->ey;
         w1 = pfz->ey;
@@ -325,7 +325,7 @@ load_interpolator( interpolator_t * ALIGNED(128) fi,
         pi->deydz    = 0.25*( -w0 + w1 - w2 + w3 );
         pi->deydx    = 0.25*( -w0 - w1 + w2 + w3 );
         pi->d2eydzdx = 0.25*(  w0 - w1 - w2 + w3 );
-        
+
         // ez interpolation coefficients
         w0 = pf0->ez;
         w1 = pfx->ez;
@@ -335,19 +335,19 @@ load_interpolator( interpolator_t * ALIGNED(128) fi,
         pi->dezdx    = 0.25*( -w0 + w1 - w2 + w3 );
         pi->dezdy    = 0.25*( -w0 - w1 + w2 + w3 );
         pi->d2ezdxdy = 0.25*(  w0 - w1 - w2 + w3 );
-        
+
         // bx interpolation coefficients
         w0 = pf0->cbx;
         w1 = pfx->cbx;
         pi->cbx    = 0.5*(  w0 + w1 );
         pi->dcbxdx = 0.5*( -w0 + w1 );
-        
+
         // by interpolation coefficients
         w0 = pf0->cby;
         w1 = pfy->cby;
         pi->cby    = 0.5*(  w0 + w1 );
         pi->dcbydy = 0.5*( -w0 + w1 );
-        
+
         // bz interpolation coefficients
         w0 = pf0->cbz;
         w1 = pfz->cbz;

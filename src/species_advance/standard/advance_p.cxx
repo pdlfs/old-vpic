@@ -33,7 +33,7 @@ advance_p_pipeline( advance_p_pipeline_args_t * args,
   float v0, v1, v2, v3, v4, v5;
 
   int itmp, ii, n, nm, max_nm;
-  
+
   particle_mover_t local_pm[1];
 
   // Determine which quads of particles quads this pipeline processes
@@ -205,7 +205,7 @@ advance_p_pipeline_v4( advance_p_pipeline_args_t * args,
   const grid_t         *              g  = args->g;
 
   particle_t           * ALIGNED(128) p;
-  particle_mover_t     * ALIGNED(16)  pm; 
+  particle_mover_t     * ALIGNED(16)  pm;
   float                * ALIGNED(16)  vp0;
   float                * ALIGNED(16)  vp1;
   float                * ALIGNED(16)  vp2;
@@ -299,7 +299,7 @@ advance_p_pipeline_v4( advance_p_pipeline_args_t * args,
     uy += hay;
     uz += haz;
     store_4x4_tr(ux,uy,uz,q,&p[0].ux,&p[1].ux,&p[2].ux,&p[3].ux);
-    
+
     // Update the position of inbnd particles
     v0  = rsqrt( one + fma( ux,ux, fma( uy,uy, uz*uz ) ) );
     ux *= cdt_dx;
@@ -321,7 +321,7 @@ advance_p_pipeline_v4( advance_p_pipeline_args_t * args,
     v4  = merge(outbnd,dy,v4);
     v5  = merge(outbnd,dz,v5);
     store_4x4_tr(v3,v4,v5,ii,&p[0].dx,&p[1].dx,&p[2].dx,&p[3].dx);
-    
+
     // Accumulate current of inbnd particles
     // Note: accumulator values are 4 times the total physical charge that
     // passed through the appropriate current quadrant in a time-step
@@ -401,7 +401,7 @@ advance_p( particle_t           * ALIGNED(128) p0,
            const int                           np,
            const float                         q_m,
            particle_mover_t     * ALIGNED(128) pm,
-           int                                 max_nm,       
+           int                                 max_nm,
            accumulator_t        * ALIGNED(128) a0,
            const interpolator_t * ALIGNED(128) f0,
            const grid_t         *              g ) {
@@ -467,6 +467,6 @@ advance_p( particle_t           * ALIGNED(128) p0,
       MOVE( pm+nm, args->seg[rank].pm, args->seg[rank].nm );
     nm += args->seg[rank].nm;
   }
-  
+
   return nm;
 }

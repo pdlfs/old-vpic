@@ -60,7 +60,7 @@ _SPUEAR_coarse_count_pipeline_spu( MEM_PTR( sort_p_pipeline_args_t, 128 ) argp,
     i += nb;                                                            \
     n_block[b] = nb;                                                    \
   } while(0)
-  
+
 # define PROCESS_PBLOCK(b) do {                                         \
     nb = n_block[b];                                                    \
     if( nb ) {                                                          \
@@ -133,7 +133,7 @@ _SPUEAR_coarse_sort_pipeline_spu( MEM_PTR( sort_p_pipeline_args_t, 128 ) argp,
     i += nb;                                                            \
     n_block[b] = nb;                                                    \
   } while(0)
-  
+
 # define PROCESS_PBLOCK(b) do {                                         \
     nb = n_block[b];                                                    \
     if( nb ) {                                                          \
@@ -188,7 +188,7 @@ clear_range( MEM_PTR( int, 128 ) d,
 
   /* Clear until i is aligned at 16 bytes */
   while( i&3 && i<i1 ) CLEAR(1);
- 
+
   /* Clear the bulk as fast as possible */
   n_bulk = (i1-i)&(~3); /* Number of integers we can clear in 16 byte
                            aligned chunks */
@@ -236,7 +236,7 @@ _SPUEAR_subsort_pipeline_spu( MEM_PTR( sort_p_pipeline_args_t, 128 ) argp,
   /*const*/ int n_voxel = args->n_voxel;
   /*const*/ int v0 = P2V( pipeline_rank,   n_pipeline, n_voxel );
   /*const*/ int v1 = P2V( pipeline_rank+1, n_pipeline, n_voxel );
-  
+
   /* Particles in this voxel range in [i0,i1) in the aux array */
   /*const*/ int i0 = args->coarse_partition[pipeline_rank  ];
   /*const*/ int i1 = args->coarse_partition[pipeline_rank+1];
@@ -245,7 +245,7 @@ _SPUEAR_subsort_pipeline_spu( MEM_PTR( sort_p_pipeline_args_t, 128 ) argp,
 
   MEM_PTR( int, 128 ) partition = args->partition;
   MEM_PTR( int, 128 ) next      = args->next;
-  
+
   int i, j, v, sum, count;
 
   particle_t p_i; /* FIXME: ALIGNMENT? */

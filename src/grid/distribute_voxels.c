@@ -21,7 +21,7 @@ distribute_voxels( int x0, int x1,     // range of x-indices (inclusive)
 
     x  = n_voxel;
     n_voxel %= bundle;
-    x -= n_voxel; 
+    x -= n_voxel;
 
   } else {
 

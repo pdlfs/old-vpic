@@ -68,7 +68,7 @@ void
 vfa_compute_div_e_err( field_t                      * ALIGNED(128) f,
                        const material_coefficient_t * ALIGNED(128) m,
                        const grid_t                 *              g ) {
-  pipeline_args_t args[1];  
+  pipeline_args_t args[1];
 
   float px, py, pz, cj;
   field_t *f0, *fx, *fy, *fz;

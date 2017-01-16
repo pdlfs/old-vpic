@@ -16,7 +16,7 @@
 
 #if FOR_SPU
 
-# if defined(CELL_PPU_BUILD) 
+# if defined(CELL_PPU_BUILD)
 
     // Use SPU dispatcher on the SPU pipeline
     // PPU will do straggler cleanup with scalar pipeline

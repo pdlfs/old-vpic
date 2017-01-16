@@ -153,7 +153,7 @@ compute_rhob( field_t                      * ALIGNED(128) f,
       fz++;
     }
   }
- 
+
   // y faces, z edges
   for( z=2; z<=nz; z++ ) {
     f0 = &f(1,1,z);

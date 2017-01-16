@@ -56,7 +56,7 @@ typedef struct pipeline_dispatcher {
   //
   // If the pipeline functions do not take arguments, use NULL for
   // args and 0 for the size_args.
-                    
+
   void
   (*dispatch)( pipeline_func_t pipeline,
                void * args,
@@ -85,4 +85,4 @@ END_C_DECLS
 
 #endif // !CELL_SPU_BUILD
 
-#endif // _pipelines_h_ 
+#endif // _pipelines_h_

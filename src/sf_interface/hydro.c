@@ -1,4 +1,4 @@
-/* 
+/*
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -17,7 +17,7 @@
   for( z=zl; z<=zh; z++ )	    \
     for( y=yl; y<=yh; y++ )	    \
       for( x=xl; x<=xh; x++ )
-	      
+
 // x_NODE_LOOP => Loop over all non-ghost nodes at plane x
 #define x_NODE_LOOP(x) XYZ_LOOP(x,x,1,ny+1,1,nz+1)
 #define y_NODE_LOOP(y) XYZ_LOOP(1,nx+1,y,y,1,nz+1)
@@ -174,7 +174,7 @@ local_adjust_hydro( hydro_t      * ALIGNED(128) hydro,
       }                                         \
     }                                           \
   } while(0)
-  
+
   ADJUST_HYDRO(-1, 0, 0,x,y,z);
   ADJUST_HYDRO( 0,-1, 0,y,z,x);
   ADJUST_HYDRO( 0, 0,-1,z,x,y);

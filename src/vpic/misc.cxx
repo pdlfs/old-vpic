@@ -1,4 +1,4 @@
-/* 
+/*
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -29,7 +29,7 @@ vpic_simulation::inject_particle( species_t * sp,
   const double x0 = (double)grid->x0, y0 = (double)grid->y0, z0 = (double)grid->z0;
   const double x1 = (double)grid->x1, y1 = (double)grid->y1, z1 = (double)grid->z1;
   const int    nx = grid->nx,         ny = grid->ny,         nz = grid->nz;
-  
+
   // Do not inject if the particle is strictly outside the local domain
   // or if a far wall of local domain shared with a neighbor
   // FIXME: DO THIS THE PHASE-3 WAY WITH GRID->NEIGHBOR
@@ -40,16 +40,16 @@ vpic_simulation::inject_particle( species_t * sp,
   if( (z<z0) | (z>z1) | ( (z==z1) & (grid->bc[BOUNDARY(0,0,1)]>=0 ) ) ) return;
 
   // This node should inject the particle
-    
+
   if( sp->np>=sp->max_np ) ERROR(( "No room to inject particle" ));
 
   // Compute the injection cell and coordinate in cell coordinate system
-  // BJA:  Note the use of double precision here for accurate particle 
-  //       placement on large meshes. 
- 
+  // BJA:  Note the use of double precision here for accurate particle
+  //       placement on large meshes.
+
   // The ifs allow for injection on the far walls of the local computational
   // domain when necessary
- 
+
   x  = ((double)nx)*((x-x0)/(x1-x0)); // x is rigorously on [0,nx]
   ix = (int)x;                        // ix is rigorously on [0,nx]
   x -= (double)ix;                    // x is rigorously on [0,1)
@@ -139,7 +139,7 @@ void vpic_simulation::output_checksum_species(const char * species) {
   if(sp == NULL) {
     ERROR(("Invalid species name \"%s\".", species));
   } // if
-  
+
   CheckSum cs;
   checkSumBuffer<particle_t>(sp->p, sp->np, cs, "sha1");
 

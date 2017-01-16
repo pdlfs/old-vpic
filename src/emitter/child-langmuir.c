@@ -96,4 +96,3 @@ child_langmuir( emitter_t            *              e,      // Actual emitter
 
   }
 }
-

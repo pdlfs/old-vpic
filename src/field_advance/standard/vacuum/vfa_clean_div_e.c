@@ -36,7 +36,7 @@ pipeline( pipeline_args_t * args,
   px *= alphadt;
   py *= alphadt;
   pz *= alphadt;
-  
+
   // Process voxels assigned to this pipeline
 
   n_voxel = distribute_voxels( 1,nx, 1,ny, 1,nz, 16,
@@ -74,7 +74,7 @@ vfa_clean_div_e( field_t                      * ALIGNED(128) f,
                  const material_coefficient_t * ALIGNED(128) m,
                  const grid_t                 *              g ) {
   pipeline_args_t args[1];
-  
+
   float alphadt, px, py, pz;
   field_t *f0, *fx, *fy, *fz;
   int x, y, z, nx, ny, nz;
@@ -106,7 +106,7 @@ vfa_clean_div_e( field_t                      * ALIGNED(128) f,
   args->g = g;
 
   EXEC_PIPELINES( pipeline, args, 0 );
-  
+
   // Do left over field components on the host
 
   nx = g->nx;
@@ -119,7 +119,7 @@ vfa_clean_div_e( field_t                      * ALIGNED(128) f,
   px *= alphadt;
   py *= alphadt;
   pz *= alphadt;
-  
+
   // Do left over ex
   for( y=1; y<=ny+1; y++ ) {
     f0 = &f(1,y,nz+1);

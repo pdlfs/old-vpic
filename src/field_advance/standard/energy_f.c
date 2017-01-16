@@ -17,24 +17,24 @@ pipeline( pipeline_args_t * args,
   const field_t                * ALIGNED(128) f = args->f;
   const material_coefficient_t * ALIGNED(128) m = args->m;
   const grid_t                 *              g = args->g;
-    
+
   const field_t * ALIGNED(16) f0;
   const field_t * ALIGNED(16) fx,  * ALIGNED(16) fy,  * ALIGNED(16) fz;
   const field_t * ALIGNED(16) fyz, * ALIGNED(16) fzx, * ALIGNED(16) fxy;
   int x, y, z, n_voxel;
-  
+
   const int nx = g->nx;
   const int ny = g->ny;
   const int nz = g->nz;
 
   double en_ex, en_ey, en_ez, en_bx, en_by, en_bz;
-  
+
   // Process voxels assigned to this pipeline
-  
+
   n_voxel = distribute_voxels( 1,nx, 1,ny, 1,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
-  
+
 # define LOAD_STENCIL()  \
   f0  = &f(x,  y,  z  ); \
   fx  = &f(x+1,y,  z  ); \
@@ -43,7 +43,7 @@ pipeline( pipeline_args_t * args,
   fyz = &f(x,  y+1,z+1); \
   fzx = &f(x+1,y,  z+1); \
   fxy = &f(x+1,y+1,z  )
-  
+
   LOAD_STENCIL();
 
   en_ex = en_ey = en_ez = en_bx = en_by = en_bz = 0;
@@ -52,15 +52,15 @@ pipeline( pipeline_args_t * args,
 
     en_ex += 0.25*( m[ f0->ematx].epsx* f0->ex * f0->ex +
                     m[ fy->ematx].epsx* fy->ex * fy->ex +
-                    m[ fz->ematx].epsx* fz->ex * fz->ex + 
+                    m[ fz->ematx].epsx* fz->ex * fz->ex +
                     m[fyz->ematx].epsx*fyz->ex *fyz->ex );
     en_ey += 0.25*( m[ f0->ematy].epsy* f0->ey * f0->ey +
                     m[ fz->ematy].epsy* fz->ey * fz->ey +
-                    m[ fx->ematy].epsy* fx->ey * fx->ey + 
+                    m[ fx->ematy].epsy* fx->ey * fx->ey +
                     m[fzx->ematy].epsy*fzx->ey *fzx->ey );
     en_ez += 0.25*( m[ f0->ematz].epsz* f0->ez * f0->ez +
                     m[ fx->ematz].epsz* fx->ez * fx->ez +
-                    m[ fy->ematz].epsz* fy->ez * fy->ez + 
+                    m[ fy->ematz].epsz* fy->ez * fy->ez +
                     m[fxy->ematz].epsz*fxy->ez *fxy->ez );
 
     en_bx += 0.5 *( m[ f0->fmatx].rmux* f0->cbx* f0->cbx +
@@ -71,7 +71,7 @@ pipeline( pipeline_args_t * args,
                     m[ fz->fmatz].rmuz* fz->cbz* fz->cbz );
 
     f0++; fx++; fy++; fz++; fyz++; fzx++; fxy++;
-    
+
     x++;
     if( x>nx ) {
       x=1, y++;
@@ -98,7 +98,7 @@ energy_f( double                       *              global,
   pipeline_args_t args[1];
   double v0;
   int p;
-  
+
   if( global==NULL ) ERROR(("Bad energy"));
   if( f==NULL )      ERROR(("Bad field"));
   if( m==NULL )      ERROR(("Bad material coefficients"));
@@ -116,24 +116,24 @@ energy_f( double                       *              global,
       fzx = &f(2,y,  z+1);
       fxy = &f(2,y+1,z  );
       for( x=1; x<=nx; x++ ) {
-      
+
         // FIXME: CHECK IF THIS IS THE CORRECT LAGRANGIAN DEFINITION
-         
+
          en_ex += 0.25*( m[ f0->ematx].epsx* f0->ex * f0->ex +
                          m[ fy->ematx].epsx* fy->ex * fy->ex +
-                         m[ fz->ematx].epsx* fz->ex * fz->ex + 
+                         m[ fz->ematx].epsx* fz->ex * fz->ex +
                          m[fyz->ematx].epsx*fyz->ex *fyz->ex );
 
          en_ey += 0.25*( m[ f0->ematy].epsy* f0->ey * f0->ey +
                          m[ fz->ematy].epsy* fz->ey * fz->ey +
-                         m[ fx->ematy].epsy* fx->ey * fx->ey + 
+                         m[ fx->ematy].epsy* fx->ey * fx->ey +
                          m[fzx->ematy].epsy*fzx->ey *fzx->ey );
-                            
+
          en_ez += 0.25*( m[ f0->ematz].epsz* f0->ez * f0->ez +
                          m[ fx->ematz].epsz* fx->ez * fx->ez +
-                         m[ fy->ematz].epsz* fy->ez * fy->ez + 
+                         m[ fy->ematz].epsz* fy->ez * fy->ez +
                          m[fxy->ematz].epsz*fxy->ez *fxy->ez );
-         
+
          en_bx += 0.5 *( m[ f0->fmatx].rmux* f0->cbx* f0->cbx +
                          m[ fx->fmatx].rmux* fx->cbx* fx->cbx );
 
@@ -142,7 +142,7 @@ energy_f( double                       *              global,
 
          en_bz += 0.5 *( m[ f0->fmatz].rmuz* f0->cbz* f0->cbz +
                          m[ fz->fmatz].rmuz* fz->cbz* fz->cbz );
-                            
+
          f0++; fx++; fy++; fz++; fyz++; fzx++; fxy++;
       }
     }
@@ -150,7 +150,7 @@ energy_f( double                       *              global,
 # endif
 
   // Have each pipelines work on a portion of the local voxels
-  
+
   args->f = f;
   args->m = m;
   args->g = g;
@@ -159,15 +159,15 @@ energy_f( double                       *              global,
   WAIT_PIPELINES();
 
   // Reduce results from each pipelines
-  
+
   for( p=1; p<=N_PIPELINE; p++ ) {
     args->en[0][0] += args->en[p][0]; args->en[0][1] += args->en[p][1];
     args->en[0][2] += args->en[p][2]; args->en[0][3] += args->en[p][3];
     args->en[0][4] += args->en[p][4]; args->en[0][5] += args->en[p][5];
   }
-    
+
   // Convert to physical units and reduce results between nodes
-  
+
   v0 = 0.5*g->eps0*g->dx*g->dy*g->dz;
   args->en[0][0] *= v0; args->en[0][1] *= v0;
   args->en[0][2] *= v0; args->en[0][3] *= v0;

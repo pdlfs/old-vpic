@@ -7,7 +7,7 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  * this list of conditions and the following disclaimer.
  *
@@ -124,7 +124,7 @@ static int Busy = 0;
  *
  ***************************************************************************/
 
-static void 
+static void
 spu_boot( int num_pipe,
           int dispatch_to_host ) {
   size_t i;
@@ -182,7 +182,7 @@ spu_boot( int num_pipe,
  * Arguments: None
  *
  * Returns: None
- * 
+ *
  * Throws: An error if:
  *         - The caller is not the host PPU thread
  *         - Errors occurred terminating SPU control threads
@@ -212,7 +212,7 @@ spu_halt( void ) {
 
   uint32_t abort = 0;
   for( id=0; id<spu.n_pipeline; id++ ) {
-    
+
     spe_in_mbox_write( SPU_Control_State[id].context, &abort,
                        1, SPE_MBOX_ANY_NONBLOCKING );
 
@@ -341,7 +341,7 @@ spu_dispatch( pipeline_func_t func,
 
   Busy = 1;
 }
-                 
+
 static void
 spu_wait( void ) {
   int rank;

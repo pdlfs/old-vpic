@@ -1,4 +1,4 @@
-/* 
+/*
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -60,7 +60,7 @@ void vpic_simulation::initialize( int argc, char **argv ) {
   tmp = field_advance->method->synchronize_tang_e_norm_b( field_advance->f, field_advance->g );
   if( rank==0 ) MESSAGE(("Error = %e (arb units)",tmp));
 # endif
-    
+
   if( species_list!=NULL ) {
     if( rank==0 ) MESSAGE(("Uncentering particles"));
     load_interpolator( interpolator, field_advance->f, field_advance->g );

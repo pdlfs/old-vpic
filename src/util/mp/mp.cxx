@@ -1,4 +1,4 @@
-/* 
+/*
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -59,7 +59,7 @@ mp_send_buffer_cxx( int tag,
 
 void
 mp_abort_cxx( int reason,
-              mp_handle h ) {  
+              mp_handle h ) {
   MPWrapper::instance().mp_abort( reason, h );
 } // mp_abort
 
