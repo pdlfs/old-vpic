@@ -130,21 +130,21 @@ begin_initialization {
    *  - tracer_int: Particle dump rate (in time steps)
    */
 
-  double taui      = 2000/wpe_wce;  //Simulation wci's to run (number of timesteps)
+  double taui      = 400/wpe_wce; // Number of simulation timesteps (Fan: 2000/wpe_wce)
   double quota     = 15.;          // run quota in hours
   double quota_sec = quota*3600;   // Run quota in seconds
 
-  double topology_x = 32; // Number of domains in x, y, and z. Fan: 32
+  double topology_x = 16; // Number of domains in x, y, and z. Fan: 32
   double topology_y = 1;
   double topology_z = 1;
 
-  double nx = 2048; // (Fan: 2048, default: 792)
+  double nx = 16; // (Fan: 2048, default: 792)
   double ny = 1;  // (Fan: 1, default: 528)
-  double nz = 1024; // (Fan: 1024, default: 528)
+  double nz = 4; // (Fan: 1024, default: 528)
 
-  int particle_select = 10; // Adjusts particle sampling rate
-  int tracer_int = 55; // Adjusts per-particle dump rate (def = int(1.0/(wpe*dt));)
-  int eparticle_interval = 55; // Adjusts per-process dump rate (def = 100*interval;)
+  int particle_select = 1; // Adjusts particle sampling rate
+  int tracer_int = 20; // Adjusts per-particle dump rate (def = int(1.0/(wpe*dt));)
+  int eparticle_interval = 20; // Adjusts per-process dump rate (def = 100*interval;)
 
   // Numerical parameters
 
@@ -283,10 +283,10 @@ begin_initialization {
   species_t *ionBot = define_species("ionBot", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
 
   species_t * e_tracer  = define_species("electron_tracer",-ec/me,
-                                          0.1*Ne/nproc(),   -1,
+                                          4*Ne/nproc(),   -1,   //Def: 0.1
                                           electron_sort_interval,  0 );
   species_t * i_tracer  = define_species("ion_tracer",      ec/mi,
-                                          0.1*Ne/nproc(),   -1,
+                                          4*Ne/nproc(),   -1,   //Def: 0.1
                                           ion_sort_interval,     0 );
 
   hijack_tracers(2);
