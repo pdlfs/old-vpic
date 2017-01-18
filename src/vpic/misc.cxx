@@ -17,7 +17,7 @@ void
 vpic_simulation::inject_particle( species_t * sp,
                                   double x,  double y,  double z,
                                   double ux, double uy, double uz,
-                                  double q,  double age,
+                                  double q,  int64_t tag, double age,
                                   int update_rhob ) {
   int ix, iy, iz;
 
@@ -83,6 +83,7 @@ vpic_simulation::inject_particle( species_t * sp,
   p->uy = (float)uy;
   p->uz = (float)uz;
   p->q  = q;
+  p->tag = tag;
 
   if( update_rhob ) {
     p->q = -q;

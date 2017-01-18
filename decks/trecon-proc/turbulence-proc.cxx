@@ -493,6 +493,7 @@ begin_initialization {
   int i=0;
   int64_t itp1=0;
   int64_t itp2=0;
+  int64_t tag=0;
 
   // Load Harris population
 
@@ -523,20 +524,24 @@ begin_initialization {
     uy = (GVD*upa1*VDY/VD + upe1*VDX/VD) + GVD*VDY*gu1;
     uz = uz1;
 
+    if (particle_tracing == 1) {
+        if (i % particle_select == 0) {
+            itp1++;
+            // Tag format: 18 bits for rank (up to 250K nodes) and
+            //             46 bits for particle ID (up to 70T particles/node)
+            tag = (((int64_t) rank_int + 1) << 46) | (itp1 & 0x3ffffffffff);
+        }
+    }
 
-    //inject_particle(electron, x, y, z, ux, uy, uz, qe, 0, 0 );
+    //inject_particle(electron, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
     if (z>0)
-      inject_particle(electronTop, x, y, z, ux, uy, uz, qe, 0, 0 );
+      inject_particle(electronTop, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
     else
-      inject_particle(electronBot, x, y, z, ux, uy, uz, qe, 0, 0 );
+      inject_particle(electronBot, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
 
 
     if (particle_tracing == 1){
      if (i%particle_select == 0){
-      itp1++;
-      // Tag format: 18 bits for rank (up to 250K nodes) and
-      //             46 bits for particle ID (up to 70T particles/node)
-      int64_t tag = (((int64_t) rank_int + 1) << 46) | (itp1 & 0x3ffffffffff);
       if (z>0)
         tag_tracer( (electronTop->p + electronTop->np-1), e_tracer, tag );
       else
@@ -560,18 +565,23 @@ begin_initialization {
     uy = (-GVD*upa1*VDY/VD - upe1*VDX/VD) - GVD*VDY*gu1;
     uz = uz1;
 
-    //inject_particle(ion, x, y, z, ux, uy, uz, qi, 0, 0 );
+    if (particle_tracing == 1) {
+        if (i % particle_select == 0) {
+            itp2++;
+            // Tag format: 18 bits for rank (up to 250K nodes) and
+            //             46 bits for particle ID (up to 70T particles/node)
+            tag = (((int64_t) rank_int + 1) << 46) | (itp2 & 0x3ffffffffff);
+        }
+    }
+
+    //inject_particle(ion, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
    if (z>0)
-    inject_particle(ionTop, x, y, z, ux, uy, uz, qi, 0, 0 );
+    inject_particle(ionTop, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
    else
-    inject_particle(ionBot, x, y, z, ux, uy, uz, qi, 0, 0 );
+    inject_particle(ionBot, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
 
     if (particle_tracing == 1){
      if (i%particle_select == 0){
-      itp2++;
-      // Tag format: 18 bits for rank (up to 250K nodes) and
-      //             46 bits for particle ID (up to 70T particles/node)
-      int64_t tag = (((int64_t) rank_int + 1) << 46) | (itp2 & 0x3ffffffffff);
       if (z>0)
         tag_tracer( (ionTop->p + ionTop->np-1),           i_tracer, tag );
       else 

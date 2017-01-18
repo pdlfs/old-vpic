@@ -485,8 +485,8 @@ begin_initialization {
     uz = uz1;
 
 
-    //L.O. inject_particle(electron, x, y, z, ux, uy, uz, qe, 0, 0 );
-    inject_particle(electron, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qe, 0, 0 );
+    //L.O. inject_particle(electron, x, y, z, ux, uy, uz, qe, 0, 0, 0 );
+    inject_particle(electron, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qe, 0, 0, 0 );
 
     //  Ions are spatially uniform Maxwellian with no drifts
 
@@ -508,8 +508,8 @@ begin_initialization {
     uz = uz1;
 
 
-    //L.O. inject_particle(ion, x, y, z, ux, uy, uz, qi, 0, 0 );
-    inject_particle(ion, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qi, 0, 0 );
+    //L.O. inject_particle(ion, x, y, z, ux, uy, uz, qi, 0, 0, 0 );
+    inject_particle(ion, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qi, 0, 0, 0 );
 
     if (particle_tracing == 1){
      if (i%particle_select == 0){

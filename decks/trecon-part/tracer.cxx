@@ -253,7 +253,7 @@ inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
   species_t *s = global->tracers_list ;				\
   particle_t *p; 						\
   int j;							\
-  float pout[8];						\
+  float pout[10];						\
   FileIO f;							\
 								\
   sprintf(dname, "%s", fbase );					\
@@ -275,7 +275,8 @@ inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
 	 pout[5] = (float) p[j].ux;				\
 	 pout[6] = (float) p[j].uy;				\
 	 pout[7] = (float) p[j].uz;				\
-	 f.write(pout,8);					\
+     memcpy(pout+8, &tag, sizeof(tag));     \
+	 f.write(pout,10);					\
        f.close();						\
       }               \
       }								\

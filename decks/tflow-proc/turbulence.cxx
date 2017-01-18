@@ -472,7 +472,7 @@ begin_initialization {
    uy = gamma*vy;
    uz = gamma*vz;
 
-    inject_particle(electron, x, y, z, ux, uy, uz, qe, 0, 0 );
+    inject_particle(electron, x, y, z, ux, uy, uz, qe, 0, 0, 0 );
 
     //  Ions are spatially uniform Maxwellian with no drifts
 
@@ -499,7 +499,7 @@ begin_initialization {
    uz = gamma*vz;
   
 
-   inject_particle(ion, x, y, z, ux, uy, uz, qi, 0, 0 );
+   inject_particle(ion, x, y, z, ux, uy, uz, qi, 0, 0, 0 );
     
   }
 
