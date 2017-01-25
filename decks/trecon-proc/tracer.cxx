@@ -49,6 +49,11 @@
  *
  */
 
+#include <sys/types.h>
+#include <dirent.h> /* Needed for opendir */
+#include <unistd.h> /* Needed for getcwd */
+#include <assert.h>
+
 // Here, p is the particle to copy and tag and tracer is the species 
 // itno which we will inject the tracer. If only one species is 
 // defined then tracer = tracers_list. tag shold be a unique 
@@ -249,40 +254,48 @@ inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
  * pout[12] = (float) field[p->i].cbz;
  */
 #define dump_traj(fbase) 		BEGIN_PRIMITIVE{	\
-  char dname[256], fname[256] ;					\
+  char dname[256], fname[256];                      \
+  char cwd[1024], adname[1024];	                    \
   species_t *s = global->tracers_list ;				\
-  particle_t *p; 						\
-  int j;							\
-  float pout[10];						\
-  FileIO f;							\
-								\
-  sprintf(dname, "%s", fbase );					\
-  dump_mkdir(dname);						\
-								\
-  while( s ){							\
-    if ( s->np > 0 ){						\
-      p = s->p;							\
-      for (j=0; j<s->np ; ++j){ 				\
-      int64_t tag = p[j].tag;					\
-      if (tag !=  0 ) {						\
-       sprintf(fname, "%s/%s.%ld", dname , s->name, tag);	\
-       f.open(fname,io_append);					\
-	 pout[0] = step*grid->dt;				\
-	 pout[1] = (float) p[j].dx;				\
-	 pout[2] = (float) p[j].dy;				\
-	 pout[3] = (float) p[j].dz;				\
-	 pout[4] = (float) p[j].i;				\
-	 pout[5] = (float) p[j].ux;				\
-	 pout[6] = (float) p[j].uy;				\
-	 pout[7] = (float) p[j].uz;				\
-     memcpy(pout+8, &tag, sizeof(tag));     \
-	 f.write(pout,10);					\
-       f.close();						\
-      }               \
-      }								\
-      }      \
-    s = s->next;						\
-  }								\
+  particle_t *p;                                    \
+  int j;                                            \
+  float pout[10];                                   \
+  FileIO f;                                         \
+  DIR *d;                                           \
+                                                    \
+  sprintf(dname, "%s", fbase );                     \
+  assert(getcwd(cwd, sizeof(cwd)) != NULL);         \
+  sprintf(adname, "%s/%s", cwd, dname);             \
+  d = opendir(adname);                              \
+  dump_mkdir(dname);                                \
+                                                    \
+  while( s ){                                       \
+    if ( s->np > 0 ){                               \
+      p = s->p;                                     \
+      for (j=0; j<s->np ; ++j){                     \
+        int64_t tag = p[j].tag;                     \
+        if (tag !=  0 ) {                           \
+          sprintf(fname, "%s/%s.%lx",               \
+                  dname, s->name, tag);             \
+          f.open(fname,io_append);                  \
+          pout[0] = step*grid->dt;                  \
+          pout[1] = (float) p[j].dx;                \
+          pout[2] = (float) p[j].dy;                \
+          pout[3] = (float) p[j].dz;                \
+          pout[4] = (float) p[j].i;                 \
+          pout[5] = (float) p[j].ux;                \
+          pout[6] = (float) p[j].uy;                \
+          pout[7] = (float) p[j].uz;                \
+          memcpy(pout+8, &tag, sizeof(tag));        \
+          f.write(pout,10);                         \
+          f.close();                                \
+        }                                           \
+      }                                             \
+    }                                               \
+    s = s->next;                                    \
+  }                                                 \
+                                                    \
+  closedir(d);                                      \
 } END_PRIMITIVE
 
 
