@@ -170,7 +170,7 @@
 #endif
             sprintf(fname,HYDRO_FILE_FORMAT,step,edParams.at(isp)->fname,step,(int)rank()); 
 #ifndef TRINITY_RUN
-            sim_log("appendig data to "<<fname);
+            sim_log("appending data to "<<fname);
 #endif
 
             status = fedump.open( fname, io_append );         // open the file 

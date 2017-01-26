@@ -51,8 +51,6 @@
 
 #include <sys/types.h>
 #include <dirent.h> /* Needed for opendir */
-#include <unistd.h> /* Needed for getcwd */
-#include <assert.h>
 
 // Here, p is the particle to copy and tag and tracer is the species 
 // itno which we will inject the tracer. If only one species is 
@@ -255,7 +253,6 @@ inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
  */
 #define dump_traj(fbase) 		BEGIN_PRIMITIVE{	\
   char dname[256], fname[256];                      \
-  char cwd[1024], adname[1024];	                    \
   species_t *s = global->tracers_list ;				\
   particle_t *p;                                    \
   int j;                                            \
@@ -264,10 +261,9 @@ inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
   DIR *d;                                           \
                                                     \
   sprintf(dname, "%s", fbase );                     \
-  assert(getcwd(cwd, sizeof(cwd)) != NULL);         \
-  sprintf(adname, "%s/%s", cwd, dname);             \
-  d = opendir(adname);                              \
-  dump_mkdir(dname);                                \
+  if ( step == 0 )                                  \
+    dump_mkdir(dname);                              \
+  d = opendir(dname);                               \
                                                     \
   while( s ){                                       \
     if ( s->np > 0 ){                               \
