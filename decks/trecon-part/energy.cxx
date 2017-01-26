@@ -79,7 +79,9 @@
         for (isp=0; isp<nsp; isp++) {   // loop over species
 
             sp = find_species_id( edParams.at(isp)->sp_id, species_list);
-            sim_log("computing the distribution function for species "<< sp->name); 
+#ifndef TRINITY_RUN
+            sim_log("computing the distribution function for species "<< sp->name);
+#endif
             vth = edParams.at(isp)->vth;
             eth = vth*vth/2.0;
             dke = emax*eth/nex;
@@ -162,9 +164,13 @@
 
             // dump the file
 
+#ifndef TRINITY_RUN
             sim_log(" writing the distribution function to file "); 	 
+#endif
             sprintf(fname,HYDRO_FILE_FORMAT,step,edParams.at(isp)->fname,step,(int)rank()); 
-            sim_log("appendig data to "<<fname);
+#ifndef TRINITY_RUN
+            sim_log("appending data to "<<fname);
+#endif
 
             status = fedump.open( fname, io_append );         // open the file 
             if ( status==fail ) ERROR(("Could not open file."));   // error check

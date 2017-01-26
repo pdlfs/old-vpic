@@ -10,6 +10,7 @@
 #include <math.h>
 
 #define NUM_TURNSTILES 512
+#define TRINITY_RUN
 
 #include "tracer.cxx"
 
@@ -273,8 +274,10 @@ begin_initialization {
 
   ////////////////////////////////////////////////////////////////////////////////////////////
   // Setup the species
- 
+
+#ifndef TRINITY_RUN 
   sim_log("Setting up species. ");
+#endif
   //species_t *electron = define_species("electron",-ec/me,2.5*Ne/nproc(),-1,electron_sort_interval,0);
   //species_t *ion = define_species("ion",ec/mi,2.5*Ne/nproc(),-1,ion_sort_interval,0);
   species_t *electronTop = define_species("electronTop",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
@@ -295,7 +298,9 @@ begin_initialization {
   ////////////////////////////////////////////////////////////////////////////////////////////
   // Setup materials
 
-  sim_log("Setting up materials. "); 
+#ifndef TRINITY_RUN 
+  sim_log("Setting up materials. ");
+#endif
 
   define_material( "vacuum", 1 );
 
@@ -307,44 +312,59 @@ begin_initialization {
 ////////////////////////////////////////////////////////////////////////////////////////////
 //  Finalize Field Advance
 
+#ifndef TRINITY_RUN 
   sim_log("Finalizing Field Advance"); 
+#endif
 
   finalize_field_advance(standard_field_advance); 
 
   ///////////////////////////////////////////////////
   // Log diagnostic information about this simulation
 
+#ifndef TRINITY_RUN 
   sim_log( "***********************************************" );
-  sim_log("* Topology:                       "<<topology_x<<" "<<topology_y<<" "<<topology_z); 
-  sim_log ( "L_di   = " << L_di ); 
+#endif
+  sim_log("Topology: X="<<topology_x<<" Y="<<topology_y<<" Z="<<topology_z); 
+#ifndef TRINITY_RUN 
+  sim_log ( "L_di   = " << L_di );
   sim_log ( "Ti/Te = " << Ti_Te ) ;
   sim_log ( "wpe/wce = " << wpe_wce );
   sim_log ( "mi/me = " << mi_me );
   sim_log ( "taui = " << taui );
+#endif
   sim_log ( "num_step = " << num_step );
+#ifndef TRINITY_RUN 
   sim_log ( "Lx/di = " << Lx/di );
   sim_log ( "Lx/de = " << Lx/de );
   sim_log ( "Ly/di = " << Ly/di );
   sim_log ( "Ly/de = " << Ly/de );
   sim_log ( "Lz/di = " << Lz/di );
   sim_log ( "Lz/de = " << Lz/de );
+#endif
   sim_log ( "nx = " << nx );
   sim_log ( "ny = " << ny );
   sim_log ( "nz = " << nz ); 
+#ifndef TRINITY_RUN 
   sim_log ( "damp = " << damp );
   sim_log ( "courant = " << c*dt/dg );
+#endif
   sim_log ( "nproc = " << nproc ()  );
   sim_log ( "nppc = " << nppc );
+#ifndef TRINITY_RUN 
   sim_log ( " b0 = " << b0 );
   sim_log ( " di = " << di );
   sim_log ( " Ne = " << Ne );
+#endif
   sim_log ( "total # of particles = " << 2*Ne );
+#ifndef TRINITY_RUN 
   sim_log ( " qi = " << qi );
   sim_log ( " qe = " << qe );
   sim_log ( "dt*wpe = " << wpe*dt ); 
   sim_log ( "dt*wce = " << wce*dt );
   sim_log ( "dt*wci = " << wci*dt );
+#endif
   sim_log ( " energies_interval: " << energies_interval );
+#ifndef TRINITY_RUN 
   sim_log ( "dx/de = " << Lx/(de*nx) );
   sim_log ( "dy/de = " << Ly/(de*ny) );
   sim_log ( "dz/de = " << Lz/(de*nz) );
@@ -354,6 +374,7 @@ begin_initialization {
   sim_log ( "n0 = " << n0 );
   sim_log ( "vthi/c = " << vthi/c );
   sim_log ( "vthe/c = " << vthe/c );
+#endif
 
   
   // Dump simulation information to file "info"
@@ -473,7 +494,9 @@ begin_initialization {
 //#define BZWAVE DBZ(2,1,0.5) + DBZ(3,2,-0.2) + DBZ(4,3,-0.3) + DBZ(5,4,0.3) + DBZ(6,5,0.8) + DBZ(7,6,0.8)
 //#define BZWAVE 0.0
 
+#ifndef TRINITY_RUN
   sim_log( "Loading fields" );
+#endif
   set_region_field( everywhere, 0, 0, 0, BX + DBX0, BY + BYWAVE, DBZ0 + BZWAVE);
 
   // Note: everywhere is a region that encompasses the entire simulation
@@ -481,7 +504,9 @@ begin_initialization {
 
   // LOAD PARTICLES
 
+#ifndef TRINITY_RUN
   sim_log( "Loading particles" );
+#endif
 
   // Do a fast load of the particles
 
@@ -497,7 +522,9 @@ begin_initialization {
 
   // Load Harris population
 
+#ifndef TRINITY_RUN
   sim_log( "-> Force Free Sheet" );
+#endif
 
   repeat ( Ne/nproc() ) {
     double x, y, z, ux, uy, uz, upa1, upe1, uz1, gu1 ;
@@ -592,7 +619,9 @@ begin_initialization {
     
   }
 
+#ifndef TRINITY_RUN
   sim_log( "Finished loading particles" );
+#endif
 
    /*--------------------------------------------------------------------------
      * New dump definition
@@ -618,20 +647,26 @@ begin_initialization {
 
 	global->fdParams.format = band;
 
+#ifndef TRINITY_RUN
 	sim_log ( "Fields output format = band" );
+#endif
 
 	//global->hedParams.format = band;
         global->eTopdParams.format = band;
         global->eBotdParams.format = band;
 
 
+#ifndef TRINITY_RUN
 	sim_log ( "Electron species output format = band" );
+#endif
 
 	//global->hHdParams.format = band;
         global->iTopdParams.format = band;
         global->iBotdParams.format = band;
 
+#ifndef TRINITY_RUN
 	sim_log ( "Ion species output format = band" );
+#endif
 
     /*--------------------------------------------------------------------------
 	 * Set stride
@@ -680,9 +715,11 @@ begin_initialization {
 	// add field parameters to list
 	global->outputParams.push_back(&global->fdParams);
 
+#ifndef TRINITY_RUN
 	sim_log ( "Fields x-stride " << global->fdParams.stride_x );
 	sim_log ( "Fields y-stride " << global->fdParams.stride_y );
 	sim_log ( "Fields z-stride " << global->fdParams.stride_z );
+#endif
 
 	// relative path to electron species data from global header
 	//sprintf(global->hedParams.baseDir, "hydro");
@@ -710,12 +747,14 @@ begin_initialization {
         global->outputParams.push_back(&global->eTopdParams);
         global->outputParams.push_back(&global->eBotdParams);
 
+#ifndef TRINITY_RUN
 	//sim_log ( "Electron species x-stride " << global->hedParams.stride_x );
 	//sim_log ( "Electron species y-stride " << global->hedParams.stride_y );
 	//sim_log ( "Electron species z-stride " << global->hedParams.stride_z );
         sim_log ( "Electron species x-stride " << global->eTopdParams.stride_x );
         sim_log ( "Electron species y-stride " << global->eTopdParams.stride_y );
         sim_log ( "Electron species z-stride " << global->eTopdParams.stride_z );
+#endif
 
 	// relative path to electron species data from global header
 	//sprintf(global->hHdParams.baseDir, "hydro");
@@ -738,13 +777,14 @@ begin_initialization {
         global->iBotdParams.stride_y = 1;
         global->iBotdParams.stride_z = 1;
 
+#ifndef TRINITY_RUN
 	//sim_log ( "Ion species x-stride " << global->hHdParams.stride_x );
 	//sim_log ( "Ion species y-stride " << global->hHdParams.stride_y );
 	//sim_log ( "Ion species z-stride " << global->hHdParams.stride_z );
-
         sim_log ( "Ion species x-stride " << global->iTopdParams.stride_x );
         sim_log ( "Ion species y-stride " << global->iTopdParams.stride_y );
         sim_log ( "Ion species z-stride " << global->iTopdParams.stride_z );
+#endif
 
 	// add electron species parameters to list
 	//global->outputParams.push_back(&global->hHdParams);
@@ -812,7 +852,9 @@ begin_initialization {
 	char varlist[512];
 	create_field_list(varlist, global->fdParams);
 
+#ifndef TRINITY_RUN
 	sim_log ( "Fields variable list: " << varlist );
+#endif
 
 	//create_hydro_list(varlist, global->hedParams);
 
@@ -823,16 +865,24 @@ begin_initialization {
 	//sim_log ( "Ion species variable list: " << varlist );
 
   create_hydro_list(varlist, global->eTopdParams);
+#ifndef TRINITY_RUN
   sim_log ( "Electron top species variable list: " << varlist );
+#endif
 
   create_hydro_list(varlist, global->eBotdParams);
+#ifndef TRINITY_RUN
   sim_log ( "Electron bot species variable list: " << varlist );
+#endif
 
   create_hydro_list(varlist, global->iTopdParams);
+#ifndef TRINITY_RUN
   sim_log ( "Ion top species variable list: " << varlist );
+#endif
 
   create_hydro_list(varlist, global->iBotdParams);
+#ifndef TRINITY_RUN
   sim_log ( "Ion bot species variable list: " << varlist );
+#endif
 
 
 	/* ---------------------------------------------
@@ -868,7 +918,9 @@ begin_initialization {
 	global->nex  = 6;
 	global->emax = 300;
 
+#ifndef TRINITY_RUN
 	sim_log("*** Finished with user-specified initialization ***");
+#endif
 
 
   // Upon completion of the initialization, the following occurs:
@@ -1008,7 +1060,7 @@ begin_diagnostics {
         if(global->particle_tracing==1){
         //  if( should_dump(tracer) ) dump_tracers("tracer");
           if (should_dump(tracer)){
-            sim_log("** Dumping trajectory data! **");
+            sim_log("Dumping trajectory data: step T." << step);
             //char subdir[36];
             //sprintf(subdir,"tracer/T.%d",step);
             //dump_mkdir(subdir);
