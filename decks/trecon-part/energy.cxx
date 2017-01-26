@@ -45,8 +45,9 @@
 
 
         if (energy_first_time_called ) {
-
+#ifndef TRINITY_RUN
             sim_log("initializing the energy diagnostics"); 
+#endif
 
             nex = global->nex;
             emax = global->emax;
