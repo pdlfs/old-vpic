@@ -26,49 +26,71 @@ void vpic_simulation::initialize( int argc, char **argv ) {
   user_initialization(argc,argv);
 
   // Do some consistency checks on user initialized fields
+#ifndef TRINITY_RUN
   if( rank==0 ) MESSAGE(("Checking interdomain synchronization"));
+#endif
   tmp = field_advance->method->synchronize_tang_e_norm_b( field_advance->f, field_advance->g );
+#ifndef TRINITY_RUN
   if( rank==0 ) MESSAGE(("Error = %e (arb units)",tmp));
 
   if( rank==0 ) MESSAGE(("Checking magnetic field divergence"));
+#endif
   field_advance->method->compute_div_b_err( field_advance->f, field_advance->g );
   tmp = field_advance->method->compute_rms_div_b_err( field_advance->f, field_advance->g );
+#ifndef TRINITY_RUN
   if( rank==0 ) MESSAGE(("RMS error = %e (charge/volume)",tmp));
   if( rank==0 ) MESSAGE(("trying clean_div_b"));
+#endif
   field_advance->method->clean_div_b( field_advance->f, field_advance->g );
+#ifndef TRINITY_RUN
   if( rank==0 ) MESSAGE(("succeeded clean_div_b"));
 
   // Load fields not initialized by the user
   if( rank==0 ) MESSAGE(("Initializing radiation damping fields"));
+#endif
   field_advance->method->compute_curl_b( field_advance->f, field_advance->m, field_advance->g );
 
+#ifndef TRINITY_RUN
   if( rank==0 ) MESSAGE(("Initializing bound charge density"));
+#endif
   field_advance->method->clear_rhof( field_advance->f, field_advance->g );
   LIST_FOR_EACH(sp,species_list)
     accumulate_rho_p( field_advance->f, sp->p, sp->np, field_advance->g );
   field_advance->method->synchronize_rho( field_advance->f, field_advance->g );
   field_advance->method->compute_rhob( field_advance->f, field_advance->m, field_advance->g );
 
-# if 1 // Internal sanity checks
+//# if 1 // Internal sanity checks
+#ifndef TRINITY_RUN
   if( rank==0 ) MESSAGE(("Checking electric field divergence"));
+#endif
   field_advance->method->compute_div_e_err( field_advance->f, field_advance->m, field_advance->g );
   tmp = field_advance->method->compute_rms_div_e_err( field_advance->f, field_advance->g );
+#ifndef TRINITY_RUN
   if( rank==0 ) MESSAGE(("RMS error = %e (charge/volume)",tmp));
+#endif
   if( tmp>0 ) field_advance->method->clean_div_e( field_advance->f, field_advance->m, field_advance->g );
 
+#ifndef TRINITY_RUN
   if( rank==0 ) MESSAGE(("Double checking interdomain synchronization"));
+#endif
   tmp = field_advance->method->synchronize_tang_e_norm_b( field_advance->f, field_advance->g );
+#ifndef TRINITY_RUN
   if( rank==0 ) MESSAGE(("Error = %e (arb units)",tmp));
-# endif
+#endif
+//# endif
 
   if( species_list!=NULL ) {
+#ifndef TRINITY_RUN
     if( rank==0 ) MESSAGE(("Uncentering particles"));
+#endif
     load_interpolator( interpolator, field_advance->f, field_advance->g );
   }
   LIST_FOR_EACH(sp, species_list)
     uncenter_p( sp->p, sp->np, sp->q_m, interpolator, grid );
 
+#ifndef TRINITY_RUN
   if( rank==0 ) MESSAGE(("Initialization complete"));
+#endif
 
   // Let the user to perform diagnostics on the initial condition
   // field(i,j,k).jfx, jfy, jfz will not be valid at this point.

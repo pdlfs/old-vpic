@@ -42,7 +42,9 @@ int vpic_simulation::advance(void) {
 
   LIST_FOR_EACH(sp,species_list) {
     if( sp->sort_interval>0 && step%sp->sort_interval==0 ) {
+#ifndef TRINITY_RUN
       if( rank==0 ) MESSAGE(("Performance sorting \"%s\".",sp->name));
+#endif
       sort_p( sp, grid );
       s_time += mp_time00(grid->mp) - overhead; overhead = mp_time00(grid->mp);
     }
@@ -147,19 +149,25 @@ int vpic_simulation::advance(void) {
   // Divergence clean e
 
   if( clean_div_e_interval>0 && step%clean_div_e_interval==0 ) {
+#ifndef TRINITY_RUN
     if( rank==0 ) MESSAGE(("Divergence cleaning electric field"));
+#endif
     field_advance->method->clear_rhof( field_advance->f, field_advance->g );
     LIST_FOR_EACH(sp,species_list)
       accumulate_rho_p( field_advance->f, sp->p, sp->np, field_advance->g );
     field_advance->method->synchronize_rho( field_advance->f, field_advance->g );
     field_advance->method->compute_div_e_err( field_advance->f, field_advance->m, field_advance->g );
     err = field_advance->method->compute_rms_div_e_err( field_advance->f, field_advance->g );
+#ifndef TRINITY_RUN
     if( rank==0 ) MESSAGE(("Initial rms error = %e (charge/volume)",err));
+#endif
     if( err>0 ) {
       field_advance->method->clean_div_e( field_advance->f, field_advance->m, field_advance->g );
       field_advance->method->compute_div_e_err( field_advance->f, field_advance->m, field_advance->g );
       err = field_advance->method->compute_rms_div_e_err( field_advance->f, field_advance->g );
+#ifndef TRINITY_RUN
       if( rank==0 ) MESSAGE(("Cleaned rms error = %e (charge/volume)",err));
+#endif
       if( err>0 ) field_advance->method->clean_div_e( field_advance->f, field_advance->m, field_advance->g );
     }
   }
@@ -167,15 +175,21 @@ int vpic_simulation::advance(void) {
   // Divergence clean b
 
   if( clean_div_b_interval>0 && step%clean_div_b_interval==0 ) {
+#ifndef TRINITY_RUN
     if( rank==0 ) MESSAGE(("Divergence cleaning magnetic field"));
+#endif
     field_advance->method->compute_div_b_err( field_advance->f, field_advance->g );
     err = field_advance->method->compute_rms_div_b_err( field_advance->f, field_advance->g );
+#ifndef TRINITY_RUN
     if( rank==0 ) MESSAGE(("Initial rms error = %e (charge/volume)",err));
+#endif
     if( err>0 ) {
       field_advance->method->clean_div_b( field_advance->f, field_advance->g );
       field_advance->method->compute_div_b_err( field_advance->f, field_advance->g );
       err = field_advance->method->compute_rms_div_b_err( field_advance->f, field_advance->g );
+#ifndef TRINITY_RUN
       if( rank==0 ) MESSAGE(("Cleaned rms error = %e (charge/volume)",err));
+#endif
       if( err>0 ) field_advance->method->clean_div_b( field_advance->f, field_advance->g );
     }
   }
@@ -183,10 +197,14 @@ int vpic_simulation::advance(void) {
   // Synchronize the shared faces
 
   if( sync_shared_interval>0 && step%sync_shared_interval==0 ) {
+#ifndef TRINITY_RUN
     if( rank==0 ) MESSAGE(("Synchronizing shared tang e, norm b, rho_b"));
+#endif
     err = field_advance->method->synchronize_tang_e_norm_b( field_advance->f, field_advance->g );
+#ifndef TRINITY_RUN
     if( rank==0 )
       MESSAGE(("Domain desynchronization error = %e (arb units)",err));
+#endif
   }
 
   // Fields are updated ... load the interpolator for next time step and

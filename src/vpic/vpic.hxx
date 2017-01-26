@@ -31,6 +31,8 @@
 #define NVARHISMX 250
 #endif
 //  #include "dumpvars.h"
+
+#define TRINITY_RUN
  
 typedef FileIO FILETYPE;
 
