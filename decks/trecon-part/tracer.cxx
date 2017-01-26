@@ -261,7 +261,7 @@ inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
   DIR *d;                                           \
                                                     \
   sprintf(dname, "%s", fbase );                     \
-  if ( step == 0 )                                  \
+  if ( step == 0 && rank() == 0 )                   \
     dump_mkdir(dname);                              \
   d = opendir(dname);                               \
                                                     \
