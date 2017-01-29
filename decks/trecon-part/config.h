@@ -1,5 +1,6 @@
 /* Defining this reduces produced output */
 #define TRINITY_RUN
+#define LOG_SYSSTAT
 
 /* Define simulation mode: file per process or particle? */
 //#define VPIC_FILE_PER_PARTICLE
