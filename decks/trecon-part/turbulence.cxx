@@ -10,7 +10,9 @@
 #include <math.h>
 
 #define NUM_TURNSTILES 512
-#define TRINITY_RUN
+
+// Define variables for Trinity demo
+#include "config.h"
 
 #include "tracer.cxx"
 
@@ -131,21 +133,21 @@ begin_initialization {
    *  - tracer_int: Particle dump rate (in time steps)
    */
 
-  double taui      = 400/wpe_wce; // Number of simulation timesteps (Fan: 2000/wpe_wce)
+  double taui      = VPIC_TIMESTEPS; // Number of simulation timesteps (Fan: 2000/wpe_wce)
   double quota     = 15.;          // run quota in hours
   double quota_sec = quota*3600;   // Run quota in seconds
 
-  double topology_x = 16; // Number of domains in x, y, and z. Fan: 32
-  double topology_y = 1;
-  double topology_z = 1;
+  double topology_x = VPIC_TOPOLOGY_X; // Number of domains in x, y, and z. Fan: 32
+  double topology_y = VPIC_TOPOLOGY_Y;
+  double topology_z = VPIC_TOPOLOGY_Z;
 
-  double nx = 16; // (Fan: 2048, default: 792)
-  double ny = 1;  // (Fan: 1, default: 528)
-  double nz = 4; // (Fan: 1024, default: 528)
+  double nx = VPIC_PARTICLE_X; // (Fan: 2048, default: 792)
+  double ny = VPIC_PARTICLE_Y;  // (Fan: 1, default: 528)
+  double nz = VPIC_PARTICLE_Z; // (Fan: 1024, default: 528)
 
   int particle_select = 1; // Adjusts particle sampling rate
-  int tracer_int = 20; // Adjusts per-particle dump rate (def = int(1.0/(wpe*dt));)
-  int eparticle_interval = 20; // Adjusts per-process dump rate (def = 100*interval;)
+  int tracer_int = VPIC_DUMP_INTERVAL; // Adjusts per-particle dump rate (def = int(1.0/(wpe*dt));)
+  int eparticle_interval = VPIC_DUMP_INTERVAL; // Adjusts per-process dump rate (def = 100*interval;)
 
   // Numerical parameters
 
@@ -274,7 +276,7 @@ begin_initialization {
 
   ////////////////////////////////////////////////////////////////////////////////////////////
   // Setup the species
- 
+
 #ifndef TRINITY_RUN
   sim_log("Setting up species. ");
 #endif
@@ -299,7 +301,7 @@ begin_initialization {
   // Setup materials
 
 #ifndef TRINITY_RUN
-  sim_log("Setting up materials. "); 
+  sim_log("Setting up materials. ");
 #endif
 
   define_material( "vacuum", 1 );
@@ -322,11 +324,11 @@ begin_initialization {
   // Log diagnostic information about this simulation
 
 #ifndef TRINITY_RUN
-  sim_log( "***********************************************" );
+  sim_log ( "***********************************************" );
 #endif
   sim_log ("Topology: X="<<topology_x<<" Y="<<topology_y<<" Z="<<topology_z); 
 #ifndef TRINITY_RUN
-  sim_log ( "L_di   = " << L_di ); 
+  sim_log ( "L_di   = " << L_di );
   sim_log ( "Ti/Te = " << Ti_Te ) ;
   sim_log ( "wpe/wce = " << wpe_wce );
   sim_log ( "mi/me = " << mi_me );
@@ -575,7 +577,6 @@ begin_initialization {
         tag_tracer( (electronBot->p + electronBot->np-1), e_tracer, tag );
      }
     }
-
 
 
     //  Ions are spatially uniform Maxwellian with no drifts
@@ -1058,18 +1059,18 @@ begin_diagnostics {
 
   #include "energy.cxx"   //  Subroutine to compute energy spectrum diagnostic
 
-/*
+#ifdef VPIC_FILE_PER_PARTICLE
         if(global->particle_tracing==1){
         //  if( should_dump(tracer) ) dump_tracers("tracer");
           if (should_dump(tracer)){
-            sim_log("** Dumping trajectory data! **");
+            sim_log("Dumping trajectory data: step T." << step);
             //char subdir[36];
             //sprintf(subdir,"tracer/T.%d",step);
             //dump_mkdir(subdir);
-            dump_traj("traj");
+            dump_traj("particle");
           }
         }
-*/
+#endif
 
 	/*--------------------------------------------------------------------------
 	 * Restart dump
@@ -1099,6 +1100,7 @@ begin_diagnostics {
 
   // Dump particle data
 
+#ifndef VPIC_FILE_PER_PARTICLE
 	char subdir[36];
 	//if ( should_dump(eparticle) && step !=0 && step > 20*(global->fields_interval)  ) {
 	if ( should_dump(eparticle) && step !=0 ) {
@@ -1108,6 +1110,7 @@ begin_diagnostics {
       sim_log("Dumping trajectory data: step T." << step);
 	  dump_particles("electronTop",subdir);
 	}
+#endif
 
 //   if ( should_dump(Hparticle) ) {
 //     dump_particles("ion",  "Hparticle");    

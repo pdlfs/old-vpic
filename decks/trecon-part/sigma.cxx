@@ -486,7 +486,11 @@ begin_initialization {
 
 
     //L.O. inject_particle(electron, x, y, z, ux, uy, uz, qe, 0, 0, 0 );
+#ifdef VPIC_FILE_PER_PARTICLE
     inject_particle(electron, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qe, 0, 0, 0 );
+#else
+    inject_particle(electron, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qe, 0, 0 );
+#endif
 
     //  Ions are spatially uniform Maxwellian with no drifts
 
@@ -509,7 +513,11 @@ begin_initialization {
 
 
     //L.O. inject_particle(ion, x, y, z, ux, uy, uz, qi, 0, 0, 0 );
+#ifdef VPIC_FILE_PER_PARTICLE
     inject_particle(ion, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qi, 0, 0, 0 );
+#else
+    inject_particle(ion, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qi, 0, 0 );
+#endif
 
     if (particle_tracing == 1){
      if (i%particle_select == 0){
