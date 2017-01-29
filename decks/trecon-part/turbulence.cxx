@@ -151,7 +151,7 @@ begin_initialization {
 
   // Numerical parameters
 
-  double nppc  =  100; // Average number of macro particle per cell per species
+  double nppc  =  50; // Average number of macro particle per cell per species
 
   double Lx    = 1000.0*di; // size of box in x dimension
   double Ly    = 500.0*di/256;     // size of box in y dimension

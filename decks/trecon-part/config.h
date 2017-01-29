@@ -18,7 +18,7 @@
 #define VPIC_TOPOLOGY_Y 2
 #define VPIC_TOPOLOGY_Z 1
 
-/* Particle distribution. Total particles = 2 * 100 * x * y * z */
+/* Particle distribution. Total particles = 100 * x * y * z */
 #define VPIC_PARTICLE_X 16
 #define VPIC_PARTICLE_Y 16
 #define VPIC_PARTICLE_Z 1
