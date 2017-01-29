@@ -46,7 +46,8 @@ do
     cd $output_dir/run_$p || die "cd failed"
 
     mpirun -np $CORES -npernode $(( CORES / NODES )) \
-        --hostfile $output_dir/vpic.hosts $deck_dir/turbulence.op || \
+        --hostfile $output_dir/vpic.hosts \
+        $deck_dir/turbulence.op 2>&1 | tee "$output_dir/run_$p.log" || \
         die "run failed"
 
     dpoints=$(( dpoints - 1 ))
