@@ -133,7 +133,7 @@ begin_initialization {
    *  - tracer_int: Particle dump rate (in time steps)
    */
 
-  double taui      = VPIC_TIMESTEPS; // Number of simulation timesteps (Fan: 2000/wpe_wce)
+  double taui      = 2000/wpe_wce; // Number of simulation timesteps (Fan: 2000/wpe_wce)
   double quota     = 15.;          // run quota in hours
   double quota_sec = quota*3600;   // Run quota in seconds
 
@@ -211,7 +211,7 @@ begin_initialization {
 
   ///////////////////////////////////////////////
   // Setup high level simulation parameters
-  num_step             = int(taui/(wci*dt));
+  num_step             = VPIC_TIMESTEPS; //int(taui/(wci*dt));
   status_interval      = 200;
   sync_shared_interval = status_interval/2;
   clean_div_e_interval = status_interval/2;
@@ -1063,11 +1063,18 @@ begin_diagnostics {
         if(global->particle_tracing==1){
         //  if( should_dump(tracer) ) dump_tracers("tracer");
           if (should_dump(tracer)){
+#ifdef LOG_SYSSTAT
+            if (system("cat /proc/meminfo | grep -E \"^MemF\""))
+                sim_log("Failed to log memory stats");
+#endif
+	        double dumpstart = mp_elapsed(grid->mp);
             sim_log("Dumping trajectory data: step T." << step);
             //char subdir[36];
             //sprintf(subdir,"tracer/T.%d",step);
             //dump_mkdir(subdir);
             dump_traj("particle");
+	        double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
+    	    sim_log("Dumping duration "<<dumpelapsed);
           }
         }
 #endif
@@ -1104,11 +1111,21 @@ begin_diagnostics {
 	char subdir[36];
 	//if ( should_dump(eparticle) && step !=0 && step > 20*(global->fields_interval)  ) {
 	if ( should_dump(eparticle) && step !=0 ) {
+#ifdef LOG_SYSSTAT
+        if (system("cat /proc/meminfo | grep -E \"^Mem[T|F]\" | "
+                   "awk 'BEGIN{t=0}{ if (!t) { t = $2 } "
+                   "else { t = $2 * 100 / t  } }"
+                   "END{print \"Free Mem: \"t\"%\"}'"))
+            sim_log("Failed to log memory stats");
+#endif
 	  sprintf(subdir,"particle/T.%d",step); 
 	  dump_mkdir(subdir);
 	  sprintf(subdir,"particle/T.%d/eparticle",step); 
+	  double dumpstart = mp_elapsed(grid->mp);
       sim_log("Dumping trajectory data: step T." << step);
 	  dump_particles("electronTop",subdir);
+	  double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
+      sim_log("Dumping duration "<<dumpelapsed);
 	}
 #endif
 

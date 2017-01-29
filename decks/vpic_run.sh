@@ -1,7 +1,7 @@
 #!/bin/bash
 
-NODES=4
-CORES=16
+NODES=16
+CORES=64
 
 build_dir="$HOME/src/vpic"
 deck_dir="$HOME/src/vpic/decks/trecon-part"
@@ -18,11 +18,13 @@ for (i=1; i<=NF; i++)
     print $i"'"$fqdn_suffix"'"
 }' > "$output_dir/vpic.hosts" || die "failed to create vpic.hosts file"
 
-dpoints=10
+dpoints=7
 p=$CORES
 while [ $dpoints -gt 0 ]
 do
-    echo "Running VPIC on $CORES cores, with $(( p * p * 200 )) particles."
+    /share/testbed/bin/emulab-mpirunall sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches && free -m'
+
+    echo "Running VPIC on $CORES cores, with $(( p * p * 100 )) particles."
 
     # Configure VPIC experiment
     cd $deck_dir || die "cd failed"
@@ -50,5 +52,9 @@ do
         $deck_dir/turbulence.op 2>&1 | tee "$output_dir/run_$p.log" || \
         die "run failed"
 
+    echo -n "Output size: " >> "$output_dir/run_$p.log"
+    du -h $output_dir/run_$p | tail -1 | cut -f1 >> "$output_dir/run_$p.log"
+
     dpoints=$(( dpoints - 1 ))
+    p=$(( p * 2 ))
 done
