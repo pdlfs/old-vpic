@@ -53,7 +53,7 @@ do
         die "run failed"
 
     echo -n "Output size: " >> "$output_dir/run_$p.log"
-    du -h $output_dir/run_$p | tail -1 | cut -f1 >> "$output_dir/run_$p.log"
+    du -b $output_dir/run_$p | tail -1 | cut -f1 >> "$output_dir/run_$p.log"
 
     dpoints=$(( dpoints - 1 ))
     p=$(( p * 2 ))
