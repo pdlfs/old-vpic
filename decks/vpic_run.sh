@@ -83,7 +83,7 @@ do
             $deck_dir/turbulence.op 2>&1 | tee "$output_dir/deltafs_$p.log" || \
             die "mpich run failed"
     elif [ x"$MPI" = xopenmpi ]; then
-        mpirun.openmpi -np $CORES --hostfile $output_dir/vpic_hosts -tag-output \
+        mpirun.openmpi -np $CORES --hostfile $output_dir/vpic.hosts -tag-output \
             -x "LD_PRELOAD=$umbrella_build_dir/src/libdeltafs-preload.so" \
             -x "PRELOAD_Deltafs_root=$output_dir/deltafs_$p" \
             $deck_dir/turbulence.op 2>&1 | tee "$output_dir/deltafs_$p.log" || \
