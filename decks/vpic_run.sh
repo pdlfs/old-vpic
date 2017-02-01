@@ -77,7 +77,7 @@ do
     done
 
     preload_lib_path="$umbrella_build_dir/src/deltafs-vpic-preload-prefix/src/" \
-                     "deltafs-vpic-preload-build/src/libdeltafs-preload.so"
+"deltafs-vpic-preload-build/src/libdeltafs-preload.so"
     if [ x"$MPI" = xmpich ]; then
         mpirun.mpich -np $CORES --hostfile $output_dir/vpic.hosts -prepend-rank \
             -env LD_PRELOAD "$preload_lib_path" \
