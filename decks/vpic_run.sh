@@ -87,6 +87,8 @@ do
 "deltafs-vpic-preload-build/src/libdeltafs-preload.so"
     deltafs_srvr_path="$umbrella_build_dir/deltafs-prefix/src/"\
 "deltafs-build/src/server/deltafs-srvr"
+    deltafs_srvr_ip=`hostname -i`
+
     if [ x"$MPI" = xmpich ]; then
         mpirun.mpich -np $CORES --hostfile $output_dir/vpic.hosts -prepend-rank \
             -env LD_PRELOAD "$preload_lib_path" \
@@ -96,7 +98,7 @@ do
 
     elif [ x"$MPI" = xopenmpi ]; then
         mpirun.openmpi -n 1 -tag-output \
-            -x DELTAFS_MetadataSrvAddrs="10.92.2.25:10101" \
+            -x DELTAFS_MetadataSrvAddrs="$deltafs_srvr_ip:10101" \
             -x DELTAFS_FioName="posix" \
             -x DELTAFS_FioConf="root=$output_dir/deltafs_$p/data" \
             -x DELTAFS_Outputs="$output_dir/deltafs_$p/metadata" \
@@ -108,7 +110,7 @@ do
         mpirun.openmpi -np $CORES --hostfile $output_dir/vpic.hosts -tag-output \
             -x LD_PRELOAD=$preload_lib_path \
             -x PRELOAD_Deltafs_root=particle \
-            -x DELTAFS_MetadataSrvAddrs="10.92.2.25:10101" \
+            -x DELTAFS_MetadataSrvAddrs="$deltafs_srvr_ip:10101" \
             $deck_dir/turbulence.op 2>&1 | tee "$output_dir/deltafs_$p.log" || \
             die "openmpi run failed"
 
