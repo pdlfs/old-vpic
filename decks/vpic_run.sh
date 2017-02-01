@@ -50,12 +50,12 @@ do
 
     # Run VPIC experiment
     cd $output_dir || die "cd failed"
-    mkdir "$output_dir/run_$p" || die "mkdir failed"
-    cd $output_dir/run_$p || die "cd failed"
+    mkdir "$output_dir/baseline_$p" || die "mkdir failed"
+    cd $output_dir/baseline_$p || die "cd failed"
 
     mpirun -np $CORES -npernode $(( CORES / NODES )) \
         --hostfile $output_dir/vpic.hosts \
-        $deck_dir/turbulence.op 2>&1 | tee "$output_dir/run_$p.log" || \
+        $deck_dir/turbulence.op 2>&1 | tee "$output_dir/baseline_$p.log" || \
         die "run failed"
 
     echo -n "Output size: " >> "$output_dir/baseline_$p.log"
