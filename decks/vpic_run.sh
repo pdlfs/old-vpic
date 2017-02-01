@@ -57,6 +57,7 @@ do
     mkdir "$output_dir/baseline_$p" || die "mkdir failed"
     cd $output_dir/baseline_$p || die "cd failed"
 
+    # TODO: Fix for mpich, openmpi, aprun
     mpirun -np $CORES -npernode $(( CORES / NODES )) \
         --hostfile $output_dir/vpic.hosts \
         $deck_dir/turbulence.op 2>&1 | tee "$output_dir/baseline_$p.log" || \
@@ -70,7 +71,7 @@ do
     mkdir "$output_dir/deltafs_$p" || die "mkdir failed"
     cd $output_dir/deltafs_$p || die "cd failed"
 
-    # TODO: Optimize
+    # TODO: Optimize and move to top
     for mpi in openmpi mpich
     do
         which mpirun.${mpi}
@@ -112,7 +113,7 @@ do
             -x PRELOAD_Deltafs_root=particle \
             -x DELTAFS_MetadataSrvAddrs="$deltafs_srvr_ip:10101" \
             $deck_dir/turbulence.op 2>&1 | tee "$output_dir/deltafs_$p.log" || \
-            die "openmpi run failed"
+            (kill -KILL $srvr_pid && die "openmpi run failed")
 
         kill -KILL $srvr_pid
     else
