@@ -63,8 +63,8 @@ do
 
     # Run VPIC with DeltaFS
     cd $output_dir || die "cd failed"
-    mkdir "$output_dir/baseline_$p" || die "mkdir failed"
-    cd $output_dir/baseline_$p || die "cd failed"
+    mkdir "$output_dir/deltafs_$p" || die "mkdir failed"
+    cd $output_dir/deltafs_$p || die "cd failed"
 
     # TODO: Optimize
     for mpi in openmpi mpich
