@@ -76,15 +76,17 @@ do
         fi
     done
 
+    preload_lib_path="$umbrella_build_dir/src/deltafs-vpic-preload-prefix/src/" \
+                     "deltafs-vpic-preload-build/src/libdeltafs-preload.so"
     if [ x"$MPI" = xmpich ]; then
         mpirun.mpich -np $CORES --hostfile $output_dir/vpic.hosts -prepend-rank \
-            -env LD_PRELOAD "$umbrella_build_dir/src/libdeltafs-preload.so" \
+            -env LD_PRELOAD "$preload_lib_path" \
             -env PRELOAD_Deltafs_root "$output_dir/deltafs_$p" \
             $deck_dir/turbulence.op 2>&1 | tee "$output_dir/deltafs_$p.log" || \
             die "mpich run failed"
     elif [ x"$MPI" = xopenmpi ]; then
         mpirun.openmpi -np $CORES --hostfile $output_dir/vpic.hosts -tag-output \
-            -x "LD_PRELOAD=$umbrella_build_dir/src/libdeltafs-preload.so" \
+            -x "LD_PRELOAD=$preload_lib_path" \
             -x "PRELOAD_Deltafs_root=$output_dir/deltafs_$p" \
             $deck_dir/turbulence.op 2>&1 | tee "$output_dir/deltafs_$p.log" || \
             die "openmpi run failed"
