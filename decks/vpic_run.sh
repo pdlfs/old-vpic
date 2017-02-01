@@ -1,11 +1,17 @@
 #!/bin/bash
 
+# TODO: infer parameters in emulab, set in cray
+
 NODES=16
 CORES=64
 
-build_dir="$HOME/src/vpic"
-deck_dir="$HOME/src/vpic/decks/trecon-part"
-output_dir="$HOME/src/vpic/decks/dump"
+umbrella_build_dir="$HOME/src/deltafs-umbrella/build"
+output_dir="/panfs/probescratch/TableFS/vpic_test"
+#output_dir="$HOME/src/vpic/decks/dump"
+
+# Set internal variables
+build_op_dir="$umbrella_build_dir/vpic-prefix/src/vpic-build"
+deck_dir="$umbrella_build_dir/src/vpic/decks/trecon-part"
 
 die () { echo "Error: $@" 1>&2; exit 1;  }
 
@@ -40,7 +46,7 @@ do
 
     # Compile input deck
     cd $deck_dir || die "cd failed"
-    $build_dir/build.op ./turbulence.cxx || die "compilation failed"
+    $build_op_dir/build.op ./turbulence.cxx || die "compilation failed"
 
     # Run VPIC experiment
     cd $output_dir || die "cd failed"
@@ -52,8 +58,42 @@ do
         $deck_dir/turbulence.op 2>&1 | tee "$output_dir/run_$p.log" || \
         die "run failed"
 
-    echo -n "Output size: " >> "$output_dir/run_$p.log"
-    du -b $output_dir/run_$p | tail -1 | cut -f1 >> "$output_dir/run_$p.log"
+    echo -n "Output size: " >> "$output_dir/baseline_$p.log"
+    du -b $output_dir/baseline_$p | tail -1 | cut -f1 >> "$output_dir/baseline_$p.log"
+
+    # Run VPIC with DeltaFS
+    cd $output_dir || die "cd failed"
+    mkdir "$output_dir/baseline_$p" || die "mkdir failed"
+    cd $output_dir/baseline_$p || die "cd failed"
+
+    # TODO: Optimize
+    for mpi in openmpi mpich
+    do
+        which mpirun.${mpi}
+        if [ $? -eq 0 ]; then
+            MPI=$mpi
+            break
+        fi
+    done
+
+    if [ x"$MPI" = xmpich ]; then
+        mpirun.mpich -np $CORES --hostfile $output_dir/vpic.hosts -prepend-rank \
+            -env LD_PRELOAD "$umbrella_build_dir/src/libdeltafs-preload.so" \
+            -env PRELOAD_Deltafs_root "$output_dir/deltafs_$p" \
+            $deck_dir/turbulence.op 2>&1 | tee "$output_dir/deltafs_$p.log" || \
+            die "mpich run failed"
+    elif [ x"$MPI" = xopenmpi ]; then
+        mpirun.openmpi -np $CORES --hostfile $output_dir/vpic_hosts -tag-output \
+            -x "LD_PRELOAD=$umbrella_build_dir/src/libdeltafs-preload.so" \
+            -x "PRELOAD_Deltafs_root=$output_dir/deltafs_$p" \
+            $deck_dir/turbulence.op 2>&1 | tee "$output_dir/deltafs_$p.log" || \
+            die "openmpi run failed"
+    else
+        die "not running mpich or openmpi"
+    fi
+
+    echo -n "Output size: " >> "$output_dir/deltafs_$p.log"
+    du -b $output_dir/deltafs_$p | tail -1 | cut -f1 >> "$output_dir/deltafs_$p.log"
 
     dpoints=$(( dpoints - 1 ))
     p=$(( p * 2 ))
