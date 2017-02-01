@@ -11,7 +11,7 @@ output_dir="/panfs/probescratch/TableFS/vpic_test"
 
 # Set internal variables
 build_op_dir="$umbrella_build_dir/vpic-prefix/src/vpic-build"
-deck_dir="$umbrella_build_dir/src/vpic/decks/trecon-part"
+deck_dir="$umbrella_build_dir/vpic-prefix/src/vpic/decks/trecon-part"
 
 die () { echo "Error: $@" 1>&2; exit 1;  }
 
