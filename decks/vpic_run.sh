@@ -4,7 +4,6 @@
 # TODO: deltafs server IP should not be hardcoded in script
 # TODO: drop caches between baseline and deltafs
 # TODO: add deltafs server code for mpich
-# TODO: run VPIC per particle with deltafs
 
 NODES=16
 CORES=64
@@ -41,6 +40,7 @@ do
     cd $deck_dir || die "cd failed"
     mv $deck_dir/config.h $deck_dir/config.bkp || die "mv failed"
     cat $deck_dir/config.bkp | \
+        sed 's/^#define VPIC_FILE_PER_PARTICLE/\/\/#define VPIC_FILE_PER_PARTICLE/' | \
         sed 's/VPIC_TOPOLOGY_X.*/VPIC_TOPOLOGY_X '$CORES'/' | \
         sed 's/VPIC_TOPOLOGY_Y.*/VPIC_TOPOLOGY_Y 1/' | \
         sed 's/VPIC_TOPOLOGY_Z.*/VPIC_TOPOLOGY_Z 1/' | \
@@ -66,6 +66,19 @@ do
 
     echo -n "Output size: " >> "$output_dir/baseline_$p.log"
     du -b $output_dir/baseline_$p | tail -1 | cut -f1 >> "$output_dir/baseline_$p.log"
+
+    # Configure VPIC experiment
+    cd $deck_dir || die "cd failed"
+    mv $deck_dir/config.h $deck_dir/config.bkp || die "mv failed"
+    cat $deck_dir/config.bkp | \
+        sed 's/^\/\/#define VPIC_FILE_PER_PARTICLE/#define VPIC_FILE_PER_PARTICLE/' | \
+        sed 's/VPIC_TOPOLOGY_X.*/VPIC_TOPOLOGY_X '$CORES'/' | \
+        sed 's/VPIC_TOPOLOGY_Y.*/VPIC_TOPOLOGY_Y 1/' | \
+        sed 's/VPIC_TOPOLOGY_Z.*/VPIC_TOPOLOGY_Z 1/' | \
+        sed 's/VPIC_PARTICLE_X.*/VPIC_PARTICLE_X '$p'/' | \
+        sed 's/VPIC_PARTICLE_Y.*/VPIC_PARTICLE_Y '$p'/' | \
+        sed 's/VPIC_PARTICLE_Z.*/VPIC_PARTICLE_Z 1/' > $deck_dir/config.h || \
+        die "config.h editing failed"
 
     # Run VPIC with DeltaFS
     cd $output_dir || die "cd failed"
