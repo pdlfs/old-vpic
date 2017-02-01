@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # TODO: infer parameters in emulab, set in cray
+# TODO: deltafs server IP should not be hardcoded in script
 
 NODES=16
 CORES=64
@@ -89,6 +90,7 @@ do
             -env PRELOAD_Deltafs_root "particle" \
             $deck_dir/turbulence.op 2>&1 | tee "$output_dir/deltafs_$p.log" || \
             die "mpich run failed"
+
     elif [ x"$MPI" = xopenmpi ]; then
         mpirun.openmpi -n 1 -tag-output \
             -x DELTAFS_MetadataSrvAddrss="10.92.2.25:10101" \
@@ -103,6 +105,7 @@ do
         mpirun.openmpi -np $CORES --hostfile $output_dir/vpic.hosts -tag-output \
             -x LD_PRELOAD=$preload_lib_path \
             -x PRELOAD_Deltafs_root=particle \
+            -x DELTAFS_MetadataSrvAddrs="10.92.2.25:10101" \
             $deck_dir/turbulence.op 2>&1 | tee "$output_dir/deltafs_$p.log" || \
             die "openmpi run failed"
 
