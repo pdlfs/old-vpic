@@ -2,6 +2,9 @@
 
 # TODO: infer parameters in emulab, set in cray
 # TODO: deltafs server IP should not be hardcoded in script
+# TODO: drop caches between baseline and deltafs
+# TODO: add deltafs server code for mpich
+# TODO: run VPIC per particle with deltafs
 
 NODES=16
 CORES=64
@@ -82,7 +85,7 @@ do
 
     preload_lib_path="$umbrella_build_dir/deltafs-vpic-preload-prefix/src/"\
 "deltafs-vpic-preload-build/src/libdeltafs-preload.so"
-    deltsfs_srvr_path="$umbrella_build_dir/deltafs-prefix/src/"\
+    deltafs_srvr_path="$umbrella_build_dir/deltafs-prefix/src/"\
 "deltafs-build/src/server/deltafs-srvr"
     if [ x"$MPI" = xmpich ]; then
         mpirun.mpich -np $CORES --hostfile $output_dir/vpic.hosts -prepend-rank \
@@ -93,7 +96,7 @@ do
 
     elif [ x"$MPI" = xopenmpi ]; then
         mpirun.openmpi -n 1 -tag-output \
-            -x DELTAFS_MetadataSrvAddrss="10.92.2.25:10101" \
+            -x DELTAFS_MetadataSrvAddrs="10.92.2.25:10101" \
             -x DELTAFS_FioName="posix" \
             -x DELTAFS_FioConf="root=$output_dir/deltafs_$p/data" \
             -x DELTAFS_Outputs="$output_dir/deltafs_$p/metadata" \
