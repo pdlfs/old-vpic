@@ -11,6 +11,7 @@ CORES=64
 
 umbrella_build_dir="$HOME/src/deltafs-umbrella/build"
 output_dir="/panfs/probescratch/TableFS/vpic_test"
+ip_subnet="10.92"
 #output_dir="$HOME/src/vpic/decks/dump"
 
 # Set internal variables
@@ -112,6 +113,7 @@ do
             -x LD_PRELOAD=$preload_lib_path \
             -x PRELOAD_Deltafs_root=particle \
             -x DELTAFS_MetadataSrvAddrs="$deltafs_srvr_ip:10101" \
+            -x SHUFFLE_Subnet=$ip_subnet \
             $deck_dir/turbulence.op 2>&1 | tee "$output_dir/deltafs_$p.log" || \
             (kill -KILL $srvr_pid && die "openmpi run failed")
 
