@@ -120,30 +120,32 @@ do_run() {
     runtype=$1
     p=$2
 
+    cd $output_dir || die "cd failed"
+    mkdir "$output_dir/${runtype}_$p" || die "mkdir failed"
+    cd $output_dir/${runtype}_$p || die "cd failed"
+
+    # Define logfile before calling message()
+    logfile="$output_dir/${runtype}_$p.log"
+
+    clear_caches
+
     message ""
     message "=========================================================="
     message "Running VPIC ($runtype) with $(( p * p * 100 )) particles."
     message "=========================================================="
     message ""
 
-    # Run VPIC experiment
-    cd $output_dir || die "cd failed"
-    mkdir "$output_dir/${runtype}_$p" || die "mkdir failed"
-    cd $output_dir/${runtype}_$p || die "cd failed"
-
     case $runtype in
     "baseline")
         vars=()
 
-        do_mpirun $CORES vars[@] "" "$deck_dir/turbulence.op" \
-            "$output_dir/baseline_$p.log"
+        do_mpirun $CORES vars[@] "" "$deck_dir/turbulence.op" $logfile
         if [ $? -ne 0 ]; then
             die "baseline: mpirun failed"
         fi
 
-        echo -n "Output size: " >> "$output_dir/baseline_$p.log"
-        du -b $output_dir/baseline_$p | tail -1 | \
-            cut -f1 >> "$output_dir/baseline_$p.log"
+        echo -n "Output size: " >> $logfile
+        du -b $output_dir/baseline_$p | tail -1 | cut -f1 >> $logfile
         ;;
 
     "deltafs")
@@ -163,8 +165,7 @@ do_run() {
               "DELTAFS_FioConf" "root=$output_dir/deltafs_$p/data"
               "DELTAFS_Outputs" "$output_dir/deltafs_$p/metadata")
 
-        do_mpirun 1 vars[@] "" "$deltafs_srvr_path" \
-            "$output_dir/deltafs_srvr_$p.log"
+        do_mpirun 1 vars[@] "" "$deltafs_srvr_path" $logfile
         if [ $? -ne 0 ]; then
             die "deltafs server: mpirun failed"
         fi
@@ -176,8 +177,7 @@ do_run() {
               "DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
               "SHUFFLE_Subnet" "$ip_subnet")
 
-        do_mpirun $CORES envs[@] "" "$deck_dir/turbulence.op" \
-            "$output_dir/deltafs_$p.log"
+        do_mpirun $CORES envs[@] "" "$deck_dir/turbulence.op" $logfile
         if [ $? -ne 0 ]; then
             kill -KILL $srvr_pid
             die "deltafs: mpirun failed"
@@ -185,9 +185,8 @@ do_run() {
 
         kill -KILL $srvr_pid
 
-        echo -n "Output size: " >> "$output_dir/deltafs_$p.log"
-        du -b $output_dir/deltafs_$p | tail -1 | \
-            cut -f1 >> "$output_dir/deltafs_$p.log"
+        echo -n "Output size: " >> $logfile
+        du -b $output_dir/deltafs_$p | tail -1 | cut -f1 >> $logfile
         ;;
     esac
 
@@ -198,11 +197,9 @@ gen_hosts
 parts=$CORES
 while [ $dpoints -gt 0 ]
 do
-    clear_caches
     build_deck "file-per-process" $parts
     do_run "baseline" $parts
 
-    clear_caches
     build_deck "file-per-particle" $parts
     do_run "deltafs" $parts
 
