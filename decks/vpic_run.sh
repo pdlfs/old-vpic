@@ -2,37 +2,43 @@
 
 # TODO: infer parameters in emulab, set in cray
 # TODO: deltafs server IP should not be hardcoded in script
-# TODO: drop caches between baseline and deltafs
 # TODO: add deltafs server code for mpich
 
+# Tunable parameters: tweak to your liking
 NODES=16
 CORES=64
-
 umbrella_build_dir="$HOME/src/deltafs-umbrella/build"
 output_dir="/panfs/probescratch/TableFS/vpic_test"
 ip_subnet="10.92"
-#output_dir="$HOME/src/vpic/decks/dump"
 
-# Set internal variables
+# Internal variables (no need to touch)
 build_op_dir="$umbrella_build_dir/vpic-prefix/src/vpic-build"
 deck_dir="$umbrella_build_dir/vpic-prefix/src/vpic/decks/trecon-part"
+dpoints=7
 
 die () { echo "Error: $@" 1>&2; exit 1;  }
 
-# Generate Narwhal hosts file
-fqdn_suffix="`hostname | sed 's/^[^\.]*././'`"
-exp_hosts="`/share/testbed/bin/emulab-listall`"
+# Generate mpirun hostfile on Narwhal
+gen_hosts() {
+    fqdn_suffix="`hostname | sed 's/^[^\.]*././'`"
+    exp_hosts="`/share/testbed/bin/emulab-listall`"
 
-echo $exp_hosts | awk -F, '{
-for (i=1; i<=NF; i++)
-    print $i"'"$fqdn_suffix"'"
-}' > "$output_dir/vpic.hosts" || die "failed to create vpic.hosts file"
+    echo $exp_hosts | \
+        awk -F, '{ for (i=1; i<=NF; i++) { print $i "'"$fqdn_suffix"'"}}' > \
+        "$output_dir/vpic.hosts" || die "failed to create vpic.hosts file"
+}
 
-dpoints=7
+# Clear node caches on Narwhal
+clear_caches() {
+    /share/testbed/bin/emulab-mpirunall sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches && free -m'
+}
+
+gen_hosts
+
 p=$CORES
 while [ $dpoints -gt 0 ]
 do
-    /share/testbed/bin/emulab-mpirunall sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches && free -m'
+    clear_caches
 
     echo "Running VPIC on $CORES cores, with $(( p * p * 100 )) particles."
 
@@ -66,6 +72,8 @@ do
 
     echo -n "Output size: " >> "$output_dir/baseline_$p.log"
     du -b $output_dir/baseline_$p | tail -1 | cut -f1 >> "$output_dir/baseline_$p.log"
+
+    clear_caches
 
     # Configure VPIC experiment
     cd $deck_dir || die "cd failed"
