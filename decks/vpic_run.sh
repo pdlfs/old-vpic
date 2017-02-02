@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Tunable parameters: tweak to your liking
-NODES=16
-CORES=64
+CORES=4
 umbrella_build_dir="$HOME/src/deltafs-umbrella/build"
 output_dir="/panfs/probescratch/TableFS/vpic_test"
 ip_subnet="10.92"
@@ -38,7 +37,10 @@ clear_caches() {
 
 # Configure config.h
 # @1 in {"file-per-process", "file-per-particle"}
+# @2 particles
 build_deck() {
+    p=$2
+
     cd $deck_dir || die "cd failed"
     mv $deck_dir/config.h $deck_dir/config.bkp || die "mv failed"
 
@@ -197,11 +199,11 @@ parts=$CORES
 while [ $dpoints -gt 0 ]
 do
     clear_caches
-    build_deck "file-per-process"
+    build_deck "file-per-process" $parts
     do_run "baseline" $parts
 
     clear_caches
-    build_deck "file-per-particle"
+    build_deck "file-per-particle" $parts
     do_run "deltafs" $parts
 
     dpoints=$(( dpoints - 1 ))
