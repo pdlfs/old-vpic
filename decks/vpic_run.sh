@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # Tunable parameters: tweak to your liking
-CORES=4
+# Note: Use a number of cores that is a power of two plus 1.
+#       The number of particles is a multiple of the number of cores,
+#       but 1 core is reserved for DeltaFS server, so you want to be
+#       left with a power of two to get better particle numbers.
+CORES=5
 umbrella_build_dir="$HOME/src/deltafs-umbrella/build"
 output_dir="/panfs/probescratch/TableFS/vpic_test"
 ip_subnet="10.92"
@@ -139,7 +143,7 @@ do_run() {
     "baseline")
         vars=()
 
-        do_mpirun $CORES vars[@] "" "$deck_dir/turbulence.op" $logfile
+        do_mpirun $((CORES - 1)) vars[@] "" "$deck_dir/turbulence.op" $logfile
         if [ $? -ne 0 ]; then
             die "baseline: mpirun failed"
         fi
@@ -177,7 +181,7 @@ do_run() {
               "DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
               "SHUFFLE_Subnet" "$ip_subnet")
 
-        do_mpirun $CORES envs[@] "" "$deck_dir/turbulence.op" $logfile
+        do_mpirun $((CORES - 1)) envs[@] "" "$deck_dir/turbulence.op" $logfile
         if [ $? -ne 0 ]; then
             kill -KILL $srvr_pid
             die "deltafs: mpirun failed"
