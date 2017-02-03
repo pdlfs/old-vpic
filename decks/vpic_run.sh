@@ -94,7 +94,7 @@ do_mpirun() {
 
     if [ `which mpirun.mpich` ]; then
         if [ ${#envs[@]} -gt 0 ]; then
-            envstr="`printf \"-env %s \"%s\" " ${envs[@]}`"
+            envstr=`printf "-env %s \"%s\" " ${envs[@]}`
         else
             envstr=""
         fi
@@ -104,7 +104,7 @@ do_mpirun() {
 
     elif [ `which mpirun.openmpi` ]; then
         if [ ${#envs[@]} -gt 0 ]; then
-            envstr="`printf \"-x %s=\"%s\" " ${envs[@]}`"
+            envstr=`printf "-x %s=\"%s " ${envs[@]}`
         else
             envstr=""
         fi
