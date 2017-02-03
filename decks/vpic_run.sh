@@ -52,7 +52,7 @@ build_deck() {
     "file-per-process")
         cat $deck_dir/config.bkp | \
             sed 's/^#define VPIC_FILE_PER_PARTICLE/\/\/#define VPIC_FILE_PER_PARTICLE/' | \
-            sed 's/VPIC_TOPOLOGY_X.*/VPIC_TOPOLOGY_X '$CORES'/' | \
+            sed 's/VPIC_TOPOLOGY_X.*/VPIC_TOPOLOGY_X '$((CORES-1))'/' | \
             sed 's/VPIC_TOPOLOGY_Y.*/VPIC_TOPOLOGY_Y 1/' | \
             sed 's/VPIC_TOPOLOGY_Z.*/VPIC_TOPOLOGY_Z 1/' | \
             sed 's/VPIC_PARTICLE_X.*/VPIC_PARTICLE_X '$p'/' | \
@@ -63,7 +63,7 @@ build_deck() {
     "file-per-particle")
         cat $deck_dir/config.bkp | \
             sed 's/^\/\/#define VPIC_FILE_PER_PARTICLE/#define VPIC_FILE_PER_PARTICLE/' | \
-            sed 's/VPIC_TOPOLOGY_X.*/VPIC_TOPOLOGY_X '$CORES'/' | \
+            sed 's/VPIC_TOPOLOGY_X.*/VPIC_TOPOLOGY_X '$((CORES-1))'/' | \
             sed 's/VPIC_TOPOLOGY_Y.*/VPIC_TOPOLOGY_Y 1/' | \
             sed 's/VPIC_TOPOLOGY_Z.*/VPIC_TOPOLOGY_Z 1/' | \
             sed 's/VPIC_PARTICLE_X.*/VPIC_PARTICLE_X '$p'/' | \
