@@ -208,5 +208,5 @@ do
     do_run "deltafs" $parts
 
     dpoints=$(( dpoints - 1 ))
-    p=$(( p * 2 ))
+    parts=$(( parts * 2 ))
 done
