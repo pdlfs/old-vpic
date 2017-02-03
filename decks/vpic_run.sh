@@ -193,12 +193,11 @@ do_run() {
         du -b $output_dir/deltafs_$p | tail -1 | cut -f1 >> $logfile
         ;;
     esac
-
 }
 
 gen_hosts
 
-parts=$CORES
+parts=$((CORES - 1))
 while [ $dpoints -gt 0 ]
 do
     build_deck "file-per-process" $parts
