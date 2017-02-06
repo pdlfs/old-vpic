@@ -157,6 +157,8 @@ do_run() {
             -e PRELOAD_Local_root="${output_dir}" \
             -e PRELOAD_Bypass_deltafs_namespace=1 \
             -e PRELOAD_Enable_verbose_error=1 \
+            -e SHUFFLE_Virtual_factor=1024 \
+            -e SHUFFLE_Mercury_proto="bmi+tcp" \
             -e SHUFFLE_Subnet="$ip_subnet" \
             "$deck_dir/turbulence.op" 2>&1 | tee $logfile
 #            -e DELTAFS_MetadataSrvAddrs="$deltafs_srvr_ip:10101" \

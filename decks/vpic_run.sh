@@ -184,6 +184,8 @@ do_run() {
               "PRELOAD_Local_root" "${output_dir}"
               "PRELOAD_Bypass_deltafs_namespace" "1"
               "PRELOAD_Enable_verbose_error" "1"
+              "SHUFFLE_Virtual_factor" "1024"
+              "SHUFFLE_Mercury_proto" "bmi+tcp"
               "SHUFFLE_Subnet" "$ip_subnet")
 #              "DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
 
