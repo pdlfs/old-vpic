@@ -181,8 +181,11 @@ do_run() {
 
         vars=("LD_PRELOAD" "$preload_lib_path"
               "PRELOAD_Deltafs_root" "particle"
-              "DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
+              "PRELOAD_Local_root" "${output_dir}"
+              "PRELOAD_Bypass_deltafs_namespace" "1"
+              "PRELOAD_Enable_verbose_error" "1"
               "SHUFFLE_Subnet" "$ip_subnet")
+#              "DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
 
         do_mpirun $((CORES - 1)) vars[@] "" "$deck_dir/turbulence.op" $logfile
         if [ $? -ne 0 ]; then

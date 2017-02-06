@@ -154,9 +154,12 @@ do_run() {
         aprun -L $vpic_nodes -n $cores -N $((cores / (nodes-1))) \
             -e LD_PRELOAD="$preload_lib_path" \
             -e PRELOAD_Deltafs_root="particle" \
-            -e DELTAFS_MetadataSrvAddrs="$deltafs_srvr_ip:10101" \
+            -e PRELOAD_Local_root="${output_dir}" \
+            -e PRELOAD_Bypass_deltafs_namespace=1 \
+            -e PRELOAD_Enable_verbose_error=1 \
             -e SHUFFLE_Subnet="$ip_subnet" \
             "$deck_dir/turbulence.op" 2>&1 | tee $logfile
+#            -e DELTAFS_MetadataSrvAddrs="$deltafs_srvr_ip:10101" \
         if [ $? -ne 0 ]; then
 #            kill -KILL $srvr_pid
             die "deltafs: mpirun failed"
