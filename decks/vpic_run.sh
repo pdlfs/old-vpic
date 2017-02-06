@@ -167,17 +167,17 @@ do_run() {
 "deltafs-build/src/server/deltafs-srvr"
         deltafs_srvr_ip=`hostname -i`
 
-        vars=("DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
-              "DELTAFS_FioName" "posix"
-              "DELTAFS_FioConf" "root=$output_dir/deltafs_$p/data"
-              "DELTAFS_Outputs" "$output_dir/deltafs_$p/metadata")
-
-        do_mpirun 1 vars[@] "" "$deltafs_srvr_path" $logfile
-        if [ $? -ne 0 ]; then
-            die "deltafs server: mpirun failed"
-        fi
-
-        srvr_pid=$!
+#        vars=("DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
+#              "DELTAFS_FioName" "posix"
+#              "DELTAFS_FioConf" "root=$output_dir/deltafs_$p/data"
+#              "DELTAFS_Outputs" "$output_dir/deltafs_$p/metadata")
+#
+#        do_mpirun 1 vars[@] "" "$deltafs_srvr_path" $logfile
+#        if [ $? -ne 0 ]; then
+#            die "deltafs server: mpirun failed"
+#        fi
+#
+#        srvr_pid=$!
 
         vars=("LD_PRELOAD" "$preload_lib_path"
               "PRELOAD_Deltafs_root" "particle"
@@ -186,11 +186,11 @@ do_run() {
 
         do_mpirun $((CORES - 1)) vars[@] "" "$deck_dir/turbulence.op" $logfile
         if [ $? -ne 0 ]; then
-            kill -KILL $srvr_pid
+#            kill -KILL $srvr_pid
             die "deltafs: mpirun failed"
         fi
 
-        kill -KILL $srvr_pid
+#        kill -KILL $srvr_pid
 
         echo -n "Output size: " >> $logfile
         du -b $output_dir/deltafs_$p | tail -1 | cut -f1 >> $logfile

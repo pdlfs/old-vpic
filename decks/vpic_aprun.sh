@@ -139,17 +139,17 @@ do_run() {
         deltafs_srvr_path="$umbrella_build_dir/deltafs-prefix/src/"\
 "deltafs-build/src/server/deltafs-srvr"
 
-        aprun -L $deltafs_node -n 1 -N 1 \
-            -e DELTAFS_MetadataSrvAddrs="$deltafs_srvr_ip:10101" \
-            -e DELTAFS_FioName="posix" \
-            -e DELTAFS_FioConf="root=$output_dir/deltafs_$p/data" \
-            -e DELTAFS_Outputs="$output_dir/deltafs_$p/metadata" \
-            $deltafs_srvr_path 2>&1 | tee $logfile
-        if [ $? -ne 0 ]; then
-            die "deltafs server: aprun failed"
-        fi
-
-        srvr_pid=$!
+#        aprun -L $deltafs_node -n 1 -N 1 \
+#            -e DELTAFS_MetadataSrvAddrs="$deltafs_srvr_ip:10101" \
+#            -e DELTAFS_FioName="posix" \
+#            -e DELTAFS_FioConf="root=$output_dir/deltafs_$p/data" \
+#            -e DELTAFS_Outputs="$output_dir/deltafs_$p/metadata" \
+#            $deltafs_srvr_path 2>&1 | tee $logfile
+#        if [ $? -ne 0 ]; then
+#            die "deltafs server: aprun failed"
+#        fi
+#
+#        srvr_pid=$!
 
         aprun -L $vpic_nodes -n $cores -N $((cores / (nodes-1))) \
             -e LD_PRELOAD="$preload_lib_path" \
@@ -158,11 +158,11 @@ do_run() {
             -e SHUFFLE_Subnet="$ip_subnet" \
             "$deck_dir/turbulence.op" 2>&1 | tee $logfile
         if [ $? -ne 0 ]; then
-            kill -KILL $srvr_pid
+#            kill -KILL $srvr_pid
             die "deltafs: mpirun failed"
         fi
 
-        kill -KILL $srvr_pid
+#        kill -KILL $srvr_pid
 
         echo -n "Output size: " >> $logfile
         du -b $output_dir/deltafs_$p | tail -1 | cut -f1 >> $logfile
