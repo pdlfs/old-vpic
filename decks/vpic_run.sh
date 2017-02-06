@@ -59,7 +59,7 @@ build_deck() {
             sed 's/VPIC_PARTICLE_Y.*/VPIC_PARTICLE_Y '$p'/' | \
             sed 's/VPIC_PARTICLE_Z.*/VPIC_PARTICLE_Z 1/' > $deck_dir/config.h || \
             die "config.h editing failed"
-            ;;
+        ;;
     "file-per-particle")
         cat $deck_dir/config.bkp | \
             sed 's/^\/\/#define VPIC_FILE_PER_PARTICLE/#define VPIC_FILE_PER_PARTICLE/' | \
@@ -70,7 +70,10 @@ build_deck() {
             sed 's/VPIC_PARTICLE_Y.*/VPIC_PARTICLE_Y '$p'/' | \
             sed 's/VPIC_PARTICLE_Z.*/VPIC_PARTICLE_Z 1/' > $deck_dir/config.h || \
             die "config.h editing failed"
-            ;;
+        ;;
+    *)
+        die "build_deck: VPIC mode not supported"
+        ;;
     esac
 
     # Compile input deck
