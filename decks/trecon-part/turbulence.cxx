@@ -1064,7 +1064,10 @@ begin_diagnostics {
         //  if( should_dump(tracer) ) dump_tracers("tracer");
           if (should_dump(tracer)){
 #ifdef LOG_SYSSTAT
-            if (system("cat /proc/meminfo | grep -E \"^MemF\""))
+            if (system("cat /proc/meminfo | grep -E \"^Mem[T|F]\" | "
+                       "awk 'BEGIN{t=0}{ if (!t) { t = $2 } "
+                       "else { t = $2 * 100 / t  } }"
+                       "END{print \"Free Mem: \"t\"%\"}'"))
                 sim_log("Failed to log memory stats");
 #endif
 	        double dumpstart = mp_elapsed(grid->mp);
