@@ -1064,7 +1064,8 @@ begin_diagnostics {
         //  if( should_dump(tracer) ) dump_tracers("tracer");
           if (should_dump(tracer)){
 #ifdef LOG_SYSSTAT
-            if (system("cat /proc/meminfo | grep -E \"^Mem[T|F]\" | "
+            if (rank() == 0 &&
+                system("cat /proc/meminfo | grep -E \"^Mem[T|F]\" | "
                        "awk 'BEGIN{t=0}{ if (!t) { t = $2 } "
                        "else { t = $2 * 100 / t  } }"
                        "END{print \"Free Mem: \"t\"%\"}'"))
@@ -1115,7 +1116,8 @@ begin_diagnostics {
 	//if ( should_dump(eparticle) && step !=0 && step > 20*(global->fields_interval)  ) {
 	if ( should_dump(eparticle) && step !=0 ) {
 #ifdef LOG_SYSSTAT
-        if (system("cat /proc/meminfo | grep -E \"^Mem[T|F]\" | "
+        if (rank() == 0 &&
+            system("cat /proc/meminfo | grep -E \"^Mem[T|F]\" | "
                    "awk 'BEGIN{t=0}{ if (!t) { t = $2 } "
                    "else { t = $2 * 100 / t  } }"
                    "END{print \"Free Mem: \"t\"%\"}'"))
