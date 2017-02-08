@@ -2,19 +2,20 @@
 #
 # Prepare a machine.conf for VPIC build
 
+src_dir="$1"
 host=$(hostname)
 
-rm -f machine.conf
+rm -f $src_dir/machine.conf
 if [ $(hostname | grep tt-fey) ]; then
     echo "Preparing machine.conf for Trinitite"
-    cp trinitite.conf machine.conf
+    cp $src_dir/trinitite.conf $src_dir/machine.conf
 elif [ $(hostname | grep tr-fe) ]; then
     echo "Preparing machine.conf for Trinity"
-    cp trinitite.conf machine.conf
+    cp $src_dir/trinitite.conf $src_dir/machine.conf
 elif [ $(hostname | grep narwhal) ]; then
     echo "Preparing machine.conf for Narwhal"
-    cp narwhal.conf machine.conf
+    cp $src_dir/narwhal.conf $src_dir/machine.conf
 else
     echo "Preparing default machine.conf"
-    cp narwhal.conf machine.conf
+    cp $src_dir/narwhal.conf $src_dir/machine.conf
 fi
