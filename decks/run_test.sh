@@ -192,7 +192,7 @@ do_run() {
             echo $s >> $new_server_config
             echo $container_dir >> $new_server_config
 
-            do_mpirun 1 "" "" "$bb_server $new_server_config" \
+            do_mpirun 1 "" "--host $s" "$bb_server $new_server_config" \
                 "$output_dir/bbos.hosts" "$logfile" &
             
             message ""
