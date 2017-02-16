@@ -274,7 +274,7 @@ do_run() {
         message "Killing BBOS servers"
         for s in $bb_server_list; do
             message "- Killing BBOS server: $s"
-            do_mpirun 1 "" "" "pkill -SIGINT bbos_server" \
+            do_mpirun 1 "" "--host $s" "pkill -SIGINT bbos_server" \
                 "$output_dir/bbos.hosts" "$logfile"
         done
 
