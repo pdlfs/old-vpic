@@ -22,11 +22,11 @@ bb_log_size=1024        # BBOS max per-core log size in MB
 
 bb_clients=$CORES
 bb_client_cfg="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb/config/narwhal_8_client.conf"
-bb_client="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb-build/src/bbos-client"
+bb_client="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb-build/src/bbos_client"
 
 bb_servers=$BBOS_BUDDIES
 bb_server_cfg="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb/config/narwhal_2_server.conf"
-bb_server="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb-build/src/bbos-server"
+bb_server="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb-build/src/bbos_server"
 
 message () { echo "$@" | tee -a $logfile; }
 die () { message "Error $@"; exit 1; }
