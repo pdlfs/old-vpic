@@ -187,7 +187,7 @@ do_run() {
             mkdir -p $container_dir
 
             # Copying config files for every server
-            new_server_config=$output_dir/bbos/$bb_server_cfg.$n
+            new_server_config=$output_dir/bbos/server.$n
             cp $bb_server_cfg $new_server_config
             echo $s >> $new_server_config
             echo $container_dir >> $new_server_config
@@ -201,8 +201,8 @@ do_run() {
             sleep 1
 
             # Copying config files for every client of this server
-            cp $bb_client_cfg $output_dir/bbos/$bb_client_cfg.$n
-            echo $s >> $output_dir/bbos/$bb_client_cfg.$n
+            cp $bb_client_cfg $output_dir/bbos/client.$n
+            echo $s >> $output_dir/bbos/client.$n
 
             n=$((n + 1))
         done
@@ -210,7 +210,7 @@ do_run() {
         c=1
         while [ $c -le $bb_clients ]; do
             s=$((c %% (bb_clients / bb_servers)))
-            cfg_file=$output_dir/bbos/$bb_client_cfg.$s
+            cfg_file=$output_dir/bbos/client.$s
             do_mpirun 1 "" "" \
                 "$bb_client $c.obj $cfg_file $((bb_log_size * (2 ** 20))) $((bb_sst_size * (2 ** 20)))" \
                 "$output_dir/bbos.hosts" "$logfile" &
