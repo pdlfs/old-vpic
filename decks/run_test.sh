@@ -209,7 +209,7 @@ do_run() {
 
         c=1
         while [ $c -le $bb_clients ]; do
-            s=$((c % (bb_clients / bb_servers)))
+            s=$((c % bb_servers))
             cfg_file=$output_dir/bbos/client.$s
             do_mpirun 1 "" "" \
                 "$bb_client $c.obj $cfg_file $((bb_log_size * (2 ** 20))) $((bb_sst_size * (2 ** 20)))" \
