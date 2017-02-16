@@ -180,7 +180,7 @@ do_run() {
         message ""
         message "BBOS Per-core log size: ${bb_log_size}MB"
         
-        bb_server_list=$((cat $output_dir/bbos.hosts | tr '\n' ' '))
+        bb_server_list=$(cat $output_dir/bbos.hosts | tr '\n' ' ')
         n=1
         for s in $bb_server_list; do
             container_dir=$output_dir/bbos/containers.$n
