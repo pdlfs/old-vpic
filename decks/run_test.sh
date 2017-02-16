@@ -177,7 +177,6 @@ do_run() {
     "deltafs")
         # Start BBOS servers and clients
 
-        message ""
         message "BBOS Per-core log size: ${bb_log_size}MB"
         
         bb_server_list=$(cat $output_dir/bbos.hosts | tr '\n' ' ')
@@ -195,10 +194,9 @@ do_run() {
             do_mpirun 1 "" "--host $s" "$bb_server $new_server_config" \
                 "$output_dir/bbos.hosts" "$logfile" &
             
-            message ""
             message "BBOS server started at $s"
 
-            sleep 1
+            sleep 5
 
             # Copying config files for every client of this server
             cp $bb_client_cfg $output_dir/bbos/client.$n
