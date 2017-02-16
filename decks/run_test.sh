@@ -5,7 +5,8 @@
 #       The number of particles is a multiple of the number of cores,
 #       but 1 core is reserved for DeltaFS server, so you want to be
 #       left with a power of two to get better particle numbers.
-CORES=5
+CORES=8
+BBOS_BUDDIES=2
 umbrella_build_dir="$HOME/src/deltafs-umbrella/build"
 output_dir="/panfs/probescratch/TableFS/vpic_test"
 ip_subnet="10.92"
@@ -13,10 +14,22 @@ ip_subnet="10.92"
 # Internal variables (no need to touch)
 build_op_dir="$umbrella_build_dir/vpic-prefix/src/vpic-build"
 deck_dir="$umbrella_build_dir/vpic-prefix/src/vpic/decks/trecon-part"
-dpoints=7
+dpoints=1
 logfile=""
 
-message () { echo "$@" | tee $logfile; }
+bb_sst_size=2           # BBOS SST table size in MB
+bb_log_size=1024        # BBOS max per-core log size in MB
+bb_lustre_chunk=1024    # BBOS Lustre file size in MB
+
+bb_clients=$CORES
+bb_client_cfg="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb/config/narwhal_8_client.conf"
+bb_client="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb-build/src/bbos-client"
+
+bb_servers=$BBOS_BUDDIES
+bb_server_cfg="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb/config/narwhal_2_server.conf"
+bb_server="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb-build/src/bbos-server"
+
+message () { echo "$@" | tee -a $logfile; }
 die () { message "Error $@"; exit 1; }
 
 # Generate mpirun hostfile on Narwhal
@@ -27,8 +40,12 @@ gen_hosts() {
     exp_hosts="`/share/testbed/bin/emulab-listall`"
 
     echo $exp_hosts | \
-        awk -F, '{ for (i=1; i<=NF; i++) { print $i "'"$fqdn_suffix"'"}}' > \
+        awk -F, '{ for (i=1; i<=(NF-'"$bb_servers"'); i++) { print $i "'"$fqdn_suffix"'"}}' > \
         "$output_dir/vpic.hosts" || die "failed to create vpic.hosts file"
+
+    echo $exp_hosts | \
+        awk -F, '{ for (i=(NF-'"$bb_servers"'+1); i<=NF; i++) { print $i "'"$fqdn_suffix"'"}}' > \
+        "$output_dir/bbos.hosts" || die "failed to create bbos.hosts file"
 }
 
 # Clear node caches on Narwhal
@@ -87,13 +104,15 @@ build_deck() {
 # @2 array of env vars: ("name1", "val1", "name2", ... )
 # @3 other options (to be appended)
 # @4 executable
-# @5 outfile
+# @5 hostfile
+# @6 outfile
 do_mpirun() {
     procs=$1
     declare -a envs=("${!2}")
     opts="$3"
     exe="$4"
-    outfile="$5"
+    hostfile="$5"
+    outfile="$6"
 
     if [ `which mpirun.mpich` ]; then
         if [ ${#envs[@]} -gt 0 ]; then
@@ -102,8 +121,8 @@ do_mpirun() {
             envstr=""
         fi
 
-        mpirun.mpich -np $procs --hostfile $output_dir/vpic.hosts \
-            $envstr -prepend-rank $opts $exe 2>&1 | tee "$outfile"
+        mpirun.mpich -np $procs --hostfile $hostfile \
+            $envstr -prepend-rank $opts $exe 2>&1 | tee -a "$outfile"
 
     elif [ `which mpirun.openmpi` ]; then
         if [ ${#envs[@]} -gt 0 ]; then
@@ -112,8 +131,8 @@ do_mpirun() {
             envstr=""
         fi
 
-        mpirun.openmpi -np $procs --hostfile $output_dir/vpic.hosts \
-            $envstr -tag-output $opts $exe 2>&1 | tee "$outfile"
+        mpirun.openmpi -np $procs --hostfile $hostfile \
+            $envstr -tag-output $opts $exe 2>&1 | tee -a "$outfile"
 
     else
         die "not running mpich or openmpi"
@@ -146,7 +165,8 @@ do_run() {
     "baseline")
         vars=()
 
-        do_mpirun $((CORES - 1)) vars[@] "" "$deck_dir/turbulence.op" $logfile
+        do_mpirun $((CORES - 1)) vars[@] "" "$deck_dir/turbulence.op" \
+            $output_dir/vpic.hosts $logfile
         if [ $? -ne 0 ]; then
             die "baseline: mpirun failed"
         fi
@@ -156,6 +176,54 @@ do_run() {
         ;;
 
     "deltafs")
+        # Start BBOS servers and clients
+
+        message ""
+        message "BBOS Lustre chunk size: ${bb_lustre_chunk}MB"
+        message "BBOS Per-core log size: ${bb_log_size}MB"
+        
+        bb_server_list=$((cat $output_dir/bbos.hosts | tr '\n' ' '))
+        n=1
+        for s in $bb_server_list; do
+            container_dir=$output_dir/bbos/containers.$n
+            mkdir -p $container_dir
+
+            # Copying config files for every server
+            new_server_config=$output_dir/bbos/$bb_server_cfg.$n
+            cp $bb_server_cfg $new_server_config
+            echo $s >> $new_server_config
+            echo $container_dir >> $new_server_config
+
+            do_mpirun 1 "" "" "$bb_server $new_server_config" \
+                "$output_dir/bbos.hosts" "$logfile" &
+            
+            message ""
+            message "BBOS server started at $s"
+
+            sleep 1
+
+            # Copying config files for every client of this server
+            cp $bb_client_cfg $output_dir/bbos/$bb_client_cfg.$n
+            echo $s >> $output_dir/bbos/$bb_client_cfg.$n
+
+            n=$((n + 1))
+        done
+
+        c=1
+        while [ $c -le $bb_clients ]; do
+            s=$((c %% (bb_clients / bb_servers)))
+            cfg_file=$output_dir/bbos/$bb_client_cfg.$s
+            do_mpirun 1 "" "" "$bb_client $c.obj $cfg_file $bb_log_size $bb_sst_size" \
+                "$output_dir/bbos.hosts" "$logfile" &
+
+            message "BBOS client #$c started bound to server #$s"
+
+            sleep 1
+
+            c=$((c + 1))
+        done
+
+        # Start DeltaFS processes
         mkdir -p $output_dir/deltafs_$p/metadata || \
             die "deltafs metadata mkdir failed"
         mkdir -p $output_dir/deltafs_$p/data || \
@@ -172,7 +240,8 @@ do_run() {
 #              "DELTAFS_FioConf" "root=$output_dir/deltafs_$p/data"
 #              "DELTAFS_Outputs" "$output_dir/deltafs_$p/metadata")
 #
-#        do_mpirun 1 vars[@] "" "$deltafs_srvr_path" $logfile
+#        do_mpirun 1 vars[@] "" "$deltafs_srvr_path" $output_dir/vpic.hosts \
+#           $logfile
 #        if [ $? -ne 0 ]; then
 #            die "deltafs server: mpirun failed"
 #        fi
@@ -189,7 +258,8 @@ do_run() {
               "SHUFFLE_Subnet" "$ip_subnet")
 #              "DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
 
-        do_mpirun $((CORES - 1)) vars[@] "" "$deck_dir/turbulence.op" $logfile
+        do_mpirun $((CORES - 1)) vars[@] "" "$deck_dir/turbulence.op" \
+            $output_dir/vpic.hosts $logfile
         if [ $? -ne 0 ]; then
 #            kill -KILL $srvr_pid
             die "deltafs: mpirun failed"
@@ -199,6 +269,16 @@ do_run() {
 
         echo -n "Output size: " >> $logfile
         du -b $output_dir/deltafs_$p | tail -1 | cut -f1 >> $logfile
+
+        # Kill BBOS clients and servers
+        message ""
+        message "Killing BBOS servers"
+        for s in $bb_server_list; do
+            message "- Killing BBOS server: $s"
+            do_mpirun 1 "" "" "pkill -SIGINT bbos_server" \
+                "$output_dir/bbos.hosts" "$logfile"
+        done
+
         ;;
     esac
 }
