@@ -19,7 +19,6 @@ logfile=""
 
 bb_sst_size=2           # BBOS SST table size in MB
 bb_log_size=1024        # BBOS max per-core log size in MB
-bb_lustre_chunk=1024    # BBOS Lustre file size in MB
 
 bb_clients=$CORES
 bb_client_cfg="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb/config/narwhal_8_client.conf"
@@ -179,7 +178,6 @@ do_run() {
         # Start BBOS servers and clients
 
         message ""
-        message "BBOS Lustre chunk size: ${bb_lustre_chunk}MB"
         message "BBOS Per-core log size: ${bb_log_size}MB"
         
         bb_server_list=$((cat $output_dir/bbos.hosts | tr '\n' ' '))
@@ -213,7 +211,8 @@ do_run() {
         while [ $c -le $bb_clients ]; do
             s=$((c %% (bb_clients / bb_servers)))
             cfg_file=$output_dir/bbos/$bb_client_cfg.$s
-            do_mpirun 1 "" "" "$bb_client $c.obj $cfg_file $bb_log_size $bb_sst_size" \
+            do_mpirun 1 "" "" \
+                "$bb_client $c.obj $cfg_file $((bb_log_size * (2 ** 20))) $((bb_sst_size * (2 ** 20)))" \
                 "$output_dir/bbos.hosts" "$logfile" &
 
             message "BBOS client #$c started bound to server #$s"
