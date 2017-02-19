@@ -280,6 +280,7 @@ do_run() {
     esac
 }
 
+rm $logfile
 gen_hosts
 
 parts=$((CORES - 1))
