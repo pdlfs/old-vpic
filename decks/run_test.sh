@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -eu
 #
 #MSUB -N deltafs-test
 #MSUB -l walltime=1:00:00
