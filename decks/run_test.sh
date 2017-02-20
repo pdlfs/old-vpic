@@ -1,17 +1,50 @@
-#!/bin/bash
+#!/bin/bash -x
+#
+#MSUB -N deltafs-test
+#MSUB -l walltime=1:00:00
+#MSUB -l nodes=5:haswell
+#MSUB -o /users/$USER/joblogs/deltafs-test-$MOAB_JOBID.out
+#MSUB -j oe
+##MSUB -V
+##MSUB -m b
+##MSUB -m $USER@lanl.gov
 
-# Tunable parameters: tweak to your liking
-# Note: Use a number of cores that is a power of two plus 1.
-#       The number of particles is a multiple of the number of cores,
-#       but 1 core is reserved for DeltaFS server, so you want to be
-#       left with a power of two to get better particle numbers.
-CORES=8
-BBOS_BUDDIES=2
+# TODO:
+# - Convert node lists to ranges on CRAY
+
+######################
+# Tunable parameters #
+######################
+
+# Notes:
+# ------
+#
+# nodes: Use an odd number of nodes. The number of particles is a multiple of
+# the number of cores, but 1 node is reserved for DeltaFS server, so you want
+# to be left with power-of-2 cores to get better particle numbers.
+#
+# bbos_buddies: An additional number of node dedicated for burst buffer
+# communication. Should be set to the same number of nodes as the burst buffer
+# nodes.
+
+# Node topology
+cores_per_node=4
+nodes=3
+bbos_buddies=2
+
+# Paths
 umbrella_build_dir="$HOME/src/deltafs-umbrella/build"
-output_dir="/panfs/probescratch/TableFS/vpic_test"
+output_dir="$HOME/src/vpic/decks/dump"
+
+# DeltaFS config
 ip_subnet="10.92"
 
-# Internal variables (no need to touch)
+
+###############
+# Core script #
+###############
+
+cores=$(((nodes-1) * cores_per_node))
 build_op_dir="$umbrella_build_dir/vpic-prefix/src/vpic-build"
 deck_dir="$umbrella_build_dir/vpic-prefix/src/vpic/decks/trecon-part"
 dpoints=1
@@ -20,39 +53,66 @@ logfile=""
 bb_sst_size=2           # BBOS SST table size in MB
 bb_log_size=1024        # BBOS max per-core log size in MB
 
-bb_clients=$CORES
+bb_clients=$cores
 bb_client_cfg="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb/config/narwhal_8_client.conf"
 bb_client="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb-build/src/bbos_client"
 
-bb_servers=$BBOS_BUDDIES
+bb_servers=$bbos_buddies
 bb_server_cfg="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb/config/narwhal_2_server.conf"
 bb_server="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb-build/src/bbos_server"
 
 message () { echo "$@" | tee -a $logfile; }
 die () { message "Error $@"; exit 1; }
 
-# Generate mpirun hostfile on Narwhal
+# Generate host lists
 gen_hosts() {
-    message "Generating hostfile..."
+    message "Generating host lists..."
 
-    fqdn_suffix="`hostname | sed 's/^[^\.]*././'`"
-    exp_hosts="`/share/testbed/bin/emulab-listall`"
+    if [ `which aprun` ]; then
+        # Generate host lists on CRAY and store them on disk
+        cat $PBS_NODEFILE | uniq | sort | head -n 1 | \
+            tr '\n' ',' > $output_dir/deltafs.hosts || \
+            die "failed to create deltafs.hosts file"
+        cat $PBS_NODEFILE | uniq | sort | head -n $nodes | tail -n $((nodes-1)) | \
+            tr '\n' ',' > $output_dir/vpic.hosts || \
+            die "failed to create vpic.hosts file"
+        cat $PBS_NODEFILE | uniq | sort | tail -n $bbos_buddies | \
+            tr '\n' ',' > $output_dir/bbos.hosts || \
+            die "failed to create bbos.hosts file"
 
-    echo $exp_hosts | \
-        awk -F, '{ for (i=1; i<=(NF-'"$bb_servers"'); i++) { print $i "'"$fqdn_suffix"'"}}' > \
-        "$output_dir/vpic.hosts" || die "failed to create vpic.hosts file"
+    else
+        # Generate host lists on Emulab and store them on disk
+        fqdn_suffix="`hostname | sed 's/^[^\.]*././'`"
+        exp_hosts="`/share/testbed/bin/emulab-listall | tr ',' '\n'`"
 
-    echo $exp_hosts | \
-        awk -F, '{ for (i=(NF-'"$bb_servers"'+1); i<=NF; i++) { print $i "'"$fqdn_suffix"'"}}' > \
-        "$output_dir/bbos.hosts" || die "failed to create bbos.hosts file"
+        echo $exp_hosts | head -n 1 | \
+            tr '\n' ',' > $output_dir/deltafs.hosts || \
+            die "failed to create deltafs.hosts file"
+        echo $exp_hosts | head -n $nodes | tail -n $((nodes-1)) | \
+            tr '\n' ',' > $output_dir/vpic.hosts || \
+            die "failed to create vpic.hosts file"
+        echo $exp_hosts | tail -n $bbos_buddies | \
+            tr '\n' ',' > $output_dir/bbos.hosts || \
+            die "failed to create bbos.hosts file"
+    fi
+
+    # Populate host list variables
+    deltafs_nodes=$(cat $output_dir/deltafs.hosts)
+    vpic_nodes=$(cat $output_dir/vpic.hosts)
+    bbos_nodes=$(cat $output_dir/bbos.hosts)
 }
 
 # Clear node caches on Narwhal
 clear_caches() {
-    message "Clearing caches..."
+    message "Clearing node caches..."
 
-    /share/testbed/bin/emulab-mpirunall sudo sh -c \
-        'echo 3 > /proc/sys/vm/drop_caches'
+    if [ `which aprun` ]; then
+        aprun -L $vpic_nodes -n $cores -N $((nodes - 1)) sudo sh -c \
+            'echo 3 > /proc/sys/vm/drop_caches'
+    else 
+        /share/testbed/bin/emulab-mpirunall sudo sh -c \
+            'echo 3 > /proc/sys/vm/drop_caches'
+    fi
 }
 
 # Configure config.h
@@ -68,7 +128,7 @@ build_deck() {
     "file-per-process")
         cat $deck_dir/config.bkp | \
             sed 's/^#define VPIC_FILE_PER_PARTICLE/\/\/#define VPIC_FILE_PER_PARTICLE/' | \
-            sed 's/VPIC_TOPOLOGY_X.*/VPIC_TOPOLOGY_X '$((CORES-1))'/' | \
+            sed 's/VPIC_TOPOLOGY_X.*/VPIC_TOPOLOGY_X '$cores'/' | \
             sed 's/VPIC_TOPOLOGY_Y.*/VPIC_TOPOLOGY_Y 1/' | \
             sed 's/VPIC_TOPOLOGY_Z.*/VPIC_TOPOLOGY_Z 1/' | \
             sed 's/VPIC_PARTICLE_X.*/VPIC_PARTICLE_X '$p'/' | \
@@ -79,7 +139,7 @@ build_deck() {
     "file-per-particle")
         cat $deck_dir/config.bkp | \
             sed 's/^\/\/#define VPIC_FILE_PER_PARTICLE/#define VPIC_FILE_PER_PARTICLE/' | \
-            sed 's/VPIC_TOPOLOGY_X.*/VPIC_TOPOLOGY_X '$((CORES-1))'/' | \
+            sed 's/VPIC_TOPOLOGY_X.*/VPIC_TOPOLOGY_X '$cores'/' | \
             sed 's/VPIC_TOPOLOGY_Y.*/VPIC_TOPOLOGY_Y 1/' | \
             sed 's/VPIC_TOPOLOGY_Z.*/VPIC_TOPOLOGY_Z 1/' | \
             sed 's/VPIC_PARTICLE_X.*/VPIC_PARTICLE_X '$p'/' | \
@@ -97,31 +157,40 @@ build_deck() {
     $build_op_dir/build.op ./turbulence.cxx || die "compilation failed"
 }
 
-# Run MPICH or OpenMPI mpirun command
+# Run CRAY MPICH, ANL MPICH, or OpenMPI run command
 # Arguments:
 # @1 number of processes
 # @2 array of env vars: ("name1", "val1", "name2", ... )
-# @3 other options (to be appended)
-# @4 executable
-# @5 hostfile
-# @6 outfile
+# @3 host list (comma-separated)
+# @4 executable (and any options that don't fit elsewhere)
+# @5 outfile (used to log output)
 do_mpirun() {
     procs=$1
     declare -a envs=("${!2}")
-    opts="$3"
+    hosts="$3"
     exe="$4"
-    hostfile="$5"
-    outfile="$6"
+    outfile="$5"
 
-    if [ `which mpirun.mpich` ]; then
+    if [ `which aprun` ]; then
+        # This is likely a CRAY machine. Deploy an aprun job.
+        if [ ${#envs[@]} -gt 0 ]; then
+            envstr=`printf -- "-e %s=\"%s\" " ${envs[@]}`
+        else
+            envstr=""
+        fi
+
+        aprun -L $hosts -n $procs $envstr $exe 2>&1 | \
+            tee -a $outfile
+
+    elif [ `which mpirun.mpich` ]; then
         if [ ${#envs[@]} -gt 0 ]; then
             envstr=`printf -- "-env %s \"%s\" " ${envs[@]}`
         else
             envstr=""
         fi
 
-        mpirun.mpich -np $procs --hostfile $hostfile \
-            $envstr -prepend-rank $opts $exe 2>&1 | tee -a "$outfile"
+        mpirun.mpich -np $procs --host $hosts $envstr -prepend-rank $exe 2>&1 | \
+            tee -a $outfile
 
     elif [ `which mpirun.openmpi` ]; then
         if [ ${#envs[@]} -gt 0 ]; then
@@ -130,11 +199,11 @@ do_mpirun() {
             envstr=""
         fi
 
-        mpirun.openmpi -np $procs --hostfile $hostfile \
-            $envstr -tag-output $opts $exe 2>&1 | tee -a "$outfile"
+        mpirun.openmpi -np $procs --host $hosts $envstr -tag-output $exe 2>&1 | \
+            tee -a "$outfile"
 
     else
-        die "not running mpich or openmpi"
+        die "could not find a supported mpirun or aprun command"
     fi
 }
 
@@ -164,8 +233,7 @@ do_run() {
     "baseline")
         vars=()
 
-        do_mpirun $((CORES - 1)) vars[@] "" "$deck_dir/turbulence.op" \
-            $output_dir/vpic.hosts $logfile
+        do_mpirun $cores vars[@] "$vpic_nodes" "$deck_dir/turbulence.op" $logfile
         if [ $? -ne 0 ]; then
             die "baseline: mpirun failed"
         fi
@@ -191,8 +259,7 @@ do_run() {
             echo $s >> $new_server_config
             echo $container_dir >> $new_server_config
 
-            do_mpirun 1 "" "--host $s" "$bb_server $new_server_config" \
-                "$output_dir/bbos.hosts" "$logfile" &
+            do_mpirun 1 "" "$s" "$bb_server $new_server_config" "$logfile" &
             
             message "BBOS server started at $s"
 
@@ -209,9 +276,9 @@ do_run() {
         while [ $c -le $bb_clients ]; do
             s=$(((c % bb_servers) + 1))
             cfg_file=$output_dir/bbos/client.$s
-            do_mpirun 1 "" "" \
+            do_mpirun 1 "" "$bbos_nodes" \
                 "$bb_client $c.obj $cfg_file $((bb_log_size * (2 ** 20))) $((bb_sst_size * (2 ** 20)))" \
-                "$output_dir/bbos.hosts" "$logfile" &
+                "$logfile" &
 
             message "BBOS client #$c started bound to server #$s"
 
@@ -237,8 +304,7 @@ do_run() {
 #              "DELTAFS_FioConf" "root=$output_dir/deltafs_$p/data"
 #              "DELTAFS_Outputs" "$output_dir/deltafs_$p/metadata")
 #
-#        do_mpirun 1 vars[@] "" "$deltafs_srvr_path" $output_dir/vpic.hosts \
-#           $logfile
+#        do_mpirun 1 vars[@] "$deltafs_nodes" "$deltafs_srvr_path" $logfile
 #        if [ $? -ne 0 ]; then
 #            die "deltafs server: mpirun failed"
 #        fi
@@ -255,8 +321,7 @@ do_run() {
               "SHUFFLE_Subnet" "$ip_subnet")
 #              "DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
 
-        do_mpirun $((CORES - 1)) vars[@] "" "$deck_dir/turbulence.op" \
-            $output_dir/vpic.hosts $logfile
+        do_mpirun $cores vars[@] "$vpic_nodes" "$deck_dir/turbulence.op" $logfile
         if [ $? -ne 0 ]; then
 #            kill -KILL $srvr_pid
             die "deltafs: mpirun failed"
@@ -272,8 +337,7 @@ do_run() {
         message "Killing BBOS servers"
         for s in $bb_server_list; do
             message "- Killing BBOS server: $s"
-            do_mpirun 1 "" "--host $s" "pkill -SIGINT bbos_server" \
-                "$output_dir/bbos.hosts" "$logfile"
+            do_mpirun 1 "" "$s" "pkill -SIGINT bbos_server" "$logfile"
         done
 
         ;;
@@ -283,7 +347,7 @@ do_run() {
 rm $logfile
 gen_hosts
 
-parts=$((CORES - 1))
+parts=$cores
 while [ $dpoints -gt 0 ]
 do
     build_deck "file-per-process" $parts
