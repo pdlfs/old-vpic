@@ -50,8 +50,8 @@ deck_dir="$umbrella_build_dir/vpic-prefix/src/vpic/decks/trecon-part"
 dpoints=1
 logfile=""
 
-bb_sst_size=2           # BBOS SST table size in MB
-bb_log_size=1024        # BBOS max per-core log size in MB
+bb_sst_size=$((2 * (2**20)))    # BBOS SST table size in bytes
+bb_log_size=$((1024 * (2**20))) # BBOS max per-core log size in bytes
 
 bb_clients=$cores
 bb_client_cfg="$umbrella_build_dir/deltafs-bb-prefix/src/deltafs-bb/config/narwhal_8_client.conf"
@@ -245,7 +245,7 @@ do_run() {
     "deltafs")
         # Start BBOS servers and clients
 
-        message "BBOS Per-core log size: ${bb_log_size}MB"
+        message "BBOS Per-core log size: $((bb_log_size / (2**20)))MB"
         
         bb_server_list=$(cat $output_dir/bbos.hosts | tr '\n' ' ')
         n=1
@@ -277,8 +277,7 @@ do_run() {
             s=$(((c % bb_servers) + 1))
             cfg_file=$output_dir/bbos/client.$s
             do_mpirun 1 "" "$bbos_nodes" \
-                "$bb_client $c.obj $cfg_file $((bb_log_size * (2 ** 20))) $((bb_sst_size * (2 ** 20)))" \
-                "$logfile" &
+                "$bb_client $c.obj $cfg_file $bb_log_size $bb_sst_size" "$logfile" &
 
             message "BBOS client #$c started bound to server #$s"
 
