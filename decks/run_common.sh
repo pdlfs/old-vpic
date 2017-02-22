@@ -299,5 +299,54 @@ do_run() {
         done
 
         ;;
+    "shuffle-test")
+        np=$2
+
+        # Start DeltaFS processes
+        mkdir -p $output_dir/deltafs_$p/metadata || \
+            die "deltafs metadata mkdir failed"
+        mkdir -p $output_dir/deltafs_$p/data || \
+            die "deltafs data mkdir failed"
+
+        preload_lib_path="$umbrella_build_dir/deltafs-vpic-preload-prefix/src/"\
+"deltafs-vpic-preload-build/src/libdeltafs-preload.so"
+        deltafs_srvr_path="$umbrella_build_dir/deltafs-prefix/src/"\
+"deltafs-build/src/server/deltafs-srvr"
+        deltafs_srvr_ip=`hostname -i`
+
+#        vars=("DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
+#              "DELTAFS_FioName" "posix"
+#              "DELTAFS_FioConf" "root=$output_dir/deltafs_$p/data"
+#              "DELTAFS_Outputs" "$output_dir/deltafs_$p/metadata")
+#
+#        do_mpirun 1 0 vars[@] "$deltafs_nodes" "$deltafs_srvr_path" $logfile
+#        if [ $? -ne 0 ]; then
+#            die "deltafs server: mpirun failed"
+#        fi
+#
+#        srvr_pid=$!
+
+        vars=("LD_PRELOAD" "$preload_lib_path"
+              "PRELOAD_Deltafs_root" "particle"
+              "PRELOAD_Local_root" "${output_dir}"
+              "PRELOAD_Bypass_deltafs_namespace" "1"
+              "PRELOAD_Enable_verbose_error" "1"
+              "SHUFFLE_Virtual_factor" "1024"
+              "SHUFFLE_Mercury_proto" "bmi+tcp"
+              "SHUFFLE_Subnet" "$ip_subnet")
+#              "DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
+
+        do_mpirun $cores $np vars[@] "$vpic_nodes" "$deck_dir/turbulence.op" $logfile
+        if [ $? -ne 0 ]; then
+#            kill -KILL $srvr_pid
+            die "deltafs: mpirun failed"
+        fi
+
+#        kill -KILL $srvr_pid
+
+        echo -n "Output size: " >> $logfile
+        du -b $output_dir/deltafs_$p | tail -1 | cut -f1 >> $logfile
+
+        ;;
     esac
 }
