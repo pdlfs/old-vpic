@@ -101,16 +101,18 @@ build_deck() {
 # Run CRAY MPICH, ANL MPICH, or OpenMPI run command
 # Arguments:
 # @1 number of processes
-# @2 array of env vars: ("name1", "val1", "name2", ... )
-# @3 host list (comma-separated)
-# @4 executable (and any options that don't fit elsewhere)
-# @5 outfile (used to log output)
+# @2 number of processes per node
+# @3 array of env vars: ("name1", "val1", "name2", ... )
+# @4 host list (comma-separated)
+# @5 executable (and any options that don't fit elsewhere)
+# @6 outfile (used to log output)
 do_mpirun() {
     procs=$1
-    declare -a envs=("${!2}")
-    hosts="$3"
-    exe="$4"
-    outfile="$5"
+    np=$2
+    declare -a envs=("${!3}")
+    hosts="$4"
+    exe="$5"
+    outfile="$6"
 
     if [ `which aprun` ]; then
         # This is likely a CRAY machine. Deploy an aprun job.
@@ -120,7 +122,13 @@ do_mpirun() {
             envstr=""
         fi
 
-        aprun -L $hosts -n $procs $envstr $exe 2>&1 | \
+        if [ $np -gt 0 ]; then
+            npstr="-N $np"
+        else
+            npstr=""
+        fi
+
+        aprun -L $hosts -n $procs $npstr $envstr $exe 2>&1 | \
             tee -a $outfile
 
     elif [ `which mpirun.mpich` ]; then
@@ -128,6 +136,10 @@ do_mpirun() {
             envstr=`printf -- "-env %s \"%s\" " ${envs[@]}`
         else
             envstr=""
+        fi
+
+        if [ $np -gt 0 ]; then
+            die "MPICH does not support a fixed number of processes per node"
         fi
 
         mpirun.mpich -np $procs --host $hosts $envstr -prepend-rank $exe 2>&1 | \
@@ -140,7 +152,13 @@ do_mpirun() {
             envstr=""
         fi
 
-        mpirun.openmpi -np $procs --host $hosts $envstr -tag-output $exe 2>&1 | \
+        if [ $np -gt 0 ]; then
+            npstr="-npernode $np"
+        else
+            npstr=""
+        fi
+
+        mpirun.openmpi -np $procs $npstr --host $hosts $envstr -tag-output $exe 2>&1 | \
             tee -a "$outfile"
 
     else
@@ -174,7 +192,7 @@ do_run() {
     "baseline")
         vars=()
 
-        do_mpirun $cores vars[@] "$vpic_nodes" "$deck_dir/turbulence.op" $logfile
+        do_mpirun $cores 0 vars[@] "$vpic_nodes" "$deck_dir/turbulence.op" $logfile
         if [ $? -ne 0 ]; then
             die "baseline: mpirun failed"
         fi
@@ -200,7 +218,7 @@ do_run() {
             echo $s >> $new_server_config
             echo $container_dir >> $new_server_config
 
-            do_mpirun 1 "" "$s" "$bb_server $new_server_config" "$logfile" &
+            do_mpirun 1 0 "" "$s" "$bb_server $new_server_config" "$logfile" &
             
             message "BBOS server started at $s"
 
@@ -217,7 +235,7 @@ do_run() {
         while [ $c -le $bb_clients ]; do
             s=$(((c % bb_servers) + 1))
             cfg_file=$output_dir/bbos/client.$s
-            do_mpirun 1 "" "$bbos_nodes" \
+            do_mpirun 1 0 "" "$bbos_nodes" \
                 "$bb_client $c.obj $cfg_file $bb_log_size $bb_sst_size" "$logfile" &
 
             message "BBOS client #$c started bound to server #$s"
@@ -244,7 +262,7 @@ do_run() {
 #              "DELTAFS_FioConf" "root=$output_dir/deltafs_$p/data"
 #              "DELTAFS_Outputs" "$output_dir/deltafs_$p/metadata")
 #
-#        do_mpirun 1 vars[@] "$deltafs_nodes" "$deltafs_srvr_path" $logfile
+#        do_mpirun 1 0 vars[@] "$deltafs_nodes" "$deltafs_srvr_path" $logfile
 #        if [ $? -ne 0 ]; then
 #            die "deltafs server: mpirun failed"
 #        fi
@@ -261,7 +279,7 @@ do_run() {
               "SHUFFLE_Subnet" "$ip_subnet")
 #              "DELTAFS_MetadataSrvAddrs" "$deltafs_srvr_ip:10101"
 
-        do_mpirun $cores vars[@] "$vpic_nodes" "$deck_dir/turbulence.op" $logfile
+        do_mpirun $cores 0 vars[@] "$vpic_nodes" "$deck_dir/turbulence.op" $logfile
         if [ $? -ne 0 ]; then
 #            kill -KILL $srvr_pid
             die "deltafs: mpirun failed"
@@ -277,7 +295,7 @@ do_run() {
         message "Killing BBOS servers"
         for s in $bb_server_list; do
             message "- Killing BBOS server: $s"
-            do_mpirun 1 "" "$s" "pkill -SIGINT bbos_server" "$logfile"
+            do_mpirun 1 0 "" "$s" "pkill -SIGINT bbos_server" "$logfile"
         done
 
         ;;
