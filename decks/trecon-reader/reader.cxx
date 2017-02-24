@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <string.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <list>
 #include <map>
 
@@ -28,58 +29,6 @@ void usage(int ret)
            me);
 
     exit(ret);
-}
-
-int deltafs_read_particles(long long int num, char *indir, char *outdir)
-{
-    int ret;
-    deltafs_plfsdir_t *dir;
-    char *file_data, fname[PATH_MAX];
-    FileMap out;
-
-    /* Iterate through epoch frames */
-    if (generate_files(outdir, num, &out)) {
-        fprintf(stderr, "Error: particle trajectory file creation failed\n");
-        return 1;
-    }
-
-    dir = deltafs_plfsdir_create_handle(O_RDONLY);
-
-    if (!(ret = deltafs_plfsdir_open(dir, indir, NULL))) {
-        perror("Error: cannot open input PLFS directory");
-        deltafs_plfsdir_free_handle(dir);
-        goto err;
-    }
-
-    for (int i=1; i<=num, i++) {
-        /* Determine fname for particle */
-        if (!snprintf(fname, PATH_MAX, "eparticle.%016lx", i)) {
-            perror("Error: snprintf failed");
-            goto err;
-        }
-
-        if (!(file_data = deltafs_plfsdir_readall(dir, fname)) {
-            perror("Error: failed to read particle data");
-            deltafs_plfsdir_free_handle(dir);
-            goto err;
-        }
-
-        /* Write out particle trajectory data */
-        if (fwrite(file_data, 1, 40 /* XXX */, out[i]) != 40) {
-            perror("Error: fwrite failed");
-            goto err;
-        }
-
-        free(file_data);
-    }
-
-    deltafs_plfsdir_free_handle(dir);
-    close_files(&out);
-    return 0;
-
-err:
-    close_files(&out);
-    return 1;
 }
 
 void close_files(FileMap *out)
@@ -111,6 +60,58 @@ int generate_files(char *outdir, long long int num, FileMap *out)
     }
 
     return 0;
+}
+
+int deltafs_read_particles(long long int num, char *indir, char *outdir)
+{
+    int ret;
+    deltafs_plfsdir_t *dir;
+    char *file_data, fname[PATH_MAX];
+    FileMap out;
+
+    /* Iterate through epoch frames */
+    if (generate_files(outdir, num, &out)) {
+        fprintf(stderr, "Error: particle trajectory file creation failed\n");
+        return 1;
+    }
+
+    dir = deltafs_plfsdir_create_handle(O_RDONLY);
+
+    if (!(ret = deltafs_plfsdir_open(dir, indir, NULL))) {
+        perror("Error: cannot open input PLFS directory");
+        deltafs_plfsdir_free_handle(dir);
+        goto err;
+    }
+
+    for (int i=1; i<=num; i++) {
+        /* Determine fname for particle */
+        if (!snprintf(fname, PATH_MAX, "eparticle.%016lx", (long int) i)) {
+            perror("Error: snprintf failed");
+            goto err;
+        }
+
+        if (!(file_data = deltafs_plfsdir_readall(dir, fname))) {
+            perror("Error: failed to read particle data");
+            deltafs_plfsdir_free_handle(dir);
+            goto err;
+        }
+
+        /* Write out particle trajectory data */
+        if (fwrite(file_data, 1, 40 /* XXX */, out[i]) != 40) {
+            perror("Error: fwrite failed");
+            goto err;
+        }
+
+        free(file_data);
+    }
+
+    deltafs_plfsdir_free_handle(dir);
+    close_files(&out);
+    return 0;
+
+err:
+    close_files(&out);
+    return 1;
 }
 
 int process_epoch(char *ppath, int it, FileMap out)
