@@ -6,6 +6,9 @@
 #include <dirent.h>
 #include <list>
 #include <map>
+
+#include <deltafs/deltafs_api.h>
+
 using namespace std;
 
 typedef map<int,FILE*> FileMap;
@@ -27,44 +30,56 @@ void usage(int ret)
     exit(ret);
 }
 
-/*
- * TODO:
- * - include deltafs_api.h
- * - link lib properly in CMakeLists.txt
- */
 int deltafs_read_particles(long long int num, char *indir, char *outdir)
 {
-#if 0
     int ret;
     deltafs_plfsdir_t *dir;
     char *file_data, fname[PATH_MAX];
+    FileMap out;
+
+    /* Iterate through epoch frames */
+    if (generate_files(outdir, num, &out)) {
+        fprintf(stderr, "Error: particle trajectory file creation failed\n");
+        return 1;
+    }
 
     dir = deltafs_plfsdir_create_handle(O_RDONLY);
 
     if (!(ret = deltafs_plfsdir_open(dir, indir, NULL))) {
         perror("Error: cannot open input PLFS directory");
         deltafs_plfsdir_free_handle(dir);
-        usage(1);
+        goto err;
     }
 
     for (int i=1; i<=num, i++) {
-
-        /* TODO: Determine and populate fname for EACH particle */
+        /* Determine fname for particle */
+        if (!snprintf(fname, PATH_MAX, "eparticle.%016lx", i)) {
+            perror("Error: snprintf failed");
+            goto err;
+        }
 
         if (!(file_data = deltafs_plfsdir_readall(dir, fname)) {
             perror("Error: failed to read particle data");
             deltafs_plfsdir_free_handle(dir);
-            usage(1);
+            goto err;
         }
 
-        /* TODO: Write out particle trajectory data */
+        /* Write out particle trajectory data */
+        if (fwrite(file_data, 1, 40 /* XXX */, out[i]) != 40) {
+            perror("Error: fwrite failed");
+            goto err;
+        }
 
         free(file_data);
     }
 
     deltafs_plfsdir_free_handle(dir);
-#endif /* 0 */
+    close_files(&out);
     return 0;
+
+err:
+    close_files(&out);
+    return 1;
 }
 
 void close_files(FileMap *out)
