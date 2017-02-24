@@ -558,7 +558,7 @@ begin_initialization {
             itp1++;
             // Tag format: 18 bits for rank (up to 250K nodes) and
             //             46 bits for particle ID (up to 70T particles/node)
-            tag = (((int64_t) rank_int + 1) << 46) | (itp1 & 0x3ffffffffff);
+            tag = (((int64_t) rank_int) << 46) | (itp1 & 0x3ffffffffff);
         }
     }
 
@@ -598,7 +598,7 @@ begin_initialization {
             itp2++;
             // Tag format: 18 bits for rank (up to 250K nodes) and
             //             46 bits for particle ID (up to 70T particles/node)
-            tag = (((int64_t) rank_int + 1) << 46) | (itp2 & 0x3ffffffffff);
+            tag = (((int64_t) rank_int) << 46) | (itp2 & 0x3ffffffffff);
         }
     }
 
