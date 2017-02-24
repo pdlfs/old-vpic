@@ -9,6 +9,7 @@
 using namespace std;
 
 typedef map<int,FILE*> FileMap;
+typedef list<int> EpochList;
 
 char *me;
 
@@ -66,12 +67,6 @@ int deltafs_read_particles(long long int num, char *indir, char *outdir)
     return 0;
 }
 
-int process_epoch(char *ppath, char *outdir, int it, long long int num)
-{
-    /* TODO */
-    return 0;
-}
-
 void close_files(FileMap *out)
 {
     FileMap::iterator it;
@@ -103,13 +98,25 @@ int generate_files(char *outdir, long long int num, FileMap *out)
     return 0;
 }
 
+int process_epoch(char *ppath, int it, FileMap out)
+{
+    /* Open each per-process file and process it */
+
+    /* Verify headers */
+
+    /* Check whether particle data is found, stop if so (not for debugging) */
+
+    /* TODO */
+    return 0;
+}
+
 int read_particles(long long int num, char *indir, char *outdir)
 {
     DIR *in;
     struct dirent *dp;
     char ppath[PATH_MAX];
-    list<int> epochs;
-    list<int>::iterator it;
+    EpochList epochs;
+    EpochList::iterator it;
     FileMap out;
 
     printf("Reading particles from %s.\n", indir);
@@ -161,7 +168,7 @@ int read_particles(long long int num, char *indir, char *outdir)
 
     for (it = epochs.begin(); it != epochs.end(); ++it) {
         printf("Processing epoch %d.\n", *it);
-        if (process_epoch(ppath, outdir, *it, num)) {
+        if (process_epoch(ppath, *it, out)) {
             fprintf(stderr, "Error: epoch data processing failed\n");
             close_files(&out);
             return 1;
