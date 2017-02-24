@@ -4,7 +4,9 @@
 #include <limits.h>
 #include <string.h>
 #include <dirent.h>
+#include <list>
 //#include <sys/types.h>
+using namespace std;
 
 char *me;
 
@@ -62,22 +64,69 @@ int deltafs_read_particles(long long int num, char *indir, char *outdir)
     return 0;
 }
 
+int process_epoch(char *ppath, char *outdir, int it, long long int num)
+{
+    /* TODO */
+    return 0;
+}
+
 int read_particles(long long int num, char *indir, char *outdir)
 {
-    int *epochs;
     DIR *in;
     struct dirent *dp;
+    char ppath[PATH_MAX];
+    list<int> epochs;
+    list<int>::iterator it;
 
     printf("Reading particles from %s.\n", indir);
     printf("Storing trajectories in %s.\n", outdir);
 
     /* Open particle directory and sort epoch directories */
-    if ((in = opendir(indir)) == NULL) {
+    if (!snprintf(ppath, PATH_MAX, "%s/particle", indir)) {
+        perror("Error: snprintf failed");
+        usage(1);
+    }
+
+    if ((in = opendir(ppath)) == NULL) {
         perror("Error: cannot open input directory");
         usage(1);
     }
 
-    /* TODO */
+    while (dp = readdir(in)) {
+        int epoch;
+        char *end;
+
+        if (dp->d_type != DT_DIR)
+            continue;
+
+        if (!strcmp(dp->d_name, ".") ||
+            !strcmp(dp->d_name, "..") ||
+            dp->d_name[0] != 'T')
+            continue;
+
+        epoch = strtoll(dp->d_name+2, &end, 10);
+        if (*end) {
+            perror("Error: strtoll failed");
+            closedir(in);
+            usage(1);
+        }
+
+        //printf("Found subdir %s, epoch %d.\n", dp->d_name, epoch);
+
+        epochs.push_back(epoch);
+    }
+
+    closedir(in);
+    epochs.sort();
+
+    /* Iterate through epoch frames */
+    for (it = epochs.begin(); it != epochs.end(); ++it) {
+        printf("Processing epoch %d.\n", *it);
+        if (process_epoch(ppath, outdir, *it, num)) {
+            fprintf(stderr, "Error: epoch data processing failed\n");
+        }
+    }
+
     return 0;
 }
 
@@ -104,8 +153,9 @@ int main(int argc, char **argv)
             }
             break;
         case 'n': /* number of particles to fetch */
-            num = atoll(optarg);
-            if (!num) {
+            char *end;
+            num = strtoll(optarg, &end, 10);
+            if (*end) {
                 perror("Error: invalid num argument");
                 usage(1);
             }
