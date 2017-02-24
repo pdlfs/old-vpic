@@ -95,17 +95,12 @@ int generate_files(char *outdir, long long int num, FileMap *out)
 
         if (!((*out)[i] = fopen(fpath, "w"))) {
             perror("Error: fopen failed");
-            goto err;
+            close_files(out);
+            return 1;
         }
     }
 
     return 0;
-
-err:
-    for (it = out->begin(); it != out->end(); ++it) {
-        if (it->second)
-            fclose(it->second);
-    }
 }
 
 int read_particles(long long int num, char *indir, char *outdir)
