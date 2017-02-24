@@ -47,7 +47,7 @@ int generate_files(char *outdir, long long int num, FileMap *out)
     FileMap::iterator it;
 
     for (long long int i = 1; i <= num; i++) {
-        if (snprintf(fpath, PATH_MAX, "%s/particle%lld.txt", outdir, i)) {
+        if (!snprintf(fpath, PATH_MAX, "%s/particle%lld.txt", outdir, i)) {
             perror("Error: snprintf failed");
             usage(1);
         }
