@@ -5,8 +5,10 @@
 #include <string.h>
 #include <dirent.h>
 #include <list>
-//#include <sys/types.h>
+#include <map>
 using namespace std;
+
+typedef map<int,FILE*> FileMap;
 
 char *me;
 
@@ -70,6 +72,42 @@ int process_epoch(char *ppath, char *outdir, int it, long long int num)
     return 0;
 }
 
+void close_files(FileMap *out)
+{
+    FileMap::iterator it;
+
+    for (it = out->begin(); it != out->end(); ++it) {
+        if (it->second)
+            fclose(it->second);
+    }
+}
+
+int generate_files(char *outdir, long long int num, FileMap *out)
+{
+    char fpath[PATH_MAX];
+    FileMap::iterator it;
+
+    for (long long int i = 1; i <= num; i++) {
+        if (!snprintf(fpath, PATH_MAX, "%s/particle%lld.txt", outdir, i)) {
+            perror("Error: snprintf failed");
+            usage(1);
+        }
+
+        if (!((*out)[i] = fopen(fpath, "w"))) {
+            perror("Error: fopen failed");
+            goto err;
+        }
+    }
+
+    return 0;
+
+err:
+    for (it = out->begin(); it != out->end(); ++it) {
+        if (it->second)
+            fclose(it->second);
+    }
+}
+
 int read_particles(long long int num, char *indir, char *outdir)
 {
     DIR *in;
@@ -77,6 +115,7 @@ int read_particles(long long int num, char *indir, char *outdir)
     char ppath[PATH_MAX];
     list<int> epochs;
     list<int>::iterator it;
+    FileMap out;
 
     printf("Reading particles from %s.\n", indir);
     printf("Storing trajectories in %s.\n", outdir);
@@ -120,13 +159,21 @@ int read_particles(long long int num, char *indir, char *outdir)
     epochs.sort();
 
     /* Iterate through epoch frames */
+    if (generate_files(outdir, num, &out)) {
+        fprintf(stderr, "Error: particle trajectory file creation failed\n");
+        return 1;
+    }
+
     for (it = epochs.begin(); it != epochs.end(); ++it) {
         printf("Processing epoch %d.\n", *it);
         if (process_epoch(ppath, outdir, *it, num)) {
             fprintf(stderr, "Error: epoch data processing failed\n");
+            close_files(&out);
+            return 1;
         }
     }
 
+    close_files(&out);
     return 0;
 }
 
