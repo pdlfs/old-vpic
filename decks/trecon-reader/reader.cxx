@@ -47,7 +47,7 @@ int generate_files(char *outdir, long long int num, FileMap *out)
     FileMap::iterator it;
 
     for (long long int i = 1; i <= num; i++) {
-        if (!snprintf(fpath, PATH_MAX, "%s/particle%lld.txt", outdir, i)) {
+        if (snprintf(fpath, PATH_MAX, "%s/particle%lld.txt", outdir, i)) {
             perror("Error: snprintf failed");
             usage(1);
         }
@@ -77,7 +77,7 @@ int deltafs_read_particles(long long int num, char *indir, char *outdir)
 
     dir = deltafs_plfsdir_create_handle(O_RDONLY);
 
-    if (!(ret = deltafs_plfsdir_open(dir, indir, NULL))) {
+    if ((ret = deltafs_plfsdir_open(dir, indir, NULL))) {
         perror("Error: cannot open input PLFS directory");
         deltafs_plfsdir_free_handle(dir);
         goto err;
