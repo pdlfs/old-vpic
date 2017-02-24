@@ -5,3 +5,10 @@ find_package (deltafs CONFIG REQUIRED)
 
 add_executable (reader reader.cxx)
 target_link_libraries (reader deltafs)
+
+#
+# "make install" rules
+#
+install (TARGETS reader
+         RUNTIME DESTINATION bin)
+
