@@ -91,7 +91,7 @@ int deltafs_read_particles(long long int num, char *indir, char *outdir)
             goto err;
         }
 
-        if (!(file_data = deltafs_plfsdir_readall(dir, fname, &len))) {
+        if (!(file_data = (char*) deltafs_plfsdir_readall(dir, fname, &len))) {
             perror("Error: failed to read particle data");
             deltafs_plfsdir_free_handle(dir);
             goto err;
