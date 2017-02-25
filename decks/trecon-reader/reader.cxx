@@ -68,6 +68,7 @@ int deltafs_read_particles(long long int num, char *indir, char *outdir)
     deltafs_plfsdir_t *dir;
     char *file_data, fname[PATH_MAX];
     FileMap out;
+    size_t len;
 
     /* Iterate through epoch frames */
     if (generate_files(outdir, num, &out)) {
@@ -90,7 +91,7 @@ int deltafs_read_particles(long long int num, char *indir, char *outdir)
             goto err;
         }
 
-        if (!(file_data = deltafs_plfsdir_readall(dir, fname))) {
+        if (!(file_data = deltafs_plfsdir_readall(dir, fname, &len))) {
             perror("Error: failed to read particle data");
             deltafs_plfsdir_free_handle(dir);
             goto err;
