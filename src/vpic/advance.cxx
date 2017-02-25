@@ -220,9 +220,9 @@ int vpic_simulation::advance(void) {
   // Print out status
 
   if( status_interval>0 && step%status_interval==0 ) {
-    if(rank==0)
-      MESSAGE(("Completed step %i of %i (p=%.2e,s=%.2e,g=%.2e,f=%.2e,u=%.2e)",
-               step, num_step, p_time-s_time, s_time, g_time, f_time, u_time));
+    //if(rank==0)
+    //  MESSAGE(("Completed step %i of %i (p=%.2e,s=%.2e,g=%.2e,f=%.2e,u=%.2e)",
+    //           step, num_step, p_time-s_time, s_time, g_time, f_time, u_time));
     p_time = s_time = g_time = f_time = u_time = 0;
   }
 

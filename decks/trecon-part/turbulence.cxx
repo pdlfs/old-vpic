@@ -334,7 +334,7 @@ begin_initialization {
   sim_log ( "mi/me = " << mi_me );
   sim_log ( "taui = " << taui );
 #endif
-  sim_log ( "num_step = " << num_step );
+  sim_log ( "num_step = " << num_step << " nppc = " << nppc );
 #ifndef TRINITY_RUN
   sim_log ( "Lx/di = " << Lx/di );
   sim_log ( "Lx/de = " << Lx/de );
@@ -343,16 +343,11 @@ begin_initialization {
   sim_log ( "Lz/di = " << Lz/di );
   sim_log ( "Lz/de = " << Lz/de );
 #endif
-  sim_log ( "nx = " << nx );
-  sim_log ( "ny = " << ny );
-  sim_log ( "nz = " << nz ); 
+  sim_log ( "Particles: nx = " << nx << " ny = " << ny << " nz = " << nz );
 #ifndef TRINITY_RUN
   sim_log ( "damp = " << damp );
   sim_log ( "courant = " << c*dt/dg );
-#endif
   sim_log ( "nproc = " << nproc ()  );
-  sim_log ( "nppc = " << nppc );
-#ifndef TRINITY_RUN
   sim_log ( " b0 = " << b0 );
   sim_log ( " di = " << di );
   sim_log ( " Ne = " << Ne );
@@ -364,9 +359,7 @@ begin_initialization {
   sim_log ( "dt*wpe = " << wpe*dt ); 
   sim_log ( "dt*wce = " << wce*dt );
   sim_log ( "dt*wci = " << wci*dt );
-#endif
   sim_log ( " energies_interval: " << energies_interval );
-#ifndef TRINITY_RUN
   sim_log ( "dx/de = " << Lx/(de*nx) );
   sim_log ( "dy/de = " << Ly/(de*ny) );
   sim_log ( "dz/de = " << Lz/(de*nz) );
