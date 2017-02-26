@@ -99,7 +99,7 @@ int deltafs_read_particles(long long int num, char *indir, char *outdir)
         }
 
         /* Write out particle trajectory data */
-        if (fwrite(file_data, 1, 40 /* XXX */, out[i]) != 40) {
+        if (fwrite(file_data, 1, len, out[i]) != len) {
             perror("Error: fwrite failed");
             goto err;
         }
