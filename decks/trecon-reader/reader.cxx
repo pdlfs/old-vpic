@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <list>
 #include <map>
+#include <assert.h>
 
 #include <deltafs/deltafs_api.h>
 
@@ -49,7 +50,7 @@ int generate_files(char *outdir, long long int num, FileMap *out)
     for (long long int i = 1; i <= num; i++) {
         if (!snprintf(fpath, PATH_MAX, "%s/particle%lld.txt", outdir, i)) {
             perror("Error: snprintf failed");
-            usage(1);
+            return 1;
         }
 
         if (!((*out)[i] = fopen(fpath, "w"))) {
@@ -116,14 +117,100 @@ err:
 
 int process_epoch(char *ppath, int it, FileMap out)
 {
+    DIR *d;
+    struct dirent *dp;
+    char epath[PATH_MAX];
+    char fprefix[PATH_MAX];
+    char fpath[PATH_MAX];
+    long long int num = out.size();
+
+    if (!snprintf(epath, PATH_MAX, "%s/T.%d", ppath, it)) {
+        perror("Error: snprintf for epath failed");
+        return 1;
+    }
+
+    if (!snprintf(fprefix, PATH_MAX, "eparticle.%d.", it)) {
+        perror("Error: snprintf for fprefix failed");
+        return 1;
+    }
+
+    if ((d = opendir(epath)) == NULL) {
+        perror("Error: cannot open epoch directory");
+        return 1;
+    }
+
     /* Open each per-process file and process it */
+    while (dp = readdir(d)) {
+        FILE *fp;
+        int x = 0, wsize, wnum;
 
-    /* Verify headers */
+        if (dp->d_type != DT_REG)
+            continue;
 
-    /* Check whether particle data is found, stop if so (not for debugging) */
+        if (strncmp(dp->d_name, fprefix, strnlen(fprefix, PATH_MAX))) {
+            fprintf(stderr, "Warning: unexpected file %s in %s\n",
+                    dp->d_name, epath);
+            continue;
+        }
 
-    /* TODO */
+        printf("Found file %s, epoch %d.\n", dp->d_name, it);
+
+        if (!snprintf(fpath, PATH_MAX, "%s/%s", epath, dp->d_name)) {
+            perror("Error: snprintf for fpath failed");
+            goto err;
+        }
+
+        if (!(fp = fopen(fpath, "rb"))) {
+            perror("Error: fopen epoch file failed");
+            goto err;
+        }
+
+        /* Verify V0 header */
+        assert(!fseek(fp, 5 * sizeof(char), SEEK_CUR));
+        assert(fread(&x, sizeof(short int), 1, fp) && x == 0xcafe);
+        assert(fread(&x, sizeof(int), 1, fp) && x == 0xdeadbeef);
+        assert(!fseek(fp, sizeof(float) + sizeof(double), SEEK_CUR));
+        assert(fread(&x, sizeof(int), 1, fp) && x == 0);
+        assert(!fseek(fp, (11*sizeof(float)) + (8*sizeof(int)), SEEK_CUR));
+
+        /* Read array header */
+        assert(fread(&wsize, sizeof(int), 1, fp));
+        assert(fread(&x, sizeof(int), 1, fp) && x == 1);
+        assert(fread(&wnum, sizeof(int), 1, fp));
+        printf("Array: %d elements, %db each\n", wnum, wsize);
+
+        /*
+         * Particle structure (species_advance.h):
+         * - float dx, dy, dz; // Particle position, cell coordinates ([-1,1])
+         * - int32_t i;
+         * - float ux, uy, uz; // Particle normalized momentum
+         * - float q;          // Particle charge
+         * - int64_t tag, tag2; // particle identification tags
+         */
+#define DATA_LEN (7*sizeof(float) + sizeof(int32_t) + 2*sizeof(int64_t))
+#define TAG_OFFT (7*sizeof(float) + sizeof(int32_t))
+        char data[DATA_LEN];
+        int64_t tag;
+
+        for (int i = 1; i <= wnum; i++) {
+            assert(fread(data, 1, DATA_LEN, fp) == DATA_LEN);
+            memcpy(&tag, data + TAG_OFFT, sizeof(int64_t));
+
+            printf("Particle tag: 0x%016llx\n", (long long unsigned int) tag);
+
+            /* TODO: If particle data is found, stop (not for debugging) */
+            /* TODO: Write out particle data */
+        }
+
+        fclose(fp);
+    }
+
+    closedir(d);
     return 0;
+
+err:
+    closedir(d);
+    return 1;
 }
 
 int read_particles(long long int num, char *indir, char *outdir)
@@ -141,12 +228,12 @@ int read_particles(long long int num, char *indir, char *outdir)
     /* Open particle directory and sort epoch directories */
     if (!snprintf(ppath, PATH_MAX, "%s/particle", indir)) {
         perror("Error: snprintf failed");
-        usage(1);
+        return 1;
     }
 
     if ((in = opendir(ppath)) == NULL) {
         perror("Error: cannot open input directory");
-        usage(1);
+        return 1;
     }
 
     while (dp = readdir(in)) {
@@ -165,7 +252,7 @@ int read_particles(long long int num, char *indir, char *outdir)
         if (*end) {
             perror("Error: strtoll failed");
             closedir(in);
-            usage(1);
+            return 1;
         }
 
         //printf("Found subdir %s, epoch %d.\n", dp->d_name, epoch);
