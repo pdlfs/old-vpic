@@ -9,8 +9,6 @@
 #include <map>
 #include <assert.h>
 
-#include <deltafs/deltafs_api.h>
-
 using namespace std;
 
 typedef map<int,FILE*> FileMap;
@@ -24,7 +22,6 @@ void usage(int ret)
     printf("\n"
            "usage: %s [options] -i input_dir -o output_dir\n"
            "  options:\n"
-           "    -d        Run in DeltaFS mode\n"
            "    -n num    Number of particles to read (reading ID 1 to num)\n"
            "    -h        This usage info\n"
            "\n",
@@ -61,59 +58,6 @@ int generate_files(char *outdir, long long int num, FileMap *out)
     }
 
     return 0;
-}
-
-int deltafs_read_particles(long long int num, char *indir, char *outdir)
-{
-    int ret;
-    deltafs_plfsdir_t *dir;
-    char *file_data, fname[PATH_MAX];
-    FileMap out;
-    size_t len;
-
-    /* Iterate through epoch frames */
-    if (generate_files(outdir, num, &out)) {
-        fprintf(stderr, "Error: particle trajectory file creation failed\n");
-        return 1;
-    }
-
-    dir = deltafs_plfsdir_create_handle(O_RDONLY);
-
-    if ((ret = deltafs_plfsdir_open(dir, indir, NULL))) {
-        perror("Error: cannot open input PLFS directory");
-        deltafs_plfsdir_free_handle(dir);
-        goto err;
-    }
-
-    for (int i=1; i<=num; i++) {
-        /* Determine fname for particle */
-        if (!snprintf(fname, PATH_MAX, "eparticle.%016lx", (long int) i)) {
-            perror("Error: snprintf failed");
-            goto err;
-        }
-
-        if (!(file_data = (char*) deltafs_plfsdir_readall(dir, fname, &len))) {
-            perror("Error: failed to read particle data");
-            deltafs_plfsdir_free_handle(dir);
-            goto err;
-        }
-
-        /* Write out particle trajectory data */
-        if (fwrite(file_data, 1, len, out[i]) != len) {
-            perror("Error: fwrite failed");
-            goto err;
-        }
-
-        free(file_data);
-    }
-
-    deltafs_plfsdir_free_handle(dir);
-    close_files(&out);
-    return 0;
-
-err:
-    close_files(&out);
-    return 1;
 }
 
 int pick_particles(char *ppath, int epoch, long long int num, ParticleMap *ids)
@@ -404,18 +348,15 @@ int read_particles(long long int num, char *indir, char *outdir)
 
 int main(int argc, char **argv)
 {
-    int ret, c, d = 0;
+    int ret, c;
     long long int num = 1;
     char indir[PATH_MAX], outdir[PATH_MAX];
 
     me = argv[0];
     indir[0] = outdir[0] = '\0';
 
-    while ((c = getopt(argc, argv, "dhi:n:o:p:")) != -1) {
+    while ((c = getopt(argc, argv, "hi:n:o:p:")) != -1) {
         switch(c) {
-        case 'd': /* run in DeltaFS mode */
-            d = 1;
-            break;
         case 'h': /* print help */
             usage(0);
         case 'i': /* input directory (VPIC output) */
@@ -449,10 +390,5 @@ int main(int argc, char **argv)
     }
 
     /* Do particle things */
-    if (d)
-        ret = deltafs_read_particles(num, indir, outdir);
-    else
-        ret = read_particles(num, indir, outdir);
-
-    return ret;
+    return read_particles(num, indir, outdir);
 }
