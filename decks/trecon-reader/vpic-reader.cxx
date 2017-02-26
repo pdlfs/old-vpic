@@ -60,6 +60,39 @@ int generate_files(char *outdir, long long int num, FileMap *out)
     return 0;
 }
 
+/*
+ * Particle structure (species_advance.h):
+ * - float dx, dy, dz; // Particle position, cell coordinates ([-1,1])
+ * - int32_t i;
+ * - float ux, uy, uz; // Particle normalized momentum
+ * - float q;          // Particle charge
+ * - int64_t tag, tag2; // particle identification tags
+ */
+#define DATA_LEN (7*sizeof(float) + sizeof(int32_t) + 2*sizeof(int64_t))
+#define TAG_OFFT (7*sizeof(float) + sizeof(int32_t))
+
+int process_file_metadata(FILE *fp, int *wsize, int *wnum)
+{
+    int x = 0;
+
+    /* Verify V0 header */
+    assert(!fseek(fp, 5 * sizeof(char), SEEK_CUR));
+    assert(fread(&x, sizeof(short int), 1, fp) && x == 0xcafe);
+    assert(fread(&x, sizeof(int), 1, fp) && x == 0xdeadbeef);
+    assert(!fseek(fp, sizeof(float) + sizeof(double), SEEK_CUR));
+    assert(fread(&x, sizeof(int), 1, fp) && x == 0);
+    assert(!fseek(fp, (11*sizeof(float)) + (8*sizeof(int)), SEEK_CUR));
+
+    /* Read array header */
+    assert(fread(wsize, sizeof(int), 1, fp));
+    assert(fread(&x, sizeof(int), 1, fp) && x == 1);
+    assert(fread(wnum, sizeof(int), 1, fp));
+
+    //printf("Array: %d elements, %db each\n", wnum, wsize);
+
+    return 0;
+}
+
 int pick_particles(char *ppath, int epoch, long long int num, ParticleMap *ids)
 {
     DIR *d;
@@ -88,6 +121,8 @@ int pick_particles(char *ppath, int epoch, long long int num, ParticleMap *ids)
     while (dp = readdir(d)) {
         FILE *fp;
         int x = 0, wsize, wnum;
+        char data[DATA_LEN];
+        int64_t tag;
 
         if (dp->d_type != DT_REG)
             continue;
@@ -108,31 +143,10 @@ int pick_particles(char *ppath, int epoch, long long int num, ParticleMap *ids)
             goto err;
         }
 
-        /* Verify V0 header */
-        assert(!fseek(fp, 5 * sizeof(char), SEEK_CUR));
-        assert(fread(&x, sizeof(short int), 1, fp) && x == 0xcafe);
-        assert(fread(&x, sizeof(int), 1, fp) && x == 0xdeadbeef);
-        assert(!fseek(fp, sizeof(float) + sizeof(double), SEEK_CUR));
-        assert(fread(&x, sizeof(int), 1, fp) && x == 0);
-        assert(!fseek(fp, (11*sizeof(float)) + (8*sizeof(int)), SEEK_CUR));
-
-        /* Read array header */
-        assert(fread(&wsize, sizeof(int), 1, fp));
-        assert(fread(&x, sizeof(int), 1, fp) && x == 1);
-        assert(fread(&wnum, sizeof(int), 1, fp));
-
-        /*
-         * Particle structure (species_advance.h):
-         * - float dx, dy, dz; // Particle position, cell coordinates ([-1,1])
-         * - int32_t i;
-         * - float ux, uy, uz; // Particle normalized momentum
-         * - float q;          // Particle charge
-         * - int64_t tag, tag2; // particle identification tags
-         */
-#define DATA_LEN (7*sizeof(float) + sizeof(int32_t) + 2*sizeof(int64_t))
-#define TAG_OFFT (7*sizeof(float) + sizeof(int32_t))
-        char data[DATA_LEN];
-        int64_t tag;
+        if (process_file_metadata(fp, &wsize, &wnum)) {
+            fprintf(stderr, "Error: failed to process particle file metadata\n");
+            goto err;
+        }
 
         for (int i = 1; i <= wnum; i++) {
             assert(fread(data, 1, DATA_LEN, fp) == DATA_LEN);
@@ -190,7 +204,9 @@ int process_epoch(char *ppath, int it, ParticleMap ids, FileMap out)
     /* Open each per-process file and process it */
     while (dp = readdir(d)) {
         FILE *fp;
-        int x = 0, wsize, wnum;
+        int wsize, wnum;
+        char data[DATA_LEN];
+        int64_t tag;
 
         if (dp->d_type != DT_REG)
             continue;
@@ -213,32 +229,10 @@ int process_epoch(char *ppath, int it, ParticleMap ids, FileMap out)
             goto err;
         }
 
-        /* Verify V0 header */
-        assert(!fseek(fp, 5 * sizeof(char), SEEK_CUR));
-        assert(fread(&x, sizeof(short int), 1, fp) && x == 0xcafe);
-        assert(fread(&x, sizeof(int), 1, fp) && x == 0xdeadbeef);
-        assert(!fseek(fp, sizeof(float) + sizeof(double), SEEK_CUR));
-        assert(fread(&x, sizeof(int), 1, fp) && x == 0);
-        assert(!fseek(fp, (11*sizeof(float)) + (8*sizeof(int)), SEEK_CUR));
-
-        /* Read array header */
-        assert(fread(&wsize, sizeof(int), 1, fp));
-        assert(fread(&x, sizeof(int), 1, fp) && x == 1);
-        assert(fread(&wnum, sizeof(int), 1, fp));
-        //printf("Array: %d elements, %db each\n", wnum, wsize);
-
-        /*
-         * Particle structure (species_advance.h):
-         * - float dx, dy, dz; // Particle position, cell coordinates ([-1,1])
-         * - int32_t i;
-         * - float ux, uy, uz; // Particle normalized momentum
-         * - float q;          // Particle charge
-         * - int64_t tag, tag2; // particle identification tags
-         */
-#define DATA_LEN (7*sizeof(float) + sizeof(int32_t) + 2*sizeof(int64_t))
-#define TAG_OFFT (7*sizeof(float) + sizeof(int32_t))
-        char data[DATA_LEN];
-        int64_t tag;
+        if (process_file_metadata(fp, &wsize, &wnum)) {
+            fprintf(stderr, "Error: failed to process particle file metadata\n");
+            goto err;
+        }
 
         for (int i = 1; i <= wnum; i++) {
             assert(fread(data, 1, DATA_LEN, fp) == DATA_LEN);
