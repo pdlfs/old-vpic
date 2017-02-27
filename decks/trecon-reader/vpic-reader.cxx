@@ -102,8 +102,8 @@ int pick_particles(char *ppath, int epoch, long long int num, ParticleMap *ids)
     char fpath[PATH_MAX];
     long long int cur = 1;
 
-    assert(!snprintf(epath, PATH_MAX, "%s/T.%d", ppath, epoch));
-    assert(!snprintf(fprefix, PATH_MAX, "eparticle.%d.", epoch));
+    assert(snprintf(epath, PATH_MAX, "%s/T.%d", ppath, epoch) > 0);
+    assert(snprintf(fprefix, PATH_MAX, "eparticle.%d.", epoch) > 0);
 
     if ((d = opendir(epath)) == NULL) {
         perror("Error: cannot open epoch directory");
@@ -126,14 +126,14 @@ int pick_particles(char *ppath, int epoch, long long int num, ParticleMap *ids)
             continue;
         }
 
-        assert(!snprintf(fpath, PATH_MAX, "%s/%s", epath, dp->d_name));
+        assert(snprintf(fpath, PATH_MAX, "%s/%s", epath, dp->d_name) > 0);
 
         if (!(fp = fopen(fpath, "rb"))) {
             perror("Error: fopen epoch file failed");
             goto err;
         }
 
-        assert(process_file_metadata(fp, &wsize, &wnum));
+        assert(!process_file_metadata(fp, &wsize, &wnum));
 
         for (int i = 1; i <= wnum; i++) {
             assert(fread(data, 1, DATA_LEN, fp) == DATA_LEN);
@@ -173,8 +173,8 @@ int process_epoch(char *ppath, int it, ParticleMap ids, FileMap out)
     char fpath[PATH_MAX];
     long long int num = out.size();
 
-    assert(!snprintf(epath, PATH_MAX, "%s/T.%d", ppath, it));
-    assert(!snprintf(fprefix, PATH_MAX, "eparticle.%d.", it));
+    assert(snprintf(epath, PATH_MAX, "%s/T.%d", ppath, it) > 0);
+    assert(snprintf(fprefix, PATH_MAX, "eparticle.%d.", it) > 0);
 
     if ((d = opendir(epath)) == NULL) {
         perror("Error: cannot open epoch directory");
@@ -199,14 +199,14 @@ int process_epoch(char *ppath, int it, ParticleMap ids, FileMap out)
 
         //printf("Found file %s, epoch %d.\n", dp->d_name, it);
 
-        assert(!snprintf(fpath, PATH_MAX, "%s/%s", epath, dp->d_name));
+        assert(snprintf(fpath, PATH_MAX, "%s/%s", epath, dp->d_name) > 0);
 
         if (!(fp = fopen(fpath, "rb"))) {
             perror("Error: fopen epoch file failed");
             goto err;
         }
 
-        assert(process_file_metadata(fp, &wsize, &wnum));
+        assert(!process_file_metadata(fp, &wsize, &wnum));
 
         for (int i = 1; i <= wnum; i++) {
             assert(fread(data, 1, DATA_LEN, fp) == DATA_LEN);
@@ -218,7 +218,7 @@ int process_epoch(char *ppath, int it, ParticleMap ids, FileMap out)
 
                 /* Write out particle data */
                 assert(sprintf(preamble, "Epoch: %d\nTag: 0x%016llx\nData:", it,
-                               (long long int) tag));
+                               (long long int) tag) > 0);
                 assert(fwrite(preamble, 1, strlen(preamble), out[idx]));
                 assert(fwrite(data, 1, DATA_LEN, out[idx]));
                 assert(fwrite("\n\n", 1, 2, out[idx]));
@@ -251,7 +251,7 @@ int read_particles(long long int num, char *indir, char *outdir)
     printf("Storing trajectories in %s.\n", outdir);
 
     /* Open particle directory and sort epoch directories */
-    assert(!snprintf(ppath, PATH_MAX, "%s/particle", indir));
+    assert(snprintf(ppath, PATH_MAX, "%s/particle", indir) > 0);
 
     if ((in = opendir(ppath)) == NULL) {
         perror("Error: cannot open input directory");
@@ -286,10 +286,10 @@ int read_particles(long long int num, char *indir, char *outdir)
     epochs.sort();
 
     /* Iterate through epoch frames */
-    assert(generate_files(outdir, num, &out));
+    assert(!generate_files(outdir, num, &out));
 
     /* Pick the particle IDs to query */
-    assert(pick_particles(ppath, *(epochs.begin()), num, &ids));
+    assert(!pick_particles(ppath, *(epochs.begin()), num, &ids));
 
     for (it = epochs.begin(); it != epochs.end(); ++it) {
         printf("Processing epoch %d.\n", *it);
