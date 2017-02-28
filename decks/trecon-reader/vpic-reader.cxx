@@ -40,12 +40,12 @@ void close_files(FileMap *out)
     }
 }
 
-int generate_files(char *outdir, long long int num, FileMap *out)
+int generate_files(char *outdir, int64_t num, FileMap *out)
 {
     char fpath[PATH_MAX];
 
-    for (long long int i = 1; i <= num; i++) {
-        if (!snprintf(fpath, PATH_MAX, "%s/particle%lld.txt", outdir, i)) {
+    for (int64_t i = 1; i <= num; i++) {
+        if (!snprintf(fpath, PATH_MAX, "%s/particle%ld.txt", outdir, i)) {
             perror("Error: snprintf failed");
             return 1;
         }
@@ -91,14 +91,14 @@ int process_file_metadata(FILE *fp, int *wsize, int *wnum)
     return 0;
 }
 
-int pick_particles(char *ppath, int epoch, long long int num, ParticleMap *ids)
+int pick_particles(char *ppath, int epoch, int64_t num, ParticleMap *ids)
 {
     DIR *d;
     struct dirent *dp;
     char epath[PATH_MAX];
     char fprefix[PATH_MAX];
     char fpath[PATH_MAX];
-    long long int cur = 1;
+    int64_t cur = 1;
 
     if (snprintf(epath, PATH_MAX, "%s/T.%d", ppath, epoch) <= 0) {
         fprintf(stderr, "Error: snprintf for epath failed\n");
@@ -158,8 +158,7 @@ int pick_particles(char *ppath, int epoch, long long int num, ParticleMap *ids)
 
             if ((tag & 0x3ffffffffff) == cur) {
                 (*ids)[cur] = tag;
-                printf("Particle #%lld: ID 0x%016llx\n",
-                       cur, (long long unsigned int) tag);
+                printf("Particle #%ld: ID 0x%016lx\n", cur, tag);
                 cur++;
 
                 if (cur > num) {
@@ -188,7 +187,7 @@ int process_epoch(char *ppath, int it, ParticleMap ids, FileMap out)
     char epath[PATH_MAX];
     char fprefix[PATH_MAX];
     char fpath[PATH_MAX];
-    long long int num = out.size();
+    int64_t num = out.size();
     FILE *fp;
     int wsize, wnum;
     char data[DATA_LEN];
@@ -248,8 +247,7 @@ int process_epoch(char *ppath, int it, ParticleMap ids, FileMap out)
                 char preamble[64];
 
                 /* Write out particle data */
-                if (sprintf(preamble, "Epoch: %d\nTag: 0x%016llx\nData:", it,
-                            (long long int) tag) <= 0) {
+                if (sprintf(preamble, "Epoch: %d\nTag: 0x%016lx\nData:", it, tag) <= 0) {
                     fprintf(stderr, "Error: sprintf for preamble failed\n");
                     goto err_fd;
                 }
@@ -261,7 +259,7 @@ int process_epoch(char *ppath, int it, ParticleMap ids, FileMap out)
                     goto err_fd;
                 }
 
-                //printf("Found 0x%016llx in epoch %d.\n", (long long unsigned int) tag, it);
+                //printf("Found 0x%016lx in epoch %d.\n", tag, it);
             }
         }
 
@@ -278,7 +276,7 @@ err:
     return 1;
 }
 
-int read_particles(long long int num, char *indir, char *outdir)
+int read_particles(int64_t num, char *indir, char *outdir)
 {
     DIR *in;
     struct dirent *dp;
@@ -355,7 +353,7 @@ int read_particles(long long int num, char *indir, char *outdir)
 int main(int argc, char **argv)
 {
     int ret, c;
-    long long int num = 1;
+    int64_t num = 1;
     char indir[PATH_MAX], outdir[PATH_MAX];
     struct timeval ts, te;
 
@@ -403,7 +401,7 @@ int main(int argc, char **argv)
 
     printf("Elapsed querying time: %ldms\n", (te.tv_sec-ts.tv_sec)*1000 +
                                              (te.tv_usec-ts.tv_usec)/1000);
-    printf("Number of particles queries: %lld\n", num);
+    printf("Number of particles queries: %ld\n", num);
 
     return ret;
 }
