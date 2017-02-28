@@ -132,7 +132,7 @@ int pick_particles(char *ppath, int epoch, int64_t num, ParticleMap *ids,
             if ((*rids).find(tag) == (*rids).end()) {
                 (*ids)[cur] = tag;
                 (*rids)[tag] = cur;
-                printf("Particle #%ld: ID 0x%016lx\n", cur, tag);
+                //printf("Particle #%ld: ID 0x%016lx\n", cur, tag);
                 cur++;
 
                 if (cur > num) {
@@ -325,7 +325,7 @@ int read_particles(int64_t num, char *indir, char *outdir)
         return 1;
 
     for (it = epochs.begin(); it != epochs.end(); ++it) {
-        printf("Processing epoch %d.\n", *it);
+        //printf("Processing epoch %d.\n", *it);
         if (process_epoch(ppath, outdir, *it, ids, rids)) {
             fprintf(stderr, "Error: epoch data processing failed\n");
             return 1;
