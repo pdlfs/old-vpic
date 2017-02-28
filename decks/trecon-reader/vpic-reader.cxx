@@ -5,14 +5,17 @@
 #include <string.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <sys/time.h>
+
 #include <list>
 #include <map>
-#include <sys/time.h>
+#include <set>
 
 using namespace std;
 
 typedef map<int,FILE*> FileMap;
-typedef map<int,int64_t> ParticleMap;
+typedef map<int64_t,int64_t> ParticleMap;
+typedef map<int64_t,int64_t> RevParticleMap;
 typedef list<int> EpochList;
 
 char *me;
@@ -91,7 +94,8 @@ int process_file_metadata(FILE *fp, int *wsize, int *wnum)
     return 0;
 }
 
-int pick_particles(char *ppath, int epoch, int64_t num, ParticleMap *ids)
+int pick_particles(char *ppath, int epoch, int64_t num, ParticleMap *ids,
+                   RevParticleMap *rids)
 {
     DIR *d;
     struct dirent *dp;
@@ -156,8 +160,9 @@ int pick_particles(char *ppath, int epoch, int64_t num, ParticleMap *ids)
 
             memcpy(&tag, data + TAG_OFFT, sizeof(int64_t));
 
-            if ((tag & 0x3ffffffffff) == cur) {
+            if ((*rids).find(tag) == (*rids).end()) {
                 (*ids)[cur] = tag;
+                (*rids)[tag] = cur;
                 printf("Particle #%ld: ID 0x%016lx\n", cur, tag);
                 cur++;
 
@@ -180,7 +185,8 @@ err:
     return 1;
 }
 
-int process_epoch(char *ppath, int it, ParticleMap ids, FileMap out)
+int process_epoch(char *ppath, int it, ParticleMap ids, RevParticleMap rids,
+                  FileMap out)
 {
     DIR *d;
     struct dirent *dp;
@@ -242,9 +248,9 @@ int process_epoch(char *ppath, int it, ParticleMap ids, FileMap out)
 
             memcpy(&tag, data + TAG_OFFT, sizeof(int64_t));
 
-            int idx = (int)(tag & 0x3ffffffffff);
-            if (ids[idx] && ids[idx] == tag) {
+            if ((rids.find(tag) != rids.end())) {
                 char preamble[64];
+                int64_t idx = rids[tag];
 
                 /* Write out particle data */
                 if (sprintf(preamble, "Epoch: %d\nTag: 0x%016lx\nData:", it, tag) <= 0) {
@@ -285,6 +291,7 @@ int read_particles(int64_t num, char *indir, char *outdir)
     EpochList::iterator it;
     FileMap out;
     ParticleMap ids;
+    RevParticleMap rids;
 
     printf("Reading particles from %s.\n", indir);
     printf("Storing trajectories in %s.\n", outdir);
@@ -332,14 +339,14 @@ int read_particles(int64_t num, char *indir, char *outdir)
         return 1;
 
     /* Pick the particle IDs to query */
-    if (pick_particles(ppath, *(epochs.begin()), num, &ids)) {
+    if (pick_particles(ppath, *(epochs.begin()), num, &ids, &rids)) {
         close_files(&out);
         return 1;
     }
 
     for (it = epochs.begin(); it != epochs.end(); ++it) {
         printf("Processing epoch %d.\n", *it);
-        if (process_epoch(ppath, *it, ids, out)) {
+        if (process_epoch(ppath, *it, ids, rids, out)) {
             fprintf(stderr, "Error: epoch data processing failed\n");
             close_files(&out);
             return 1;
