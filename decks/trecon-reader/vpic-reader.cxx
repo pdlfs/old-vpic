@@ -13,7 +13,6 @@
 
 using namespace std;
 
-typedef map<int,FILE*> FileMap;
 typedef map<int64_t,int64_t> ParticleMap;
 typedef map<int64_t,int64_t> RevParticleMap;
 typedef list<int> EpochList;
@@ -31,36 +30,6 @@ void usage(int ret)
            me);
 
     exit(ret);
-}
-
-void close_files(FileMap *out)
-{
-    FileMap::iterator it;
-
-    for (it = out->begin(); it != out->end(); ++it) {
-        if (it->second)
-            fclose(it->second);
-    }
-}
-
-int generate_files(char *outdir, int64_t num, FileMap *out)
-{
-    char fpath[PATH_MAX];
-
-    for (int64_t i = 1; i <= num; i++) {
-        if (!snprintf(fpath, PATH_MAX, "%s/particle%ld.txt", outdir, i)) {
-            perror("Error: snprintf failed");
-            return 1;
-        }
-
-        if (!((*out)[i] = fopen(fpath, "w"))) {
-            perror("Error: fopen failed");
-            close_files(out);
-            return 1;
-        }
-    }
-
-    return 0;
 }
 
 /*
@@ -185,19 +154,24 @@ err:
     return 1;
 }
 
-int process_epoch(char *ppath, int it, ParticleMap ids, RevParticleMap rids,
-                  FileMap out)
+int process_epoch(char *ppath, char *outdir, int it,
+                  ParticleMap ids, RevParticleMap rids)
 {
     DIR *d;
     struct dirent *dp;
     char epath[PATH_MAX];
     char fprefix[PATH_MAX];
     char fpath[PATH_MAX];
-    int64_t num = out.size();
+    int64_t num = ids.size();
     FILE *fp;
     int wsize, wnum;
     char data[DATA_LEN];
     int64_t tag;
+    char preamble[64];
+    int64_t idx;
+    char wpath[PATH_MAX];
+    FILE *fd;
+
 
     if (snprintf(epath, PATH_MAX, "%s/T.%d", ppath, it) <= 0) {
         fprintf(stderr, "Error: snprintf for epath failed\n");
@@ -249,23 +223,36 @@ int process_epoch(char *ppath, int it, ParticleMap ids, RevParticleMap rids,
             memcpy(&tag, data + TAG_OFFT, sizeof(int64_t));
 
             if ((rids.find(tag) != rids.end())) {
-                char preamble[64];
-                int64_t idx = rids[tag];
+                idx = rids[tag];
+
+                if (!snprintf(wpath, PATH_MAX, "%s/particle%ld.txt", outdir, idx)) {
+                    perror("Error: snprintf for wpath failed");
+                    return 1;
+                }
+
+                if (!(fd = fopen(wpath, "w"))) {
+                    perror("Error: fopen failed");
+                    return 1;
+                }
 
                 /* Write out particle data */
                 if (sprintf(preamble, "Epoch: %d\nTag: 0x%016lx\nData:", it, tag) <= 0) {
                     fprintf(stderr, "Error: sprintf for preamble failed\n");
+                    fclose(fd);
                     goto err_fd;
                 }
 
-                if (!fwrite(preamble, 1, strlen(preamble), out[idx]) ||
-                    !fwrite(data, 1, DATA_LEN, out[idx]) ||
-                    !fwrite("\n\n", 1, 2, out[idx])) {
+                if (!fwrite(preamble, 1, strlen(preamble), fd) ||
+                    !fwrite(data, 1, DATA_LEN, fd) ||
+                    !fwrite("\n\n", 1, 2, fd)) {
                     perror("Error: fwrite failed");
+                    fclose(fd);
                     goto err_fd;
                 }
 
                 //printf("Found 0x%016lx in epoch %d.\n", tag, it);
+
+                fclose(fd);
             }
         }
 
@@ -289,7 +276,6 @@ int read_particles(int64_t num, char *indir, char *outdir)
     char ppath[PATH_MAX];
     EpochList epochs;
     EpochList::iterator it;
-    FileMap out;
     ParticleMap ids;
     RevParticleMap rids;
 
@@ -334,26 +320,18 @@ int read_particles(int64_t num, char *indir, char *outdir)
     closedir(in);
     epochs.sort();
 
-    /* Iterate through epoch frames */
-    if (generate_files(outdir, num, &out))
-        return 1;
-
     /* Pick the particle IDs to query */
-    if (pick_particles(ppath, *(epochs.begin()), num, &ids, &rids)) {
-        close_files(&out);
+    if (pick_particles(ppath, *(epochs.begin()), num, &ids, &rids))
         return 1;
-    }
 
     for (it = epochs.begin(); it != epochs.end(); ++it) {
         printf("Processing epoch %d.\n", *it);
-        if (process_epoch(ppath, *it, ids, rids, out)) {
+        if (process_epoch(ppath, outdir, *it, ids, rids)) {
             fprintf(stderr, "Error: epoch data processing failed\n");
-            close_files(&out);
             return 1;
         }
     }
 
-    close_files(&out);
     return 0;
 }
 
