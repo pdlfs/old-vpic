@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <list>
 #include <map>
+#include <sys/time.h>
 
 using namespace std;
 
@@ -356,6 +357,7 @@ int main(int argc, char **argv)
     int ret, c;
     long long int num = 1;
     char indir[PATH_MAX], outdir[PATH_MAX];
+    struct timeval ts, te;
 
     me = argv[0];
     indir[0] = outdir[0] = '\0';
@@ -395,5 +397,13 @@ int main(int argc, char **argv)
     }
 
     /* Do particle things */
-    return read_particles(num, indir, outdir);
+    gettimeofday(&ts, 0);
+    ret = read_particles(num, indir, outdir);
+    gettimeofday(&te, 0);
+
+    printf("Elapsed querying time: %ldms\n", (te.tv_sec-ts.tv_sec)*1000 +
+                                             (te.tv_usec-ts.tv_usec)/1000);
+    printf("Number of particles queries: %lld\n", num);
+
+    return ret;
 }
