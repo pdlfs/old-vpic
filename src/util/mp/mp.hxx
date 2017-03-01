@@ -10,7 +10,11 @@
 #ifndef mp_hxx
 #define mp_hxx
 
+#ifdef VPIC_INSTALLED
+#include <vpic/util_base.h>
+#else
 #include "../util_base.h"
+#endif
 #include "mp_handle.h"
 
 BEGIN_C_DECLS

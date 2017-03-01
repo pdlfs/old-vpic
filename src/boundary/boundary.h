@@ -1,7 +1,11 @@
 #ifndef _boundary_h_
 #define _boundary_h_
 
+#ifdef VPIC_INSTALLED
+#include <spa.h>
+#else
 #include "../species_advance/standard/spa.h"
+#endif
 
 BEGIN_C_DECLS
 

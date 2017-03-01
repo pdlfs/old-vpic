@@ -17,6 +17,7 @@ AC_PROG_LIBTOOL
 ################################################################################
 AC_CONFIG_FILES(Makefile \
 	buildscript \
+	vpic-build \
 	lib/Makefile \
 	mprelay/Makefile \
 	accelerator/Makefile \

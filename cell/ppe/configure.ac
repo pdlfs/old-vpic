@@ -21,7 +21,8 @@ AC_CONFIG_FILES(Makefile \
 	bin/Makefile \
 	mprelay/Makefile \
 	accelerator/Makefile \
-	../../buildscript)
+	../../buildscript \
+	../../vpic-build)
 
 ################################################################################
 # append prefix with ppe

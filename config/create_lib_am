@@ -11,7 +11,7 @@ echo
 echo "INCLUDES = -I\${top_srcdir}/src/include \\"
 echo "   @EXTRA_CPPFLAGS@"
 echo
-echo "libvpic_includedir = \${includedir}"
+echo "libvpic_includedir = \${includedir}/vpic"
 echo
 echo "libvpic_include_HEADERS = \\"
 

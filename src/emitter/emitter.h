@@ -1,7 +1,11 @@
 #ifndef _emitter_h_
 #define _emitter_h_
 
+#ifdef VPIC_INSTALLED
+#include <vpic/spa.h>
+#else
 #include "../species_advance/standard/spa.h"
+#endif
 
 // Every local cell has 27 components associated with it (6 faces, 12
 // edges, 8 corners and cell body). All components in a local grid

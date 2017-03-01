@@ -1,7 +1,11 @@
 #ifndef _material_h_
 #define _material_h_
 
+#ifdef VPIC_INSTALLED
+#include <vpic/util.h>
+#else
 #include "../util/util.h"
+#endif
 
 /*****************************************************************************
  * Materials module

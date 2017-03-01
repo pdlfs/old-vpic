@@ -12,8 +12,13 @@
 // FIXME: EXTERNAL DIAGNOSTICS THAT READ THESE WILL NEED TO BE UPDATED
 // TO REFLECT SPU USAGE ALIGNMENT CHANGES.
 
+#ifdef VPIC_INSTALLED
+#include <vpic/grid.h>
+#include <vpic/material.h>
+#else
 #include "../grid/grid.h"
 #include "../material/material.h"
+#endif
 
 // FIXME: UPDATE THIS COMMENT BLOCK AND MOVE IT INTO APPROPRIATE LOCATIONS
 //

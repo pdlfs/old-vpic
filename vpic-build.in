@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+INPUT_DECK_DIR=`pwd`
+
+deck=`echo $1 | sed 's,\.cxx,,g;s,\.cc,,g;s,\.cpp,,g'`
+
+echo "@CXX@ -DVPIC_INSTALLED @DEFS@ @CPPFLAGS@ @CXXFLAGS@ @EXTRA_CPPFLAGS@ -I@prefix@/include -I@prefix@/include/vpic @prefix@/decks/main.cxx @prefix@/decks/deck_wrapper.cxx -DINPUT_DECK=$INPUT_DECK_DIR/$1 -o $INPUT_DECK_DIR/$deck.@LIB_EXTENSION@ @prefix@/lib/libvpic.a @EXTRA_LDFLAGS@ @EXTRA_LIBS@ -lm"
+
+@CXX@ -DVPIC_INSTALLED @DEFS@ @CPPFLAGS@ @CXXFLAGS@ @EXTRA_CPPFLAGS@ -I@prefix@/include -I@prefix@/include/vpic @prefix@/decks/main.cxx @prefix@/decks/deck_wrapper.cxx -DINPUT_DECK=$INPUT_DECK_DIR/$1 -o $INPUT_DECK_DIR/$deck.@LIB_EXTENSION@ @prefix@/lib/libvpic.a @EXTRA_LDFLAGS@ @EXTRA_LIBS@ -lm

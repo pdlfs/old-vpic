@@ -13,7 +13,11 @@
 // FIXME: EXTERNAL DIAGNOSTICS THAT READ THESE WILL NEED TO BE UPDATED
 // TO REFLECT SPU USAGE ALIGNMENT CHANGES.
 
+#ifdef VPIC_INSTALLED
+#include <vpic/field_advance.h>
+#else
 #include "../field_advance/field_advance.h"
+#endif
 // FIXME: SHOULD INCLUDE SPECIES_ADVANCE TOO ONCE READY
 
 // Hydro arrays shall be a (nx+2) x (ny+2) x (nz+2) allocation indexed

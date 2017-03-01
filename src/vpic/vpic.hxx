@@ -14,9 +14,15 @@
 #define _vpic_hxx_
  
 // FIXME: INCLUDES ONCE ALL IS CLEANED UP
+#ifdef VPIC_INSTALLED
+#include <vpic/emitter.h>
+#include <vpic/boundary.h>
+#include <vpic/spa.h>
+#else
 #include "../emitter/emitter.h"
 #include "../boundary/boundary.h"
 #include "../species_advance/standard/spa.h"
+#endif
 #include <FileIO.hxx>
 #include <BitField.hxx>
 #include <vector>

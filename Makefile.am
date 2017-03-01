@@ -16,6 +16,7 @@ clean-local: clean-build-script clean-extension-lib @CLEAN_LOCAL@
 
 copy-build-script:
 	@(cp buildscript build.@LIB_EXTENSION@ ; chmod 755 build.@LIB_EXTENSION@)
+	@(cp vpic-build vpic-build.@LIB_EXTENSION@ ; chmod 755 vpic-build.@LIB_EXTENSION@)
 
 copy-extension-lib:
 	@(cp @ARCH_LIB_BUILD_PATH@/lib/.libs/libvpic.a \

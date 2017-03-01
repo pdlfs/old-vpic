@@ -12,7 +12,11 @@
 #ifndef _species_advance_h_
 #define _species_advance_h_
 
+#ifdef VPIC_INSTALLED
+#include <vpic/sf_interface.h>
+#else
 #include "../sf_interface/sf_interface.h"
+#endif
 
 // FIXME: IS THIS USEFUL?
 typedef int32_t species_id; // Must be 32-bit wide for particle_injector_t

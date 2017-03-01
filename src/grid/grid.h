@@ -11,7 +11,11 @@
 #ifndef _grid_h_
 #define _grid_h_
 
+#ifdef VPIC_INSTALLED
+#include <vpic/util.h>
+#else
 #include "../util/util.h"
+#endif
 
 // Define a "pointer to boundary handler function" type.
 
