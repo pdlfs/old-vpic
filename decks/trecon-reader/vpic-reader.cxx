@@ -25,6 +25,7 @@ void usage(int ret)
            "usage: %s [options] -i input_dir -o output_dir\n"
            "  options:\n"
            "    -n num    Number of particles to read (reading ID 1 to num)\n"
+           "    -r num    Number of query retries (before averaging)\n"
            "    -h        This usage info\n"
            "\n",
            me);
@@ -158,20 +159,12 @@ int process_epoch(char *ppath, char *outdir, int it,
                   ParticleMap ids, RevParticleMap rids)
 {
     DIR *d;
+    FILE *fp, *fd;
     struct dirent *dp;
-    char epath[PATH_MAX];
-    char fprefix[PATH_MAX];
-    char fpath[PATH_MAX];
-    int64_t num = ids.size();
-    FILE *fp;
     int wsize, wnum;
-    char data[DATA_LEN];
-    int64_t tag;
-    char preamble[64];
-    int64_t idx;
-    char wpath[PATH_MAX];
-    FILE *fd;
-
+    int64_t idx, tag, num = ids.size();
+    char epath[PATH_MAX], fprefix[PATH_MAX], fpath[PATH_MAX];
+    char wpath[PATH_MAX], data[DATA_LEN], preamble[64];
 
     if (snprintf(epath, PATH_MAX, "%s/T.%d", ppath, it) <= 0) {
         fprintf(stderr, "Error: snprintf for epath failed\n");
@@ -338,14 +331,15 @@ int read_particles(int64_t num, char *indir, char *outdir)
 int main(int argc, char **argv)
 {
     int ret, c;
-    int64_t num = 1;
+    int64_t num = 1, retries = 3, elapsed_sum = 0;
     char indir[PATH_MAX], outdir[PATH_MAX];
     struct timeval ts, te;
+    char *end;
 
     me = argv[0];
     indir[0] = outdir[0] = '\0';
 
-    while ((c = getopt(argc, argv, "hi:n:o:p:")) != -1) {
+    while ((c = getopt(argc, argv, "hi:n:o:p:r:")) != -1) {
         switch(c) {
         case 'h': /* print help */
             usage(0);
@@ -356,13 +350,18 @@ int main(int argc, char **argv)
             }
             break;
         case 'n': /* number of particles to fetch */
-            char *end;
             num = strtoll(optarg, &end, 10);
             if (*end) {
                 perror("Error: invalid num argument");
                 usage(1);
             }
             break;
+        case 'r': /* number of query retries */
+            retries = strtoll(optarg, &end, 10);
+            if (*end) {
+                perror("Error: invalid retry argument");
+                usage(1);
+            }
         case 'o': /* output directory (trajectory files) */
             if (!strncpy(outdir, optarg, PATH_MAX)) {
                 perror("Error: invalid output dir");
@@ -380,13 +379,24 @@ int main(int argc, char **argv)
     }
 
     /* Do particle things */
-    gettimeofday(&ts, 0);
-    ret = read_particles(num, indir, outdir);
-    gettimeofday(&te, 0);
+    printf("Number of iterations: %ld\n", retries);
+    printf("Number of queries: %ld\n\n", num);
+    for (int64_t i = 1; i <= retries; i++) {
+        int64_t elapsed;
 
-    printf("Elapsed querying time: %ldms\n", (te.tv_sec-ts.tv_sec)*1000 +
-                                             (te.tv_usec-ts.tv_usec)/1000);
-    printf("Number of particles queries: %ld\n", num);
+        gettimeofday(&ts, 0);
+        ret = read_particles(num, indir, outdir);
+        gettimeofday(&te, 0);
+
+        elapsed = (te.tv_sec-ts.tv_sec)*1000 + (te.tv_usec-ts.tv_usec)/1000;
+
+        printf("(%ld) Elapsed querying time: %ldms\n", i, elapsed);
+        printf("(%ld) Query time per particle: %ldms\n", i, elapsed / num);
+
+        elapsed_sum += elapsed;
+    }
+    printf("\nAverage query time per run: %ldms\n", elapsed_sum / retries);
+    printf("Average query time per particle: %ldms\n", elapsed_sum / num / retries);
 
     return ret;
 }
