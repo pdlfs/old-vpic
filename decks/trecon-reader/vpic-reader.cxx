@@ -272,8 +272,8 @@ int read_particles(int64_t num, char *indir, char *outdir)
     ParticleMap ids;
     RevParticleMap rids;
 
-    printf("Reading particles from %s.\n", indir);
-    printf("Storing trajectories in %s.\n", outdir);
+    //printf("Reading particles from %s.\n", indir);
+    //printf("Storing trajectories in %s.\n", outdir);
 
     /* Open particle directory and sort epoch directories */
     if (snprintf(ppath, PATH_MAX, "%s/particle", indir) <= 0) {
@@ -396,7 +396,7 @@ int main(int argc, char **argv)
         elapsed_sum += elapsed;
     }
     printf("\nAverage query time per run: %ldms\n", elapsed_sum / retries);
-    printf("Average query time per particle: %ldms\n", elapsed_sum / num / retries);
+    printf("Average query time per particle: %ldms\n\n", elapsed_sum / num / retries);
 
     return ret;
 }
