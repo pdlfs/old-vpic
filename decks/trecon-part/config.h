@@ -11,7 +11,7 @@
 
 /* Simulation timesteps */
 #define VPIC_TIMESTEPS 1000
-#define VPIC_DUMPS     20
+#define VPIC_DUMPS     8
 #define VPIC_DUMP_INTERVAL (VPIC_TIMESTEPS / VPIC_DUMPS)
 
 /* Node topology. Total nodes = x * y * z */
