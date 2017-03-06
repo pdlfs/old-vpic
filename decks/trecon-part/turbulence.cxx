@@ -952,6 +952,60 @@ begin_initialization {
 
 #include <FileIO.hxx>
 
+#ifdef LOG_SYSSTAT
+/* Parse /proc/meminfo
+ * Returned values are in kiB */
+
+//#include <string.h>
+#include <errno.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <stddef.h>
+
+/* Parse the contents of /proc/meminfo (in buf), return value of "*name" */
+static int64_t get_entry(const char *name, const char *buf) {
+    const char *hit = strstr(buf, name);
+    if (hit == NULL)
+        return -1;
+
+    errno = 0;
+    int64_t val = strtoll(hit + strlen(name), NULL, 10);
+    if (errno != 0) {
+        perror("Could not convert number");
+        exit(105);
+    }
+
+    return val;
+}
+
+static void parse_meminfo(void) {
+    static FILE* fd;
+    static char buf[8192];
+    int64_t memfree, memtotal;
+
+    fd = fopen("/proc/meminfo", "r");
+    if (fd == NULL) {
+        perror("Could not open /proc/meminfo");
+        exit(102);
+    }
+
+    size_t len = fread(buf, 1, sizeof(buf) - 1, fd);
+    if (len == 0) {
+        perror("Could not read /proc/meminfo");
+        exit(103);
+    }
+
+    buf[len] = 0; // Make sure buf is zero-terminated
+
+    memtotal = get_entry("MemTotal:", buf);
+    memfree = get_entry("MemFree:", buf);
+
+    printf("Free Mem: %ld", memfree * 100 / memtotal);
+
+    fclose(fd);
+}
+#endif /* LOG_SYSSTAT */
+
 begin_diagnostics {
 
 
@@ -1057,12 +1111,8 @@ begin_diagnostics {
         //  if( should_dump(tracer) ) dump_tracers("tracer");
           if (should_dump(tracer)){
 #ifdef LOG_SYSSTAT
-            if (rank() == 0 &&
-                system("cat /proc/meminfo | grep -E \"^Mem[T|F]\" | "
-                       "awk 'BEGIN{t=0}{ if (!t) { t = $2 } "
-                       "else { t = $2 * 100 / t  } }"
-                       "END{print \"Free Mem: \"t\"%\"}'"))
-                sim_log("Failed to log memory stats");
+            if (rank() == 0)
+                parse_meminfo();
 #endif
 	        double dumpstart = mp_elapsed(grid->mp);
             sim_log("Dumping trajectory data: step T." << step);
