@@ -1159,10 +1159,11 @@ begin_diagnostics {
 #endif
 	  sprintf(subdir,"particle/T.%d",step); 
 	  dump_mkdir(subdir);
-	  sprintf(subdir,"particle/T.%d/eparticle",step); 
-	  double dumpstart = mp_elapsed(grid->mp);
       sim_log("Dumping trajectory data: step T." << step);
+	  double dumpstart = mp_elapsed(grid->mp);
+	  sprintf(subdir,"particle/T.%d/eparticle",step);
 	  dump_particles("electronTop",subdir);
+	  sprintf(subdir,"particle/T.%d/iparticle",step);
 	  dump_particles("ionTop",subdir);
 	  double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
       sim_log("Dumping duration "<<dumpelapsed);
