@@ -955,12 +955,7 @@ begin_initialization {
 #ifdef LOG_SYSSTAT
 /* Parse /proc/meminfo
  * Returned values are in kiB */
-
-//#include <string.h>
 #include <errno.h>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <stddef.h>
 
 /* Parse the contents of /proc/meminfo (in buf), return value of "*name" */
 static int64_t get_entry(const char *name, const char *buf) {
@@ -1000,7 +995,7 @@ static void parse_meminfo(void) {
     memtotal = get_entry("MemTotal:", buf);
     memfree = get_entry("MemFree:", buf);
 
-    printf("Free Mem: %ld", memfree * 100 / memtotal);
+    printf("Free Mem: %3.2lf%%\n", memfree * 100.0 / memtotal);
 
     fclose(fd);
 }
@@ -1159,12 +1154,8 @@ begin_diagnostics {
 	//if ( should_dump(eparticle) && step !=0 && step > 20*(global->fields_interval)  ) {
 	if ( should_dump(eparticle) && step !=0 ) {
 #ifdef LOG_SYSSTAT
-        if (rank() == 0 &&
-            system("cat /proc/meminfo | grep -E \"^Mem[T|F]\" | "
-                   "awk 'BEGIN{t=0}{ if (!t) { t = $2 } "
-                   "else { t = $2 * 100 / t  } }"
-                   "END{print \"Free Mem: \"t\"%\"}'"))
-            sim_log("Failed to log memory stats");
+        if (rank() == 0)
+            parse_meminfo();
 #endif
 	  sprintf(subdir,"particle/T.%d",step); 
 	  dump_mkdir(subdir);
