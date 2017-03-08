@@ -1163,6 +1163,7 @@ begin_diagnostics {
 	  double dumpstart = mp_elapsed(grid->mp);
       sim_log("Dumping trajectory data: step T." << step);
 	  dump_particles("electronTop",subdir);
+	  dump_particles("ionTop",subdir);
 	  double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
       sim_log("Dumping duration "<<dumpelapsed);
 	}

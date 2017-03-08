@@ -40,6 +40,9 @@ void usage(int ret)
  * - float ux, uy, uz; // Particle normalized momentum
  * - float q;          // Particle charge
  * - int64_t tag, tag2; // particle identification tags
+ *
+ * On Emulab, the VPIC output file preamble is 115B.
+ * The particle output per frame is 48B.
  */
 #define DATA_LEN (7*sizeof(float) + sizeof(int32_t) + 2*sizeof(int64_t))
 #define TAG_OFFT (7*sizeof(float) + sizeof(int32_t))
