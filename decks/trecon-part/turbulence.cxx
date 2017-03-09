@@ -993,9 +993,9 @@ static void parse_meminfo(void) {
     buf[len] = 0; // Make sure buf is zero-terminated
 
     memtotal = get_entry("MemTotal:", buf);
-    memfree = get_entry("MemFree:", buf);
+    memactiv = get_entry("Active:", buf);
 
-    printf("Free Mem: %3.2lf%%\n", memfree * 100.0 / memtotal);
+    printf("Free Mem: %3.2lf%%\n", 100.0 - (memactiv * 100.0 / memtotal));
 
     fclose(fd);
 }
