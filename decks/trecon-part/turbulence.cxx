@@ -976,7 +976,7 @@ static int64_t get_entry(const char *name, const char *buf) {
 static void parse_meminfo(void) {
     static FILE* fd;
     static char buf[8192];
-    int64_t memfree, memtotal;
+    int64_t memactiv, memtotal;
 
     fd = fopen("/proc/meminfo", "r");
     if (fd == NULL) {
