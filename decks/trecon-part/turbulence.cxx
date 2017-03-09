@@ -290,7 +290,7 @@ begin_initialization {
   species_t *e_tracer = define_species("e_tracer",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
   species_t *i_tracer = define_species("i_tracer", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
 
-  hijack_tracers(4);
+  hijack_tracers(2);
 
 
   ////////////////////////////////////////////////////////////////////////////////////////////
