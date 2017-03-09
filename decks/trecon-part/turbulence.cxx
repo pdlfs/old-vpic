@@ -287,10 +287,8 @@ begin_initialization {
   species_t *ionTop = define_species("ionTop", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
   species_t *ionBot = define_species("ionBot", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
 
-  species_t *et_tracer = define_species("et_tracer",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
-  species_t *eb_tracer = define_species("eb_tracer",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
-  species_t *it_tracer = define_species("it_tracer", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
-  species_t *ib_tracer = define_species("ib_tracer", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
+  species_t *e_tracer = define_species("e_tracer",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
+  species_t *i_tracer = define_species("i_tracer", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
 
   hijack_tracers(4);
 
@@ -562,13 +560,10 @@ begin_initialization {
 
     if (particle_tracing == 1){
      if (i%particle_select == 0){
-      if (z>0) {
-        tag_tracer( (electronTop->p + electronTop->np-1), eb_tracer, tag );
-        tag_tracer( (electronTop->p + electronTop->np-1), et_tracer, tag );
-      } else {
-        tag_tracer( (electronBot->p + electronBot->np-1), eb_tracer, tag );
-        tag_tracer( (electronBot->p + electronBot->np-1), et_tracer, tag );
-      }
+      if (z>0)
+        tag_tracer( (electronTop->p + electronTop->np-1), e_tracer, tag );
+      else
+        tag_tracer( (electronBot->p + electronBot->np-1), e_tracer, tag );
      }
     }
 
@@ -604,13 +599,10 @@ begin_initialization {
 
     if (particle_tracing == 1){
      if (i%particle_select == 0){
-      if (z>0) {
-        tag_tracer( (ionTop->p + ionTop->np-1), ib_tracer, tag );
-        tag_tracer( (ionTop->p + ionTop->np-1), it_tracer, tag );
-      } else {
-        tag_tracer( (ionBot->p + ionBot->np-1), ib_tracer, tag );
-        tag_tracer( (ionBot->p + ionBot->np-1), it_tracer, tag );
-      }
+      if (z>0)
+        tag_tracer( (ionTop->p + ionTop->np-1), i_tracer, tag );
+      else
+        tag_tracer( (ionBot->p + ionBot->np-1), i_tracer, tag );
      }
     }
 
