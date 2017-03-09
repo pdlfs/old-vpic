@@ -1104,7 +1104,7 @@ begin_diagnostics {
 #ifdef VPIC_FILE_PER_PARTICLE
         if(global->particle_tracing==1){
         //  if( should_dump(tracer) ) dump_tracers("tracer");
-          if (should_dump(tracer)){
+          if (should_dump(tracer) && step !=0){
 #ifdef LOG_SYSSTAT
             if (rank() == 0)
                 parse_meminfo();
