@@ -1161,10 +1161,19 @@ begin_diagnostics {
 	  dump_mkdir(subdir);
       sim_log("Dumping trajectory data: step T." << step);
 	  double dumpstart = mp_elapsed(grid->mp);
-	  sprintf(subdir,"particle/T.%d/eparticle",step);
+
+	  sprintf(subdir,"particle/T.%d/etparticle",step);
 	  dump_particles("electronTop",subdir);
-	  sprintf(subdir,"particle/T.%d/iparticle",step);
+
+	  sprintf(subdir,"particle/T.%d/ebparticle",step);
+	  dump_particles("electronBot",subdir);
+
+	  sprintf(subdir,"particle/T.%d/itparticle",step);
 	  dump_particles("ionTop",subdir);
+
+	  sprintf(subdir,"particle/T.%d/ibparticle",step);
+	  dump_particles("ionBot",subdir);
+
 	  double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
       sim_log("Dumping duration "<<dumpelapsed);
 	}
