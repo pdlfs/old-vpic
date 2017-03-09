@@ -288,10 +288,10 @@ begin_initialization {
   species_t *ionBot = define_species("ionBot", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
 
   species_t * e_tracer  = define_species("electron_tracer",-ec/me,
-                                          4*Ne/nproc(),   -1, //Def: 0.1
+                                          2.*Ne/nproc(),   -1, //Def: 0.1
                                           electron_sort_interval,  0 );
   species_t * i_tracer  = define_species("ion_tracer",      ec/mi,
-                                          4*Ne/nproc(),   -1, //Def: 0.1
+                                          2.*Ne/nproc(),   -1, //Def: 0.1
                                           ion_sort_interval,     0 );
 
   hijack_tracers(2);
