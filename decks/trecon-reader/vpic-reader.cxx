@@ -331,10 +331,39 @@ int read_particles(int64_t num, char *indir, char *outdir)
     return 0;
 }
 
+int64_t get_total_particles(char *indir)
+{
+    int64_t total = 0;
+    char infop[PATH_MAX], buf[256];
+    FILE *fd;
+
+    if (snprintf(infop, PATH_MAX, "%s/info", indir) <= 0) {
+        fprintf(stderr, "Error: snprintf for infop failed\n");
+        return 1;
+    }
+
+    if (!(fd = fopen(infop, "r"))) {
+        perror("Error: fopen failed for info");
+        return 1;
+    }
+
+    while (fgets(buf, sizeof(buf), fd) != NULL) {
+        char *str;
+
+        if ((str = strstr(buf, "total # of particles = ")) != NULL) {
+            total = (int64_t) strtof(str + 23, NULL);
+            break;
+        }
+    }
+
+    fclose(fd);
+    return total;
+}
+
 int main(int argc, char **argv)
 {
     int ret, c;
-    int64_t num = 1, retries = 3, elapsed_sum = 0;
+    int64_t num = 0, retries = 3, elapsed_sum = 0, total = 0;
     char indir[PATH_MAX], outdir[PATH_MAX];
     struct timeval ts, te;
     char *end;
@@ -380,6 +409,15 @@ int main(int argc, char **argv)
         fprintf(stderr, "Error: input and output directories are mandatory\n");
         usage(1);
     }
+
+    /* Get total number of particles */
+    total = get_total_particles(indir);
+    if (!total) {
+        fprintf(stderr, "Error: failed to read the total number of particles\n");
+        return 1;
+    }
+
+    printf("Number of particles: %ld\n", total);
 
     /* Do particle things */
     printf("Number of iterations: %ld\n", retries);
