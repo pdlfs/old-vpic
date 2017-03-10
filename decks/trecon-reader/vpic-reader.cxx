@@ -26,7 +26,9 @@ void usage(int ret)
            "  options:\n"
            "    -o dir    Output directory, /dev/null if unspecified\n"
            "    -n num    Number of particles to read (reading ID 1 to num)\n"
-           "    -r num    Number of query retries (before averaging)\n"
+           "              If unspecified we explore 10**i range, i in {0, k}\n"
+           "              with 10**k approaching total num of particles\n"
+           "    -r num    Number of query retries (before averaging, def. 3)\n"
            "    -h        This usage info\n"
            "\n",
            me);
@@ -368,12 +370,39 @@ int64_t get_total_particles(char *indir)
     return total;
 }
 
+int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
+{
+    int ret = 0;
+    struct timeval ts, te;
+    int64_t elapsed_sum = 0;
+
+    printf("Querying %ld particles (%ld retries)\n", num, retries);
+    for (int64_t i = 1; i <= retries; i++) {
+        int64_t elapsed;
+
+        gettimeofday(&ts, 0);
+        ret = read_particles(num, indir, outdir);
+        gettimeofday(&te, 0);
+
+        elapsed = (te.tv_sec-ts.tv_sec)*1000 + (te.tv_usec-ts.tv_usec)/1000;
+
+        printf("(%ld) Elapsed querying time: %ldms\n", i, elapsed);
+        printf("(%ld) Query time per particle: %ldms\n", i, elapsed / num);
+
+        elapsed_sum += elapsed;
+    }
+
+    printf("\nQuerying results: %ld msec per query, %ld msec per particle\n\n",
+            elapsed_sum / retries, elapsed_sum / num / retries);
+
+    return ret;
+}
+
 int main(int argc, char **argv)
 {
     int ret, c;
-    int64_t num = 0, retries = 3, elapsed_sum = 0, total = 0;
+    int64_t num = 0, retries = 3, total = 0;
     char indir[PATH_MAX], outdir[PATH_MAX];
-    struct timeval ts, te;
     char *end;
 
     me = argv[0];
@@ -427,25 +456,23 @@ int main(int argc, char **argv)
 
     printf("Number of particles: %ld\n", total);
 
-    /* Do particle things */
-    printf("Number of iterations: %ld\n", retries);
-    printf("Number of queries: %ld\n\n", num);
-    for (int64_t i = 1; i <= retries; i++) {
-        int64_t elapsed;
+    /*
+     * Go through the query dance: increment num from 1 to total particles
+     * multiplying by 10 each time, unless num is specified.
+     */
+    if (num) {
+        ret = query_particles(retries, num, indir, outdir);
+    } else {
+        num = 1;
 
-        gettimeofday(&ts, 0);
-        ret = read_particles(num, indir, outdir);
-        gettimeofday(&te, 0);
+        while (num <= total) {
+            ret = query_particles(retries, num, indir, outdir);
+            if (ret)
+                return ret;
 
-        elapsed = (te.tv_sec-ts.tv_sec)*1000 + (te.tv_usec-ts.tv_usec)/1000;
-
-        printf("(%ld) Elapsed querying time: %ldms\n", i, elapsed);
-        printf("(%ld) Query time per particle: %ldms\n", i, elapsed / num);
-
-        elapsed_sum += elapsed;
+            num *= 10;
+        }
     }
-    printf("\nAverage query time per run: %ldms\n", elapsed_sum / retries);
-    printf("Average query time per particle: %ldms\n\n", elapsed_sum / num / retries);
 
     return ret;
 }
