@@ -376,7 +376,9 @@ int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
     struct timeval ts, te;
     int64_t elapsed_sum = 0;
 
-    printf("Querying %ld particles (%ld retries)\n", num, retries);
+    if (rank == 0)
+        printf("Querying %ld particles (%ld retries)\n", num, retries);
+
     for (int64_t i = 1; i <= retries; i++) {
         int64_t elapsed;
 
@@ -386,14 +388,14 @@ int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
 
         elapsed = (te.tv_sec-ts.tv_sec)*1000 + (te.tv_usec-ts.tv_usec)/1000;
 
-        printf("(%ld) Elapsed querying time: %ldms\n", i, elapsed);
-        printf("(%ld) Query time per particle: %ldms\n", i, elapsed / num);
+        printf("(Rank %d, %ld) Elapsed querying time: %ldms\n", rank, i, elapsed);
+        printf("(Rank %d, %ld) Query time per particle: %ldms\n", rank, i, elapsed / num);
 
         elapsed_sum += elapsed;
     }
 
-    printf("\nQuerying results: %ld msec per query, %ld msec per particle\n\n",
-            elapsed_sum / retries, elapsed_sum / num / retries);
+    printf("Querying results: %ld ms / query, %ld ms / particle (rank %d)\n",
+            elapsed_sum / retries, elapsed_sum / num / retries, rank);
 
     return ret;
 }
@@ -461,7 +463,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    printf("Number of particles: %ld\n", total);
+    if (rank == 0)
+        printf("Number of particles: %ld\n", total);
 
     /*
      * Go through the query dance: increment num from 1 to total particles
