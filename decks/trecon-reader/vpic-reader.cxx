@@ -398,11 +398,13 @@ int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if (rank == 0)
-        printf("\n");
-
     printf("Querying results: %ld ms / query, %ld ms / particle (rank %d)\n",
             elapsed_sum / retries, elapsed_sum / num / retries, rank);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    if (rank == 0)
+        printf("\n");
 
     return ret;
 }
@@ -471,7 +473,7 @@ int main(int argc, char **argv)
     }
 
     if (rank == 0)
-        printf("\nNumber of particles: %ld\n", total);
+        printf("\nNumber of particles: %ld\n\n", total);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
