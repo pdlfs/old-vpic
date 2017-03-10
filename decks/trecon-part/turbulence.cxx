@@ -507,8 +507,7 @@ begin_initialization {
   double zmin = grid->z0 , zmax = grid->z0+(grid->dz)*(grid->nz);
 
   int i=0;
-  int64_t itp1=0;
-  int64_t itp2=0;
+  int64_t itp=0;
   int64_t tag=0;
 
   // Load Harris population
@@ -544,10 +543,10 @@ begin_initialization {
 
     if (particle_tracing == 1) {
         if (i % particle_select == 0) {
-            itp1++;
+            itp++;
             // Tag format: 18 bits for rank (up to 250K nodes) and
             //             46 bits for particle ID (up to 70T particles/node)
-            tag = (((int64_t) rank_int) << 46) | (itp1 & 0x3ffffffffff);
+            tag = (((int64_t) rank_int) << 46) | (itp & 0x3ffffffffff);
         }
     }
 
@@ -584,10 +583,10 @@ begin_initialization {
 
     if (particle_tracing == 1) {
         if (i % particle_select == 0) {
-            itp2++;
+            itp++;
             // Tag format: 18 bits for rank (up to 250K nodes) and
             //             46 bits for particle ID (up to 70T particles/node)
-            tag = (((int64_t) rank_int) << 46) | (itp2 & 0x3ffffffffff);
+            tag = (((int64_t) rank_int) << 46) | (itp & 0x3ffffffffff);
         }
     }
 
