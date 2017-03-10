@@ -329,7 +329,7 @@ int read_particles(int64_t num, char *indir, char *outdir)
         return 1;
 
     for (it = epochs.begin(); it != epochs.end(); ++it) {
-        if ((*it) / (*epochs.begin()) == rank) {
+        if ((*it) / (*epochs.begin()) == (rank + 1)) {
             //printf("Rank %d processing epoch %d.\n", rank, *it);
             if (process_epoch(ppath, outdir, *it, ids, rids)) {
                 fprintf(stderr, "Error: epoch data processing failed\n");
