@@ -83,7 +83,7 @@ int pick_particles(char *ppath, int epoch, int64_t num, ParticleMap *ids,
         return 1;
     }
 
-    if (snprintf(fprefix, PATH_MAX, "eparticle.%d.", epoch) <= 0 ) {
+    if (snprintf(fprefix, PATH_MAX, "particle.%d.", epoch) <= 0 ) {
         fprintf(stderr, "Error: snprintf for fprefix failed\n");
         return 1;
     }
@@ -103,7 +103,7 @@ int pick_particles(char *ppath, int epoch, int64_t num, ParticleMap *ids,
         if (dp->d_type != DT_REG)
             continue;
 
-        if (strncmp(dp->d_name, fprefix, strnlen(fprefix, PATH_MAX))) {
+        if (strncmp(dp->d_name+2, fprefix, strnlen(fprefix, PATH_MAX))) {
             fprintf(stderr, "Warning: unexpected file %s in %s\n",
                     dp->d_name, epath);
             continue;
@@ -175,7 +175,7 @@ int process_epoch(char *ppath, char *outdir, int it,
         return 1;
     }
 
-    if (snprintf(fprefix, PATH_MAX, "eparticle.%d.", it) <= 0) {
+    if (snprintf(fprefix, PATH_MAX, "particle.%d.", it) <= 0) {
         fprintf(stderr, "Error: snprintf for fprefix failed\n");
         return 1;
     }
@@ -190,7 +190,7 @@ int process_epoch(char *ppath, char *outdir, int it,
         if (dp->d_type != DT_REG)
             continue;
 
-        if (strncmp(dp->d_name, fprefix, strnlen(fprefix, PATH_MAX))) {
+        if (strncmp(dp->d_name+2, fprefix, strnlen(fprefix, PATH_MAX))) {
             fprintf(stderr, "Warning: unexpected file %s in %s\n",
                     dp->d_name, epath);
             continue;
