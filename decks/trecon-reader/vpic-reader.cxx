@@ -330,7 +330,7 @@ int read_particles(int64_t num, char *indir, char *outdir)
 
     for (it = epochs.begin(); it != epochs.end(); ++it) {
         if ((*it) / (*epochs.begin()) == rank) {
-            printf("Rank %d processing epoch %d.\n", rank, *it);
+            //printf("Rank %d processing epoch %d.\n", rank, *it);
             if (process_epoch(ppath, outdir, *it, ids, rids)) {
                 fprintf(stderr, "Error: epoch data processing failed\n");
                 return 1;
@@ -379,6 +379,8 @@ int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
     if (rank == 0)
         printf("Querying %ld particles (%ld retries)\n", num, retries);
 
+    MPI_Barrier(MPI_COMM_WORLD);
+
     for (int64_t i = 1; i <= retries; i++) {
         int64_t elapsed;
 
@@ -388,11 +390,16 @@ int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
 
         elapsed = (te.tv_sec-ts.tv_sec)*1000 + (te.tv_usec-ts.tv_usec)/1000;
 
-        printf("(Rank %d, %ld) Elapsed querying time: %ldms\n", rank, i, elapsed);
-        printf("(Rank %d, %ld) Query time per particle: %ldms\n", rank, i, elapsed / num);
+        printf("(Rank %d, %ld) %ldms / query, %ld ms / particle\n",
+               rank, i, elapsed, elapsed / num);
 
         elapsed_sum += elapsed;
     }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    if (rank == 0)
+        printf("\n");
 
     printf("Querying results: %ld ms / query, %ld ms / particle (rank %d)\n",
             elapsed_sum / retries, elapsed_sum / num / retries, rank);
@@ -464,7 +471,9 @@ int main(int argc, char **argv)
     }
 
     if (rank == 0)
-        printf("Number of particles: %ld\n", total);
+        printf("\nNumber of particles: %ld\n", total);
+
+    MPI_Barrier(MPI_COMM_WORLD);
 
     /*
      * Go through the query dance: increment num from 1 to total particles
