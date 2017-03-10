@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <mpi.h>
 
 #include <list>
 #include <map>
@@ -18,6 +19,7 @@ typedef map<int64_t,int64_t> RevParticleMap;
 typedef list<int> EpochList;
 
 char *me;
+int rank;
 
 void usage(int ret)
 {
@@ -214,8 +216,6 @@ int process_epoch(char *ppath, char *outdir, int it,
             goto err_fd;
 
         for (int i = 1; i <= wnum; i++) {
-            int ret;
-
             if (!fread(data, 1, DATA_LEN, fp) == DATA_LEN) {
                 perror("Error: fread failed");
                 goto err_fd;
@@ -226,18 +226,16 @@ int process_epoch(char *ppath, char *outdir, int it,
             if ((rids.find(tag) != rids.end())) {
                 idx = rids[tag];
 
-                if (outdir)
-                    ret = snprintf(wpath, PATH_MAX, "%s/particle%ld.txt", outdir, idx);
-                else
-                    ret = snprintf(wpath, PATH_MAX, "/dev/null");
+                if (!outdir[0])
+                    continue;
 
-                if (!ret) {
+                if (!snprintf(wpath, PATH_MAX, "%s/particle%ld.txt", outdir, idx)) {
                     perror("Error: snprintf for wpath failed");
                     return 1;
                 }
 
                 if (!(fd = fopen(wpath, "w"))) {
-                    perror("Error: fopen failed");
+                    perror("Error: fopen failed for output");
                     return 1;
                 }
 
@@ -331,10 +329,12 @@ int read_particles(int64_t num, char *indir, char *outdir)
         return 1;
 
     for (it = epochs.begin(); it != epochs.end(); ++it) {
-        //printf("Processing epoch %d.\n", *it);
-        if (process_epoch(ppath, outdir, *it, ids, rids)) {
-            fprintf(stderr, "Error: epoch data processing failed\n");
-            return 1;
+        if ((*it) / (*epochs.begin()) == rank) {
+            printf("Rank %d processing epoch %d.\n", rank, *it);
+            if (process_epoch(ppath, outdir, *it, ids, rids)) {
+                fprintf(stderr, "Error: epoch data processing failed\n");
+                return 1;
+            }
         }
     }
 
@@ -405,6 +405,13 @@ int main(int argc, char **argv)
     char indir[PATH_MAX], outdir[PATH_MAX];
     char *end;
 
+    if (MPI_Init(&argc, &argv) != MPI_SUCCESS) {
+        fprintf(stderr, "Error: MPI_Init failed\n");
+        return 1;
+    }
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
     me = argv[0];
     indir[0] = outdir[0] = '\0';
 
@@ -473,6 +480,8 @@ int main(int argc, char **argv)
             num *= 10;
         }
     }
+
+    MPI_Finalize();
 
     return ret;
 }
