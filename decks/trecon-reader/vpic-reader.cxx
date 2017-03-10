@@ -22,8 +22,9 @@ char *me;
 void usage(int ret)
 {
     printf("\n"
-           "usage: %s [options] -i input_dir -o output_dir\n"
+           "usage: %s [options] -i input_dir\n"
            "  options:\n"
+           "    -o dir    Output directory, /dev/null if unspecified\n"
            "    -n num    Number of particles to read (reading ID 1 to num)\n"
            "    -r num    Number of query retries (before averaging)\n"
            "    -h        This usage info\n"
@@ -211,6 +212,8 @@ int process_epoch(char *ppath, char *outdir, int it,
             goto err_fd;
 
         for (int i = 1; i <= wnum; i++) {
+            int ret;
+
             if (!fread(data, 1, DATA_LEN, fp) == DATA_LEN) {
                 perror("Error: fread failed");
                 goto err_fd;
@@ -221,7 +224,12 @@ int process_epoch(char *ppath, char *outdir, int it,
             if ((rids.find(tag) != rids.end())) {
                 idx = rids[tag];
 
-                if (!snprintf(wpath, PATH_MAX, "%s/particle%ld.txt", outdir, idx)) {
+                if (outdir)
+                    ret = snprintf(wpath, PATH_MAX, "%s/particle%ld.txt", outdir, idx);
+                else
+                    ret = snprintf(wpath, PATH_MAX, "/dev/null");
+
+                if (!ret) {
                     perror("Error: snprintf for wpath failed");
                     return 1;
                 }
@@ -405,8 +413,8 @@ int main(int argc, char **argv)
         }
     }
 
-    if (!indir[0] || !outdir[0]) {
-        fprintf(stderr, "Error: input and output directories are mandatory\n");
+    if (!indir[0]) {
+        fprintf(stderr, "Error: input directory unspecified\n");
         usage(1);
     }
 
