@@ -19,7 +19,7 @@ typedef map<int64_t,int64_t> RevParticleMap;
 typedef list<int> EpochList;
 
 char *me;
-int rank;
+int rank, worldsz;
 
 void usage(int ret)
 {
@@ -374,15 +374,20 @@ int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
 {
     int ret = 0;
     struct timeval ts, te;
-    int64_t elapsed_sum = 0;
+    int64_t elapsed_sum = 0, max_elapsed_avg = 0;
 
     if (rank == 0)
         printf("Querying %ld particles (%ld retries)\n", num, retries);
 
-    MPI_Barrier(MPI_COMM_WORLD);
-
     for (int64_t i = 1; i <= retries; i++) {
-        int64_t elapsed;
+        int64_t elapsed, max_elapsed;
+        int64_t *elapsed_all;
+
+        if (rank == 0 &&
+            !(elapsed_all = (int64_t *)malloc(sizeof(int64_t) * worldsz))) {
+            perror("Error: malloc failed");
+            exit(1);
+        }
 
         gettimeofday(&ts, 0);
         ret = read_particles(num, indir, outdir);
@@ -390,21 +395,31 @@ int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
 
         elapsed = (te.tv_sec-ts.tv_sec)*1000 + (te.tv_usec-ts.tv_usec)/1000;
 
-        printf("(Rank %d, %ld) %ldms / query, %ld ms / particle\n",
-               rank, i, elapsed, elapsed / num);
+        MPI_Gather(&elapsed, 1, MPI_LONG_LONG_INT, elapsed_all, 1,
+                   MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
+
+        //printf("(Rank %d, %ld) %ldms / query, %ld ms / particle\n",
+        //       rank, i, elapsed, elapsed / num);
+        if (rank == 0) {
+            elapsed = max_elapsed = 0;
+            for (int j = 0; j < worldsz; j++) {
+                elapsed += elapsed_all[j];
+                if (max_elapsed < elapsed_all[j])
+                    max_elapsed = elapsed_all[j];
+            }
+            elapsed /= worldsz;
+            printf("Overall: %ldms / query, %ld ms / particle\n",
+                   max_elapsed, elapsed / num);
+            free(elapsed_all);
+        }
 
         elapsed_sum += elapsed;
+        max_elapsed_avg += max_elapsed;
     }
 
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    printf("Querying results: %ld ms / query, %ld ms / particle (rank %d)\n",
-            elapsed_sum / retries, elapsed_sum / num / retries, rank);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
     if (rank == 0)
-        printf("\n");
+        printf("Querying results: %ld ms / query, %ld ms / particle\n\n",
+                elapsed_sum / retries, elapsed_sum / num / retries);
 
     return ret;
 }
@@ -421,6 +436,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    MPI_Comm_size(MPI_COMM_WORLD, &worldsz);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     me = argv[0];
