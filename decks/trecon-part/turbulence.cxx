@@ -560,10 +560,14 @@ begin_initialization {
     //inject_particle(electron, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
     if (z>0) {
         inject_particle(electronTop, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
+#ifndef VPIC_FILE_PER_PARTICLE
         namefd.print("eT.%016lx", tag);
+#endif
     } else {
         inject_particle(electronBot, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
+#ifndef VPIC_FILE_PER_PARTICLE
         namefd.print("eB.%016lx", tag);
+#endif
     }
 
 
@@ -573,7 +577,9 @@ begin_initialization {
                 tag_tracer((electronTop->p + electronTop->np-1), e_tracer, tag);
             else
                 tag_tracer((electronBot->p + electronBot->np-1), e_tracer, tag);
+#ifdef VPIC_FILE_PER_PARTICLE
             namefd.print("eR.%016lx", tag);
+#endif
         }
     }
 
