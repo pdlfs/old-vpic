@@ -1095,16 +1095,16 @@ begin_diagnostics {
 	 *------------------------------------------------------------------------*/
 
 	//if(should_dump(ehydro)) hydro_dump("electron", global->hedParams);
-  if(should_dump(ehydro)) hydro_dump("electronTop", global->eTopdParams);
-  if(should_dump(ehydro)) hydro_dump("electronBot", global->eBotdParams);
+  if(should_dump(ehydro)) hydro_dump("eT", global->eTopdParams);
+  if(should_dump(ehydro)) hydro_dump("eB", global->eBotdParams);
 
 	/*--------------------------------------------------------------------------
 	 * Ion species output
 	 *------------------------------------------------------------------------*/
 
 	//if(should_dump(Hhydro)) hydro_dump("ion", global->hHdParams);
-  if(should_dump(Hhydro)) hydro_dump("ionTop", global->iTopdParams);
-  if(should_dump(Hhydro)) hydro_dump("ionBot", global->iBotdParams);
+  if(should_dump(Hhydro)) hydro_dump("iT", global->iTopdParams);
+  if(should_dump(Hhydro)) hydro_dump("iB", global->iBotdParams);
 
 	/*--------------------------------------------------------------------------
 	 * Energy Spectrum Output
@@ -1174,16 +1174,16 @@ begin_diagnostics {
 	  double dumpstart = mp_elapsed(grid->mp);
 
 	  sprintf(subdir,"particle/T.%d/etparticle",step);
-	  dump_particles("electronTop",subdir);
+	  dump_particles("eT",subdir);
 
 	  sprintf(subdir,"particle/T.%d/ebparticle",step);
-	  dump_particles("electronBot",subdir);
+	  dump_particles("eB",subdir);
 
 	  sprintf(subdir,"particle/T.%d/itparticle",step);
-	  dump_particles("ionTop",subdir);
+	  dump_particles("iT",subdir);
 
 	  sprintf(subdir,"particle/T.%d/ibparticle",step);
-	  dump_particles("ionBot",subdir);
+	  dump_particles("iB",subdir);
 
 	  double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
       sim_log("Dumping duration "<<dumpelapsed);
