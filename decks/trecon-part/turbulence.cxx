@@ -282,13 +282,13 @@ begin_initialization {
 #endif
   //species_t *electron = define_species("electron",-ec/me,2.5*Ne/nproc(),-1,electron_sort_interval,0);
   //species_t *ion = define_species("ion",ec/mi,2.5*Ne/nproc(),-1,ion_sort_interval,0);
-  species_t *electronTop = define_species("electronTop",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
-  species_t *electronBot = define_species("electronBot",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
-  species_t *ionTop = define_species("ionTop", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
-  species_t *ionBot = define_species("ionBot", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
+  species_t *electronTop = define_species("eT",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
+  species_t *electronBot = define_species("eB",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
+  species_t *ionTop = define_species("iT", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
+  species_t *ionBot = define_species("iB", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
 
-  species_t *e_tracer = define_species("e_tracer",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
-  species_t *i_tracer = define_species("i_tracer", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
+  species_t *e_tracer = define_species("eR",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
+  species_t *i_tracer = define_species("iR", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
 
   hijack_tracers(2);
 
@@ -499,6 +499,13 @@ begin_initialization {
   sim_log( "Loading particles" );
 #endif
 
+  // Create name file
+  dump_mkdir("names");     // George: particle names
+  FileIO namefd;
+  char namefile[16];
+  sprintf(namefile, "names.%d", rank());
+  namefd.open(namefile, io_write);
+
   // Do a fast load of the particles
 
   seed_rand( rng_seed*nproc() + rank() );  //Generators desynchronized
@@ -551,19 +558,23 @@ begin_initialization {
     }
 
     //inject_particle(electron, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
-    if (z>0)
-      inject_particle(electronTop, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
-    else
-      inject_particle(electronBot, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
+    if (z>0) {
+        inject_particle(electronTop, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
+        namefd.print("eT.%016lx", tag);
+    } else {
+        inject_particle(electronBot, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
+        namefd.print("eB.%016lx", tag);
+    }
 
 
-    if (particle_tracing == 1){
-     if (i%particle_select == 0){
-      if (z>0)
-        tag_tracer( (electronTop->p + electronTop->np-1), e_tracer, tag );
-      else
-        tag_tracer( (electronBot->p + electronBot->np-1), e_tracer, tag );
-     }
+    if (particle_tracing == 1) {
+        if (i%particle_select == 0) {
+            if (z>0)
+                tag_tracer((electronTop->p + electronTop->np-1), e_tracer, tag);
+            else
+                tag_tracer((electronBot->p + electronBot->np-1), e_tracer, tag);
+            namefd.print("eR.%016lx", tag);
+        }
     }
 
 
@@ -591,18 +602,22 @@ begin_initialization {
     }
 
     //inject_particle(ion, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
-   if (z>0)
-    inject_particle(ionTop, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
-   else
-    inject_particle(ionBot, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
+    if (z>0) {
+        inject_particle(ionTop, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
+        namefd.print("iT.%016lx", tag);
+    } else {
+        inject_particle(ionBot, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
+        namefd.print("iB.%016lx", tag);
+    }
 
-    if (particle_tracing == 1){
-     if (i%particle_select == 0){
-      if (z>0)
-        tag_tracer( (ionTop->p + ionTop->np-1), i_tracer, tag );
-      else
-        tag_tracer( (ionBot->p + ionBot->np-1), i_tracer, tag );
-     }
+    if (particle_tracing == 1) {
+        if (i%particle_select == 0) {
+            if (z>0)
+                tag_tracer( (ionTop->p + ionTop->np-1), i_tracer, tag );
+            else
+                tag_tracer( (ionBot->p + ionBot->np-1), i_tracer, tag );
+            namefd.print("iR.%016lx", tag);
+        }
     }
 
 
@@ -612,6 +627,7 @@ begin_initialization {
 #ifndef TRINITY_RUN
   sim_log( "Finished loading particles" );
 #endif
+  namefd.close();
 
    /*--------------------------------------------------------------------------
      * New dump definition
