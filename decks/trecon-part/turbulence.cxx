@@ -502,8 +502,8 @@ begin_initialization {
   // Create name file
   dump_mkdir("names");     // George: particle names
   FileIO namefd;
-  char namefile[16];
-  sprintf(namefile, "names.%d", (int) rank());
+  char namefile[24];
+  sprintf(namefile, "names/names.%d", (int) rank());
   namefd.open(namefile, io_write);
 
   // Do a fast load of the particles
