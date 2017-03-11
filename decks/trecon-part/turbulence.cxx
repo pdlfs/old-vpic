@@ -610,10 +610,14 @@ begin_initialization {
     //inject_particle(ion, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
     if (z>0) {
         inject_particle(ionTop, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
+#ifndef VPIC_FILE_PER_PARTICLE
         namefd.print("iT.%016lx", tag);
+#endif
     } else {
         inject_particle(ionBot, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
+#ifndef VPIC_FILE_PER_PARTICLE
         namefd.print("iB.%016lx", tag);
+#endif
     }
 
     if (particle_tracing == 1) {
@@ -622,7 +626,9 @@ begin_initialization {
                 tag_tracer( (ionTop->p + ionTop->np-1), i_tracer, tag );
             else
                 tag_tracer( (ionBot->p + ionBot->np-1), i_tracer, tag );
+#ifdef VPIC_FILE_PER_PARTICLE
             namefd.print("iR.%016lx", tag);
+#endif
         }
     }
 
