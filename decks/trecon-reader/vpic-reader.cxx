@@ -473,7 +473,15 @@ int main(int argc, char **argv)
     }
 
     if (rank == 0)
-        printf("\nNumber of particles: %ld\n\n", total);
+        printf("\nNumber of particles: %ld\n", total);
+    /* XXX: The following is only until we figure out caching */
+    if (total > 1e5) {
+        total = 1e5;
+        if (rank == 0)
+            printf("Warning: will stop querying at 100K particles\n");
+    }
+    if (rank == 0)
+        printf("\n");
 
     MPI_Barrier(MPI_COMM_WORLD);
 
