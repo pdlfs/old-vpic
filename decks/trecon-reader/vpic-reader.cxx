@@ -14,9 +14,17 @@
 
 using namespace std;
 
-typedef map<int64_t,int64_t> ParticleMap;
-typedef map<int64_t,int64_t> RevParticleMap;
-typedef list<int> EpochList;
+enum {
+    SPECIES_EB = 0,
+    SPECIES_ET,
+    SPECIES_IB,
+    SPECIES_IT,
+};
+
+/* One map for each: eB, eT, iB, iT */
+map<int64_t,int64_t> ids[4];
+map<int64_t,int64_t> rids[4];
+list<int> epochs;
 
 char *me;
 int rank, worldsz;
@@ -72,105 +80,85 @@ int process_file_metadata(FILE *fp, int *wsize, int *wnum)
     return 0;
 }
 
-int pick_particles(char *ppath, int epoch, int64_t num, ParticleMap *ids,
-                   RevParticleMap *rids)
+int pick_particles(char *indir, int64_t num)
 {
-    DIR *d;
-    struct dirent *dp;
-    char epath[PATH_MAX];
-    char fprefix[PATH_MAX];
-    char fpath[PATH_MAX];
+    FILE *nf;
+    char nfpath[PATH_MAX];
     int64_t cur = 1;
+    int core = 0;
 
-    if (snprintf(epath, PATH_MAX, "%s/T.%d", ppath, epoch) <= 0) {
-        fprintf(stderr, "Error: snprintf for epath failed\n");
+again:
+    if (snprintf(nfpath, PATH_MAX, "%s/names/names.%d", indir, core) <= 0) {
+        fprintf(stderr, "Error: snprintf for nfpath failed\n");
         return 1;
     }
 
-    if (snprintf(fprefix, PATH_MAX, "particle.%d.", epoch) <= 0 ) {
-        fprintf(stderr, "Error: snprintf for fprefix failed\n");
+    if (!(nf = fopen(nfpath, "rb"))) {
+        perror("Error: cannot open name file");
         return 1;
     }
 
-    if ((d = opendir(epath)) == NULL) {
-        perror("Error: cannot open epoch directory");
-        return 1;
-    }
-
-    /* Open each per-process file and process it */
-    while (dp = readdir(d)) {
-        FILE *fp;
-        int x = 0, wsize, wnum;
-        char data[DATA_LEN];
+    /* Open name file and process it */
+    while (cur <= num) {
+        char data[19];
+        int type;
         int64_t tag;
 
-        if (dp->d_type != DT_REG)
-            continue;
-
-        if (strncmp(dp->d_name+2, fprefix, strnlen(fprefix, PATH_MAX))) {
-            fprintf(stderr, "Warning: unexpected file %s in %s\n",
-                    dp->d_name, epath);
-            continue;
-        }
-
-        if (snprintf(fpath, PATH_MAX, "%s/%s", epath, dp->d_name) <= 0) {
-            fprintf(stderr, "Error: snprintf for fpath failed\n");
-            goto err;
-        }
-
-        if (!(fp = fopen(fpath, "rb"))) {
-            perror("Error: fopen epoch file failed");
-            goto err;
-        }
-
-        if (process_file_metadata(fp, &wsize, &wnum)) {
-            fclose(fp);
-            goto err;
-        }
-
-        //printf("Array: %d elements, %db each\n", wnum, wsize);
-
-        for (int i = 1; i <= wnum; i++) {
-            if (fread(data, 1, DATA_LEN, fp) != DATA_LEN) {
-                fclose(fp);
-                goto err;
+        if (fread(data, sizeof(char), 19, nf) != 19) {
+            if (feof(nf)) {
+                fclose(nf);
+                core++;
+                goto again;
             }
 
-            memcpy(&tag, data + TAG_OFFT, sizeof(int64_t));
-
-            if ((*rids).find(tag) == (*rids).end()) {
-                (*ids)[cur] = tag;
-                (*rids)[tag] = cur;
-                //printf("Particle #%ld: ID 0x%016lx\n", cur, tag);
-                cur++;
-
-                if (cur > num) {
-                    fclose(fp);
-                    closedir(d);
-                    return 0;
-                }
-            }
+            perror("Error: name file fread failed");
+            goto err;
         }
 
-        fclose(fp);
+        if (!strncmp(data, "eB", 2)) {
+            type = SPECIES_EB;
+        } else if (!strncmp(data, "eT", 2)) {
+            type = SPECIES_ET;
+        } else if (!strncmp(data, "iB", 2)) {
+            type = SPECIES_IB;
+        } else if (!strncmp(data, "iT", 2)) {
+            type = SPECIES_IT;
+        } else {
+            fprintf(stderr, "Error: unrecognized particle type for %s\n", data);
+            goto err;
+        }
+
+        sscanf(data+3, "%016lx", &tag);
+
+        ids[type][cur] = tag;
+        rids[type][tag] = cur;
+
+        //printf("Particle #%ld: ID T%d 0x%016lx\n", cur, type, tag);
+        cur++;
     }
 
-    closedir(d);
+    if (cur <= num) {
+        fclose(nf);
+        core++;
+        goto again;
+    }
+
+    fclose(nf);
     return 0;
 
 err:
-    closedir(d);
+    fclose(nf);
     return 1;
 }
 
-int process_epoch(char *ppath, char *outdir, int it,
-                  ParticleMap ids, RevParticleMap rids)
+int process_epoch(char *ppath, char *outdir, int64_t num, int it)
 {
+#if 0
     DIR *d;
     FILE *fp, *fd;
     struct dirent *dp;
     int wsize, wnum;
-    int64_t idx, tag, num = ids.size();
+    int64_t idx, tag;
     char epath[PATH_MAX], fprefix[PATH_MAX], fpath[PATH_MAX];
     char wpath[PATH_MAX], data[DATA_LEN], preamble[64];
 
@@ -270,6 +258,7 @@ err_fd:
     fclose(fp);
 err:
     closedir(d);
+#endif
     return 1;
 }
 
@@ -278,10 +267,7 @@ int read_particles(int64_t num, char *indir, char *outdir)
     DIR *in;
     struct dirent *dp;
     char ppath[PATH_MAX];
-    EpochList epochs;
-    EpochList::iterator it;
-    ParticleMap ids;
-    RevParticleMap rids;
+    list<int>::iterator it;
 
     //printf("Reading particles from %s.\n", indir);
     //printf("Storing trajectories in %s.\n", outdir);
@@ -325,18 +311,21 @@ int read_particles(int64_t num, char *indir, char *outdir)
     epochs.sort();
 
     /* Pick the particle IDs to query */
-    if (pick_particles(ppath, *(epochs.begin()), num, &ids, &rids))
+    if (pick_particles(indir, num))
         return 1;
 
+#if 0
+    /* Each MPI rank will process a different epoch */
     for (it = epochs.begin(); it != epochs.end(); ++it) {
         if ((*it) / (*epochs.begin()) == (rank + 1)) {
             //printf("Rank %d processing epoch %d.\n", rank, *it);
-            if (process_epoch(ppath, outdir, *it, ids, rids)) {
+            if (process_epoch(ppath, outdir, num, *it)) {
                 fprintf(stderr, "Error: epoch data processing failed\n");
                 return 1;
             }
         }
     }
+#endif
 
     return 0;
 }
@@ -498,8 +487,6 @@ int main(int argc, char **argv)
     }
     if (rank == 0)
         printf("\n");
-
-    MPI_Barrier(MPI_COMM_WORLD);
 
     /*
      * Go through the query dance: increment num from 1 to total particles
