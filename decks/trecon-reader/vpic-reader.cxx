@@ -153,11 +153,10 @@ err:
 
 int process_epoch(char *ppath, char *outdir, int64_t num, int it)
 {
-#if 0
     DIR *d;
     FILE *fp, *fd;
     struct dirent *dp;
-    int wsize, wnum;
+    int wsize, wnum, type;
     int64_t idx, tag;
     char epath[PATH_MAX], fprefix[PATH_MAX], fpath[PATH_MAX];
     char wpath[PATH_MAX], data[DATA_LEN], preamble[64];
@@ -188,7 +187,21 @@ int process_epoch(char *ppath, char *outdir, int64_t num, int it)
             continue;
         }
 
-        //printf("Found file %s, epoch %d.\n", dp->d_name, it);
+        /* Figure out particle type (species) */
+        if (!strncmp(dp->d_name, "eB", 2)) {
+            type = SPECIES_EB;
+        } else if (!strncmp(dp->d_name, "eT", 2)) {
+            type = SPECIES_ET;
+        } else if (!strncmp(dp->d_name, "iB", 2)) {
+            type = SPECIES_IB;
+        } else if (!strncmp(dp->d_name, "iT", 2)) {
+            type = SPECIES_IT;
+        } else {
+            fprintf(stderr, "Error: unrecognized particle type in file %s\n", dp->d_name);
+            goto err;
+        }
+
+        printf("Found file %s, epoch %d.\n", dp->d_name, it);
 
         if (snprintf(fpath, PATH_MAX, "%s/%s", epath, dp->d_name) <= 0) {
             fprintf(stderr, "Error: snprintf for fpath failed\n");
@@ -211,8 +224,10 @@ int process_epoch(char *ppath, char *outdir, int64_t num, int it)
 
             memcpy(&tag, data + TAG_OFFT, sizeof(int64_t));
 
-            if ((rids.find(tag) != rids.end())) {
-                idx = rids[tag];
+            if ((rids[type].find(tag) != rids[type].end())) {
+                idx = rids[type][tag];
+
+                printf("Found T%d 0x%016lx in epoch %d.\n", type, tag, it);
 
                 if (!outdir[0])
                     continue;
@@ -242,8 +257,6 @@ int process_epoch(char *ppath, char *outdir, int64_t num, int it)
                     goto err_fd;
                 }
 
-                //printf("Found 0x%016lx in epoch %d.\n", tag, it);
-
                 fclose(fd);
             }
         }
@@ -258,7 +271,6 @@ err_fd:
     fclose(fp);
 err:
     closedir(d);
-#endif
     return 1;
 }
 
@@ -314,7 +326,6 @@ int read_particles(int64_t num, char *indir, char *outdir)
     if (pick_particles(indir, num))
         return 1;
 
-#if 0
     /* Each MPI rank will process a different epoch */
     for (it = epochs.begin(); it != epochs.end(); ++it) {
         if ((*it) / (*epochs.begin()) == (rank + 1)) {
@@ -325,7 +336,6 @@ int read_particles(int64_t num, char *indir, char *outdir)
             }
         }
     }
-#endif
 
     return 0;
 }
