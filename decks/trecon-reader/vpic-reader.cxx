@@ -201,7 +201,7 @@ int process_epoch(char *ppath, char *outdir, int64_t num, int it)
             goto err;
         }
 
-        printf("Found file %s, epoch %d.\n", dp->d_name, it);
+        //printf("Found file %s, epoch %d.\n", dp->d_name, it);
 
         if (snprintf(fpath, PATH_MAX, "%s/%s", epath, dp->d_name) <= 0) {
             fprintf(stderr, "Error: snprintf for fpath failed\n");
@@ -227,7 +227,7 @@ int process_epoch(char *ppath, char *outdir, int64_t num, int it)
             if ((rids[type].find(tag) != rids[type].end())) {
                 idx = rids[type][tag];
 
-                printf("Found T%d 0x%016lx in epoch %d.\n", type, tag, it);
+                //printf("Found T%d 0x%016lx in epoch %d.\n", type, tag, it);
 
                 if (!outdir[0])
                     continue;
@@ -283,6 +283,13 @@ int read_particles(int64_t num, char *indir, char *outdir)
 
     //printf("Reading particles from %s.\n", indir);
     //printf("Storing trajectories in %s.\n", outdir);
+
+    /* Clear maps and lists */
+    epochs.clear();
+    for (int j = 0; j < 4; j++) {
+        ids[j].clear();
+        rids[j].clear();
+    }
 
     /* Open particle directory and sort epoch directories */
     if (snprintf(ppath, PATH_MAX, "%s/particle", indir) <= 0) {
