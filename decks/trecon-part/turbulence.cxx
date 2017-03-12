@@ -1185,16 +1185,16 @@ begin_diagnostics {
       sim_log("Dumping trajectory data: step T." << step);
 	  double dumpstart = mp_elapsed(grid->mp);
 
-	  sprintf(subdir,"particle/T.%d/etparticle",step);
+	  sprintf(subdir,"particle/T.%d/eTparticle",step);
 	  dump_particles("eT",subdir);
 
-	  sprintf(subdir,"particle/T.%d/ebparticle",step);
+	  sprintf(subdir,"particle/T.%d/eBparticle",step);
 	  dump_particles("eB",subdir);
 
-	  sprintf(subdir,"particle/T.%d/itparticle",step);
+	  sprintf(subdir,"particle/T.%d/iTparticle",step);
 	  dump_particles("iT",subdir);
 
-	  sprintf(subdir,"particle/T.%d/ibparticle",step);
+	  sprintf(subdir,"particle/T.%d/iBparticle",step);
 	  dump_particles("iB",subdir);
 
 	  double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
