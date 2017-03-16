@@ -9,6 +9,8 @@
  */
 
 #include "vpic/vpic.hxx"
+#inlcude <stdlib.h>
+#include <unistd.h>
 
 # if defined(CELL_PPU_BUILD) && defined(USE_CELL_SPUS)
 #include <fenv.h>
@@ -22,7 +24,11 @@
 int
 main( int argc,
       char **argv ) {
+  const char* cwd;
   int m, n;
+
+  cwd = getenv("VPIC_current_working_dir");
+  if (cwd != NULL) chdir(cwd)
 
 # if defined(CELL_PPU_BUILD) && defined(USE_CELL_SPUS)
 
