@@ -27,9 +27,6 @@ main( int argc,
   const char* cwd;
   int m, n;
 
-  cwd = getenv("VPIC_current_working_dir");
-  if (cwd != NULL) chdir(cwd)
-
 # if defined(CELL_PPU_BUILD) && defined(USE_CELL_SPUS)
 
   // set PPU rounding mode
@@ -62,6 +59,9 @@ main( int argc,
 # else
   int tpp = 1;
 # endif
+  cwd = getenv("VPIC_current_working_dir");
+  if (cwd != NULL) chdir(cwd);
+
   for( m=n=0; n<argc; n++ )
     if( strncmp( argv[n], "-tpp=", 5 )==0 ) tpp = atoi( argv[n]+5 );
     else                                    argv[m++] = argv[n];
