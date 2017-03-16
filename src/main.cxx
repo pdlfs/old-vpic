@@ -9,7 +9,7 @@
  */
 
 #include "vpic/vpic.hxx"
-#inlcude <stdlib.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 # if defined(CELL_PPU_BUILD) && defined(USE_CELL_SPUS)
