@@ -280,6 +280,8 @@ begin_initialization {
 #ifndef TRINITY_RUN
   sim_log("Setting up species. ");
 #endif
+  sim_log ( "> nproc = " << nproc ()  );
+  sim_log ( "> total # of particles = " << 2*Ne );
   //species_t *electron = define_species("electron",-ec/me,2.5*Ne/nproc(),-1,electron_sort_interval,0);
   //species_t *ion = define_species("ion",ec/mi,2.5*Ne/nproc(),-1,ion_sort_interval,0);
   species_t *electronTop = define_species("eT",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
