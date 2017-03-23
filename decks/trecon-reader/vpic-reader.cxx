@@ -471,6 +471,7 @@ int main(int argc, char **argv)
                 perror("Error: invalid retry argument");
                 usage(1);
             }
+            break;
         case 'o': /* output directory (trajectory files) */
             if (!strncpy(outdir, optarg, PATH_MAX)) {
                 perror("Error: invalid output dir");
