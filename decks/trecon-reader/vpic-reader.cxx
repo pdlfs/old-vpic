@@ -14,6 +14,8 @@
 
 using namespace std;
 
+//#define DEBUG_READER
+#define SPECIES_NUM 4
 enum {
     SPECIES_EB = 0,
     SPECIES_ET,
@@ -25,6 +27,9 @@ enum {
 map<int64_t,int64_t> ids[4];
 map<int64_t,int64_t> rids[4];
 list<int> epochs;
+int64_t nproc = 0;
+int64_t rank_num = 0;
+int64_t skip_num = 0;
 
 char *me;
 int myrank, worldsz;
@@ -187,6 +192,14 @@ int process_epoch(char *ppath, char *outdir, int64_t num, int it)
             continue;
         }
 
+        /* Skip files if done or so we don't step on each other's toes */
+        if (skip_num) {
+            skip_num--;
+            continue;
+        } else if (!rank_num) {
+            continue;
+        }
+
         /* Figure out particle type (species) */
         if (!strncmp(dp->d_name, "eB", 2)) {
             type = SPECIES_EB;
@@ -201,7 +214,10 @@ int process_epoch(char *ppath, char *outdir, int64_t num, int it)
             goto err;
         }
 
-        //printf("Found file %s, epoch %d.\n", dp->d_name, it);
+#ifdef DEBUG_READER
+        printf("[%d] Found file %s, epoch %d (skip = %ld, left = %ld).\n",
+               myrank, dp->d_name, it, skip_num, rank_num);
+#endif
 
         if (snprintf(fpath, PATH_MAX, "%s/%s", epath, dp->d_name) <= 0) {
             fprintf(stderr, "Error: snprintf for fpath failed\n");
@@ -230,7 +246,7 @@ int process_epoch(char *ppath, char *outdir, int64_t num, int it)
                 //printf("Found T%d 0x%016lx in epoch %d.\n", type, tag, it);
 
                 if (!outdir[0])
-                    continue;
+                    break;
 
                 if (!snprintf(wpath, PATH_MAX, "%s/particle%ld.txt", outdir, idx)) {
                     perror("Error: snprintf for wpath failed");
@@ -262,6 +278,9 @@ int process_epoch(char *ppath, char *outdir, int64_t num, int it)
         }
 
         fclose(fp);
+
+        /* Mark another file as done */
+        rank_num--;
     }
 
     closedir(d);
@@ -333,15 +352,38 @@ int read_particles(int64_t num, char *indir, char *outdir)
     if (pick_particles(indir, num))
         return 1;
 
+    /* Pick files to scan */
+    rank_num = SPECIES_NUM * nproc * epochs.size() / worldsz;
+    skip_num = myrank * rank_num;
+#ifdef DEBUG_READER
+    fprintf(stderr, "[%d] nproc = %ld, epochs = %ld, left = %ld, skip = %ld\n",
+            myrank, nproc, epochs.size(), rank_num, skip_num);
+#endif
+
     /* Each MPI rank will process a different epoch */
     for (it = epochs.begin(); it != epochs.end(); ++it) {
-        if ((*it) / (*epochs.begin()) == (myrank + 1)) {
-            //printf("Rank %d processing epoch %d.\n", myrank, *it);
-            if (process_epoch(ppath, outdir, num, *it)) {
-                fprintf(stderr, "Error: epoch data processing failed\n");
-                return 1;
-            }
+        /* Skip epoch if we are not responsible for scanning any of its files */
+        if (skip_num >= SPECIES_NUM * nproc) {
+            skip_num -= SPECIES_NUM * nproc;
+#ifdef DEBUG_READER
+            fprintf(stderr, "[%d] Skipping epoch %d (%ld left).\n",
+                    myrank, *it, skip_num);
+#endif
+            continue;
         }
+
+#ifdef DEBUG_READER
+        printf("[%d] Processing epoch %d.\n", myrank, *it);
+#endif
+
+        if (process_epoch(ppath, outdir, num, *it)) {
+            fprintf(stderr, "Error: epoch data processing failed\n");
+            return 1;
+        }
+
+        /* Check whether we're done */
+        if (!rank_num)
+            break;
     }
 
     return 0;
@@ -366,10 +408,11 @@ int64_t get_total_particles(char *indir)
     while (fgets(buf, sizeof(buf), fd) != NULL) {
         char *str;
 
-        if ((str = strstr(buf, "total # of particles = ")) != NULL) {
+        /* Get particles, and since we're here grab procs too */
+        if ((str = strstr(buf, "total # of particles = ")) != NULL)
             total = (int64_t) strtof(str + 23, NULL);
-            break;
-        }
+        else if ((str = strstr(buf, "nproc = ")) != NULL)
+            nproc = (int64_t) strtof(str + 8, NULL);
     }
 
     fclose(fd);
@@ -403,9 +446,10 @@ int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
 
         MPI_Gather(&elapsed, 1, MPI_LONG_LONG_INT, elapsed_all, 1,
                    MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
-
-        //printf("(Rank %d, %ld) %ldms / query, %ld ms / particle\n",
-        //       myrank, i, elapsed, elapsed / num);
+#ifdef DEBUG_READER
+        printf("(Rank %d, %ld) %ldms / query, %ld ms / particle\n",
+               myrank, i, elapsed, elapsed / num);
+#endif
         if (myrank == 0) {
             elapsed = max_elapsed = 0;
             for (int j = 0; j < worldsz; j++) {
