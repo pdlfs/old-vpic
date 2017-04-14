@@ -12,6 +12,9 @@ if [ $(hostname | grep tt-fey) ]; then
 elif [ $(hostname | grep tr-fe) ]; then
     echo "Preparing machine.conf for Trinity"
     cp $src_dir/trinitite.conf $src_dir/machine.conf
+elif [ $(hostname | grep ga-fe) ]; then
+    echo "Preparing machine.conf for Gadget"
+    cp $src_dir/trinitite.conf $src_dir/machine.conf
 elif [ $(hostname | grep narwhal) ] && [ `which mpirun.mpich` ]; then
     echo "Preparing machine.conf for Narwhal (MPICH)"
     cp $src_dir/narwhal-mpich.conf $src_dir/machine.conf
