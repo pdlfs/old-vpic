@@ -280,19 +280,17 @@ begin_initialization {
 #ifndef TRINITY_RUN
   sim_log("Setting up species. ");
 #endif
+  sim_log ( "> nproc = " << nproc ()  );
+  sim_log ( "> total # of particles = " << 2*Ne );
   //species_t *electron = define_species("electron",-ec/me,2.5*Ne/nproc(),-1,electron_sort_interval,0);
   //species_t *ion = define_species("ion",ec/mi,2.5*Ne/nproc(),-1,ion_sort_interval,0);
-  species_t *electronTop = define_species("electronTop",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
-  species_t *electronBot = define_species("electronBot",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
-  species_t *ionTop = define_species("ionTop", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
-  species_t *ionBot = define_species("ionBot", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
+  species_t *electronTop = define_species("eT",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
+  species_t *electronBot = define_species("eB",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
+  species_t *ionTop = define_species("iT", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
+  species_t *ionBot = define_species("iB", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
 
-  species_t * e_tracer  = define_species("electron_tracer",-ec/me,
-                                          4*Ne/nproc(),   -1, //Def: 0.1
-                                          electron_sort_interval,  0 );
-  species_t * i_tracer  = define_species("ion_tracer",      ec/mi,
-                                          4*Ne/nproc(),   -1, //Def: 0.1
-                                          ion_sort_interval,     0 );
+  species_t *e_tracer = define_species("eR",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
+  species_t *i_tracer = define_species("iR", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
 
   hijack_tracers(2);
 
@@ -503,6 +501,13 @@ begin_initialization {
   sim_log( "Loading particles" );
 #endif
 
+  // Create name file
+  dump_mkdir("names");     // George: particle names
+  FileIO namefd;
+  char namefile[24];
+  sprintf(namefile, "names/names.%d", (int) rank());
+  namefd.open(namefile, io_write);
+
   // Do a fast load of the particles
 
   seed_rand( rng_seed*nproc() + rank() );  //Generators desynchronized
@@ -511,8 +516,7 @@ begin_initialization {
   double zmin = grid->z0 , zmax = grid->z0+(grid->dz)*(grid->nz);
 
   int i=0;
-  int64_t itp1=0;
-  int64_t itp2=0;
+  int64_t itp=0;
   int64_t tag=0;
 
   // Load Harris population
@@ -548,27 +552,37 @@ begin_initialization {
 
     if (particle_tracing == 1) {
         if (i % particle_select == 0) {
-            itp1++;
+            itp++;
             // Tag format: 18 bits for rank (up to 250K nodes) and
             //             46 bits for particle ID (up to 70T particles/node)
-            tag = (((int64_t) rank_int) << 46) | (itp1 & 0x3ffffffffff);
+            tag = (((int64_t) rank_int) << 46) | (itp & 0x3ffffffffff);
         }
     }
 
     //inject_particle(electron, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
-    if (z>0)
-      inject_particle(electronTop, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
-    else
-      inject_particle(electronBot, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
+    if (z>0) {
+        inject_particle(electronTop, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
+#ifndef VPIC_FILE_PER_PARTICLE
+        namefd.print("eT.%016lx", tag);
+#endif
+    } else {
+        inject_particle(electronBot, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
+#ifndef VPIC_FILE_PER_PARTICLE
+        namefd.print("eB.%016lx", tag);
+#endif
+    }
 
 
-    if (particle_tracing == 1){
-     if (i%particle_select == 0){
-      if (z>0)
-        tag_tracer( (electronTop->p + electronTop->np-1), e_tracer, tag );
-      else
-        tag_tracer( (electronBot->p + electronBot->np-1), e_tracer, tag );
-     }
+    if (particle_tracing == 1) {
+        if (i%particle_select == 0) {
+            if (z>0)
+                tag_tracer((electronTop->p + electronTop->np-1), e_tracer, tag);
+            else
+                tag_tracer((electronBot->p + electronBot->np-1), e_tracer, tag);
+#ifdef VPIC_FILE_PER_PARTICLE
+            namefd.print("eR.%016lx", tag);
+#endif
+        }
     }
 
 
@@ -588,26 +602,36 @@ begin_initialization {
 
     if (particle_tracing == 1) {
         if (i % particle_select == 0) {
-            itp2++;
+            itp++;
             // Tag format: 18 bits for rank (up to 250K nodes) and
             //             46 bits for particle ID (up to 70T particles/node)
-            tag = (((int64_t) rank_int) << 46) | (itp2 & 0x3ffffffffff);
+            tag = (((int64_t) rank_int) << 46) | (itp & 0x3ffffffffff);
         }
     }
 
     //inject_particle(ion, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
-   if (z>0)
-    inject_particle(ionTop, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
-   else
-    inject_particle(ionBot, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
+    if (z>0) {
+        inject_particle(ionTop, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
+#ifndef VPIC_FILE_PER_PARTICLE
+        namefd.print("iT.%016lx", tag);
+#endif
+    } else {
+        inject_particle(ionBot, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
+#ifndef VPIC_FILE_PER_PARTICLE
+        namefd.print("iB.%016lx", tag);
+#endif
+    }
 
-    if (particle_tracing == 1){
-     if (i%particle_select == 0){
-      if (z>0)
-        tag_tracer( (ionTop->p + ionTop->np-1),           i_tracer, tag );
-      else 
-        tag_tracer( (ionBot->p + ionBot->np-1),           i_tracer, tag );
-     }
+    if (particle_tracing == 1) {
+        if (i%particle_select == 0) {
+            if (z>0)
+                tag_tracer( (ionTop->p + ionTop->np-1), i_tracer, tag );
+            else
+                tag_tracer( (ionBot->p + ionBot->np-1), i_tracer, tag );
+#ifdef VPIC_FILE_PER_PARTICLE
+            namefd.print("iR.%016lx", tag);
+#endif
+        }
     }
 
 
@@ -617,6 +641,7 @@ begin_initialization {
 #ifndef TRINITY_RUN
   sim_log( "Finished loading particles" );
 #endif
+  namefd.close();
 
    /*--------------------------------------------------------------------------
      * New dump definition
@@ -952,6 +977,55 @@ begin_initialization {
 
 #include <FileIO.hxx>
 
+#ifdef LOG_SYSSTAT
+/* Parse /proc/meminfo
+ * Returned values are in kiB */
+#include <errno.h>
+
+/* Parse the contents of /proc/meminfo (in buf), return value of "*name" */
+static int64_t get_entry(const char *name, const char *buf) {
+    const char *hit = strstr(buf, name);
+    if (hit == NULL)
+        return -1;
+
+    errno = 0;
+    int64_t val = strtoll(hit + strlen(name), NULL, 10);
+    if (errno != 0) {
+        perror("Could not convert number");
+        exit(105);
+    }
+
+    return val;
+}
+
+static void parse_meminfo(void) {
+    static FILE* fd;
+    static char buf[8192];
+    int64_t memactiv, memtotal;
+
+    fd = fopen("/proc/meminfo", "r");
+    if (fd == NULL) {
+        perror("Could not open /proc/meminfo");
+        exit(102);
+    }
+
+    size_t len = fread(buf, 1, sizeof(buf) - 1, fd);
+    if (len == 0) {
+        perror("Could not read /proc/meminfo");
+        exit(103);
+    }
+
+    buf[len] = 0; // Make sure buf is zero-terminated
+
+    memtotal = get_entry("MemTotal:", buf);
+    memactiv = get_entry("Active:", buf);
+
+    printf("Free Mem: %3.2lf%%\n", 100.0 - (memactiv * 100.0 / memtotal));
+
+    fclose(fd);
+}
+#endif /* LOG_SYSSTAT */
+
 begin_diagnostics {
 
 
@@ -1035,16 +1109,16 @@ begin_diagnostics {
 	 *------------------------------------------------------------------------*/
 
 	//if(should_dump(ehydro)) hydro_dump("electron", global->hedParams);
-  if(should_dump(ehydro)) hydro_dump("electronTop", global->eTopdParams);
-  if(should_dump(ehydro)) hydro_dump("electronBot", global->eBotdParams);
+  if(should_dump(ehydro)) hydro_dump("eT", global->eTopdParams);
+  if(should_dump(ehydro)) hydro_dump("eB", global->eBotdParams);
 
 	/*--------------------------------------------------------------------------
 	 * Ion species output
 	 *------------------------------------------------------------------------*/
 
 	//if(should_dump(Hhydro)) hydro_dump("ion", global->hHdParams);
-  if(should_dump(Hhydro)) hydro_dump("ionTop", global->iTopdParams);
-  if(should_dump(Hhydro)) hydro_dump("ionBot", global->iBotdParams);
+  if(should_dump(Hhydro)) hydro_dump("iT", global->iTopdParams);
+  if(should_dump(Hhydro)) hydro_dump("iB", global->iBotdParams);
 
 	/*--------------------------------------------------------------------------
 	 * Energy Spectrum Output
@@ -1055,14 +1129,10 @@ begin_diagnostics {
 #ifdef VPIC_FILE_PER_PARTICLE
         if(global->particle_tracing==1){
         //  if( should_dump(tracer) ) dump_tracers("tracer");
-          if (should_dump(tracer)){
+          if (should_dump(tracer) && step !=0){
 #ifdef LOG_SYSSTAT
-            if (rank() == 0 &&
-                system("cat /proc/meminfo | grep -E \"^Mem[T|F]\" | "
-                       "awk 'BEGIN{t=0}{ if (!t) { t = $2 } "
-                       "else { t = $2 * 100 / t  } }"
-                       "END{print \"Free Mem: \"t\"%\"}'"))
-                sim_log("Failed to log memory stats");
+            if (rank() == 0)
+                parse_meminfo();
 #endif
 	        double dumpstart = mp_elapsed(grid->mp);
             sim_log("Dumping trajectory data: step T." << step);
@@ -1109,19 +1179,26 @@ begin_diagnostics {
 	//if ( should_dump(eparticle) && step !=0 && step > 20*(global->fields_interval)  ) {
 	if ( should_dump(eparticle) && step !=0 ) {
 #ifdef LOG_SYSSTAT
-        if (rank() == 0 &&
-            system("cat /proc/meminfo | grep -E \"^Mem[T|F]\" | "
-                   "awk 'BEGIN{t=0}{ if (!t) { t = $2 } "
-                   "else { t = $2 * 100 / t  } }"
-                   "END{print \"Free Mem: \"t\"%\"}'"))
-            sim_log("Failed to log memory stats");
+        if (rank() == 0)
+            parse_meminfo();
 #endif
 	  sprintf(subdir,"particle/T.%d",step); 
 	  dump_mkdir(subdir);
-	  sprintf(subdir,"particle/T.%d/eparticle",step); 
-	  double dumpstart = mp_elapsed(grid->mp);
       sim_log("Dumping trajectory data: step T." << step);
-	  dump_particles("electronTop",subdir);
+	  double dumpstart = mp_elapsed(grid->mp);
+
+	  sprintf(subdir,"particle/T.%d/eTparticle",step);
+	  dump_particles("eT",subdir);
+
+	  sprintf(subdir,"particle/T.%d/eBparticle",step);
+	  dump_particles("eB",subdir);
+
+	  sprintf(subdir,"particle/T.%d/iTparticle",step);
+	  dump_particles("iT",subdir);
+
+	  sprintf(subdir,"particle/T.%d/iBparticle",step);
+	  dump_particles("iB",subdir);
+
 	  double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
       sim_log("Dumping duration "<<dumpelapsed);
 	}
