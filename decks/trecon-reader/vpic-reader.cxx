@@ -447,8 +447,8 @@ int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
         MPI_Gather(&elapsed, 1, MPI_LONG_LONG_INT, elapsed_all, 1,
                    MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
 #ifdef DEBUG_READER
-        printf("(Rank %d, %ld) %ldms / query, %ld ms / particle\n",
-               myrank, i, elapsed, elapsed / num);
+        printf("(Rank %d, %ld) %ldms / query, %.2f ms / particle\n",
+               myrank, i, elapsed, (double) elapsed / num);
 #endif
         if (myrank == 0) {
             elapsed = max_elapsed = 0;
@@ -458,8 +458,8 @@ int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
                     max_elapsed = elapsed_all[j];
             }
             elapsed /= worldsz;
-            printf("Overall: %ldms / query, %ld ms / particle\n",
-                   max_elapsed, elapsed / num);
+            printf("Overall: %ldms / query, %.2f ms / particle\n",
+                   max_elapsed, (double) elapsed / num);
             free(elapsed_all);
         }
 
@@ -468,8 +468,8 @@ int query_particles(int64_t retries, int64_t num, char *indir, char *outdir)
     }
 
     if (myrank == 0)
-        printf("Querying results: %ld ms / query, %ld ms / particle\n\n",
-                elapsed_sum / retries, elapsed_sum / num / retries);
+        printf("Querying results: %ld ms / query, %.2f ms / particle\n\n",
+                elapsed_sum / retries, (double) elapsed_sum / num / retries);
 
     return ret;
 }
