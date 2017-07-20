@@ -1165,6 +1165,21 @@ begin_diagnostics
 #endif
 	    sprintf(subdir,"particle/T.%d",step); 
 	    dump_mkdir(subdir);
+
+        sim_log("Dumping trajectory data: step T." << step);
+#ifndef QUIET_RUN
+        /* Collect total number of particles */
+        species_t *eTs = find_species_name("eT", species_list);
+        species_t *eBs = find_species_name("eB", species_list);
+        species_t *iTs = find_species_name("iT", species_list);
+        species_t *iBs = find_species_name("iB", species_list);
+        int64_t localnp = eTs->np + eBs->np + iTs->np + iBs->np;
+        int64_t globalnp = 0;
+        MPI_Reduce(&localnp, &globalnp, 1, MPI_LONG_LONG_INT, MPI_SUM, 0,
+                   MPI_COMM_WORLD);
+        sim_log("Dumping trajectory data: " << globalnp << " particles");
+#endif
+
 	    double dumpstart = mp_elapsed(grid->mp);
 
 	    sprintf(subdir,"particle/T.%d/eTparticle",step);
@@ -1180,6 +1195,7 @@ begin_diagnostics
 	    dump_particles("iB",subdir);
 
 	    double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
+
         sim_log("Dumping duration "<<dumpelapsed);
 	}
 #endif
