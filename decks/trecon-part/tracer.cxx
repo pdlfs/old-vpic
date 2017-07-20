@@ -256,6 +256,7 @@ inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
   species_t *s = global->tracers_list ;				\
   particle_t *p;                                    \
   int j;                                            \
+  /*int64_t dumpednp = 0, totalnp = 0;*/                \
   float pout[10];                                   \
   FileIO f;                                         \
   DIR *d;                                           \
@@ -269,6 +270,12 @@ inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
     if ( s->np > 0 ){                               \
       p = s->p;                                     \
       for (j=0; j<s->np ; ++j){                     \
+                                                    \
+        if (p[j].tag == 0) {                        \
+            p[j].tag = (((int64_t) rank()) << 46) | \
+                        ((j+1) & 0x3ffffffffff);    \
+        }                                           \
+                                                    \
         int64_t tag = p[j].tag;                     \
         if (tag !=  0 ) {                           \
           sprintf(fname, "%s/%s.%016lx",            \
@@ -284,13 +291,17 @@ inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
           pout[7] = (float) p[j].uz;                \
           memcpy(pout+8, &tag, sizeof(tag));        \
           f.write(pout,10);                         \
+          /*dumpednp++;*/                               \
           f.close();                                \
         }                                           \
+        /*totalnp++;*/                                  \
       }                                             \
     }                                               \
     s = s->next;                                    \
   }                                                 \
                                                     \
+  /*printf("%i Dumped %ld out of %ld particles\n",       \
+         (int)rank(), dumpednp, totalnp);*/                        \
   closedir(d);                                      \
 } END_PRIMITIVE
 
