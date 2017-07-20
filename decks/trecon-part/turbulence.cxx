@@ -1115,8 +1115,23 @@ begin_diagnostics
             if (rank() == 0)
                 parse_meminfo();
 #endif
-	        double dumpstart = mp_elapsed(grid->mp);
             sim_log("Dumping trajectory data: step T." << step);
+#ifndef QUIET_RUN
+            /* Collect total number of particles */
+            species_t *Ts = global->tracers_list;
+            int64_t localnp = 0;
+
+            while( Ts ) {
+                localnp += Ts->np;
+                Ts = Ts->next;
+            }
+
+            int64_t globalnp = 0;
+            MPI_Reduce(&localnp, &globalnp, 1, MPI_LONG_LONG_INT, MPI_SUM, 0,
+                       MPI_COMM_WORLD);
+            sim_log("Dumping trajectory data: " << globalnp << " particles");
+#endif
+	        double dumpstart = mp_elapsed(grid->mp);
             //char subdir[36];
             //sprintf(subdir,"tracer/T.%d",step);
             //dump_mkdir(subdir);
