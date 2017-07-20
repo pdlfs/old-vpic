@@ -38,7 +38,7 @@
 #endif
 //  #include "dumpvars.h"
 
-#define TRINITY_RUN
+#define QUIET_RUN
  
 typedef FileIO FILETYPE;
 

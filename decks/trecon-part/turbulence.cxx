@@ -272,7 +272,7 @@ begin_initialization
     ////////////////////////////////////////////////////////////////////////////
     // Setup the species
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log("Setting up species. ");
 #endif
     sim_log ( "> nproc = " << nproc ()  );
@@ -293,7 +293,7 @@ begin_initialization
     ////////////////////////////////////////////////////////////////////////////
     // Setup materials
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log("Setting up materials. ");
 #endif
 
@@ -307,7 +307,7 @@ begin_initialization
     ////////////////////////////////////////////////////////////////////////////
     //  Finalize Field Advance
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log("Finalizing Field Advance"); 
 #endif
 
@@ -316,11 +316,11 @@ begin_initialization
     ///////////////////////////////////////////////////
     // Log diagnostic information about this simulation
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log ( "***********************************************" );
 #endif
     sim_log ("Topology: X="<<topology_x<<" Y="<<topology_y<<" Z="<<topology_z); 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log ( "L_di   = " << L_di );
     sim_log ( "Ti/Te = " << Ti_Te ) ;
     sim_log ( "wpe/wce = " << wpe_wce );
@@ -328,7 +328,7 @@ begin_initialization
     sim_log ( "taui = " << taui );
 #endif
     sim_log ( "num_step = " << num_step << " nppc = " << nppc );
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log ( "Lx/di = " << Lx/di );
     sim_log ( "Lx/de = " << Lx/de );
     sim_log ( "Ly/di = " << Ly/di );
@@ -337,7 +337,7 @@ begin_initialization
     sim_log ( "Lz/de = " << Lz/de );
 #endif
     sim_log ( "Particles: nx = " << nx << " ny = " << ny << " nz = " << nz );
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log ( "damp = " << damp );
     sim_log ( "courant = " << c*dt/dg );
     sim_log ( "nproc = " << nproc ()  );
@@ -346,7 +346,7 @@ begin_initialization
     sim_log ( " Ne = " << Ne );
 #endif
     sim_log ( "total # of particles = " << 2*Ne );
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log ( " qi = " << qi );
     sim_log ( " qe = " << qe );
     sim_log ( "dt*wpe = " << wpe*dt ); 
@@ -477,7 +477,7 @@ begin_initialization
 //#define BZWAVE DBZ(2,1,0.5) + DBZ(3,2,-0.2) + DBZ(4,3,-0.3) + DBZ(5,4,0.3) + DBZ(6,5,0.8) + DBZ(7,6,0.8)
 //#define BZWAVE 0.0
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log( "Loading fields" );
 #endif
     set_region_field( everywhere, 0, 0, 0, BX + DBX0, BY + BYWAVE, DBZ0 + BZWAVE);
@@ -487,7 +487,7 @@ begin_initialization
 
     // LOAD PARTICLES
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log( "Loading particles" );
 #endif
 
@@ -511,7 +511,7 @@ begin_initialization
 
     // Load Harris population
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log( "-> Force Free Sheet" );
 #endif
 
@@ -625,7 +625,7 @@ begin_initialization
         }
     }
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log( "Finished loading particles" );
 #endif
     namefd.close();
@@ -654,7 +654,7 @@ begin_initialization
 
 	global->fdParams.format = band;
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
 	sim_log ( "Fields output format = band" );
 #endif
 
@@ -663,7 +663,7 @@ begin_initialization
     global->eBotdParams.format = band;
 
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
 	sim_log ( "Electron species output format = band" );
 #endif
 
@@ -671,7 +671,7 @@ begin_initialization
     global->iTopdParams.format = band;
     global->iBotdParams.format = band;
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
 	sim_log ( "Ion species output format = band" );
 #endif
 
@@ -722,7 +722,7 @@ begin_initialization
 	// add field parameters to list
 	global->outputParams.push_back(&global->fdParams);
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
 	sim_log ( "Fields x-stride " << global->fdParams.stride_x );
 	sim_log ( "Fields y-stride " << global->fdParams.stride_y );
 	sim_log ( "Fields z-stride " << global->fdParams.stride_z );
@@ -754,7 +754,7 @@ begin_initialization
     global->outputParams.push_back(&global->eTopdParams);
     global->outputParams.push_back(&global->eBotdParams);
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
 	//sim_log ( "Electron species x-stride " << global->hedParams.stride_x );
 	//sim_log ( "Electron species y-stride " << global->hedParams.stride_y );
 	//sim_log ( "Electron species z-stride " << global->hedParams.stride_z );
@@ -784,7 +784,7 @@ begin_initialization
     global->iBotdParams.stride_y = 1;
     global->iBotdParams.stride_z = 1;
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
 	//sim_log ( "Ion species x-stride " << global->hHdParams.stride_x );
 	//sim_log ( "Ion species y-stride " << global->hHdParams.stride_y );
 	//sim_log ( "Ion species z-stride " << global->hHdParams.stride_z );
@@ -858,7 +858,7 @@ begin_initialization
 	char varlist[512];
 	create_field_list(varlist, global->fdParams);
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
 	sim_log ( "Fields variable list: " << varlist );
 #endif
 
@@ -871,22 +871,22 @@ begin_initialization
 	//sim_log ( "Ion species variable list: " << varlist );
 
     create_hydro_list(varlist, global->eTopdParams);
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log ( "Electron top species variable list: " << varlist );
 #endif
 
     create_hydro_list(varlist, global->eBotdParams);
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log ( "Electron bot species variable list: " << varlist );
 #endif
 
     create_hydro_list(varlist, global->iTopdParams);
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log ( "Ion top species variable list: " << varlist );
 #endif
 
     create_hydro_list(varlist, global->iBotdParams);
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
     sim_log ( "Ion bot species variable list: " << varlist );
 #endif
 
@@ -922,7 +922,7 @@ begin_initialization
 	global->nex  = 6;
 	global->emax = 300;
 
-#ifndef TRINITY_RUN
+#ifndef QUIET_RUN
 	sim_log("*** Finished with user-specified initialization ***");
 #endif
 
