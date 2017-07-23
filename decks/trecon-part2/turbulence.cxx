@@ -170,7 +170,6 @@ begin_initialization
     int restart_interval = 50000;
     int energies_interval = 100;
     int interval = int(1.0/(wpe*dt)); 
-    int tracer_int = int(1.0/(wpe*dt));
     int fields_interval = 10*interval;
     int ehydro_interval = 10*interval;
     int Hhydro_interval = 10*interval;
@@ -957,12 +956,12 @@ begin_diagnostics
 	/*--------------------------------------------------------------------------
 	 * Electron species output
 	 *------------------------------------------------------------------------*/
-	if(should_dump(ehydro)) hydro_dump("electron", global->hedParams);
+	if(should_dump(ehydro)) hydro_dump("e", global->hedParams);
 
 	/*--------------------------------------------------------------------------
 	 * Ion species output
 	 *------------------------------------------------------------------------*/
-	if(should_dump(Hhydro)) hydro_dump("ion", global->hHdParams);
+	if(should_dump(Hhydro)) hydro_dump("i", global->hHdParams);
 
 	/*--------------------------------------------------------------------------
 	 * Energy Spectrum Output

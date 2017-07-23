@@ -63,15 +63,15 @@
 
             dloge = (log10(emaxp)-log10(eminp))/(nbin);
 
-            //edParams.push_back(&global->ede);
-            //edParams.push_back(&global->edi);
+            edParams.push_back(&global->ede);
+            edParams.push_back(&global->edi);
  
-            edParams.push_back(&global->edeTop);
-            edParams.push_back(&global->ediTop);
-            edParams.push_back(&global->edeBot);
-            edParams.push_back(&global->ediBot);
+            //edParams.push_back(&global->edeTop);
+            //edParams.push_back(&global->ediTop);
+            //edParams.push_back(&global->edeBot);
+            //edParams.push_back(&global->ediBot);
  
-            nsp = 4;
+            nsp = 2;
  
             energy_first_time_called = 0;
 
