@@ -55,10 +55,6 @@ begin_globals
     DumpParameters fdParams;
     DumpParameters hedParams;
     DumpParameters hHdParams;
-    //DumpParameters eTopdParams;
-    //DumpParameters eBotdParams;
-    //DumpParameters iTopdParams;
-    //DumpParameters iBotdParams;
 
     std::vector<DumpParameters *> outputParams;
 
@@ -66,10 +62,6 @@ begin_globals
 
     edata ede;                        // parameters for electron species
     edata edi;                        // parameters for ion species
-    //edata edeTop;                   // parameters for electron species
-    //edata edeBot;                   // parameters for electron species
-    //edata ediTop;                   // parameters for ion species
-    //edata ediBot;                   // parameters for ion species
     double emax;                      // maximum energy (in units of vth*2/2)
     int nex;                          // number of energy bins
 
@@ -91,7 +83,6 @@ begin_initialization
     double damp      = 0.0;  // Level of radiation damping
     int rng_seed     = 1;    // Random number seed increment
     int particle_tracing = 1;
-    int particle_select = 50000;
 
     // Physics parameters
     double mi_me   = 1.0;    // Ion mass / electron mass
@@ -100,10 +91,6 @@ begin_initialization
     double vthe    = 0.6;    //  Electron thermal speed over c
     double wpe_wce = 0.1;    // electron plasma freq / electron cyclotron freq
     double bg      = 1e-6;   // electron plasma freq / electron cyclotron freq
-    double taui    = 2000/wpe_wce;      // simulation wci's to run
-  
-    double quota   = 15.;   // run quota in hours
-    double quota_sec = quota*3600;  // Run quota in seconds
 
     double pi = 3.1415927;
 
@@ -121,6 +108,7 @@ begin_initialization
     double electron_sort_interval=25;   // Injector moments are also updated at this internal
 
     // George: experiment size/length parameters (only tune these!)
+
     /*
      * Brief primer on tuning your VPIC run:
      *  - Taui: number of timesteps for the run. wpe_wce = 0.36 (if you didn't
@@ -147,7 +135,7 @@ begin_initialization
 
     int particle_select = 1; // Adjusts particle sampling rate
     int tracer_int = VPIC_DUMP_INTERVAL; // Adjusts per-particle dump rate (def = int(1.0/(wpe*dt));)
-    int eparticle_interval = VPIC_DUMP_INTERVAL; // Adjusts per-process dump rate (def = 100*interval;)
+    int eparticle_interval = VPIC_DUMP_INTERVAL; // Adjusts per-process dump rate (def = 50*interval;)
 
     // Numerical parameters
     double nppc  =  50; // Average number of macro particle per cell per species
@@ -186,7 +174,6 @@ begin_initialization
     int fields_interval = 10*interval;
     int ehydro_interval = 10*interval;
     int Hhydro_interval = 10*interval;
-    int eparticle_interval = 50*interval;
     int Hparticle_interval = 50*interval;
     int quota_check_interval = 100;
     int tracer_interval = tracer_int;
@@ -212,7 +199,7 @@ begin_initialization
 
     ///////////////////////////////////////////////
     // Setup high level simulation parameters
-    num_step             = int(taui/(wci*dt));
+    num_step             = VPIC_TIMESTEPS; //int(taui/(wci*dt));
     status_interval      = 200;
     sync_shared_interval = status_interval/2;
     clean_div_e_interval = status_interval/2;
@@ -283,15 +270,10 @@ begin_initialization
     sim_log ( "> nproc = " << nproc ()  );
     sim_log ( "> total # of particles = " << 2*Ne );
 
-    species_t *electron = define_species("electron",-ec/me,4.*Ne/nproc(),-1,electron_sort_interval,0);
-    species_t *ion = define_species("ion",ec/mi,4.*Ne/nproc(),-1,ion_sort_interval,0);
-    //species_t *electronTop = define_species("electronTop",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
-    //species_t *electronBot = define_species("electronBot",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
-    //species_t *ionTop = define_species("ionTop", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
-    //species_t *ionBot = define_species("ionBot", ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
-
-    species_t *e_tracer = define_species("electron_tracer",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
-    species_t *i_tracer = define_species("ion_tracer",ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
+    species_t *electron = define_species("e",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
+    species_t *ion = define_species("i",ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
+    species_t *etracer = define_species("eT",-ec/me,2.*Ne/nproc(),-1,electron_sort_interval,0);
+    species_t *itracer = define_species("iT",ec/mi,2.*Ne/nproc(),-1,ion_sort_interval,0);
 
     hijack_tracers(2);
 
@@ -540,38 +522,23 @@ begin_initialization
         uy = (GVD*upa1*VDY/VD + upe1*VDX/VD) + GVD*VDY*gu1;
         uz = uz1;
 
-        if (particle_tracing == 1) {
-            if (i % particle_select == 0) {
-                itp++;
-                // Tag format: 18 bits for rank (up to 250K nodes) and
-                //             46 bits for particleID (up to 70T particles/node)
-                tag = (((int64_t) rank_int) << 46) | (itp & 0x3ffffffffff);
-            }
+        if ((particle_tracing == 1) && (i % particle_select == 0)) {
+            itp++;
+            // Tag format: 18 bits for rank (up to 250K nodes) and
+            //             46 bits for particleID (up to 70T particles/node)
+            tag = (((int64_t) rank_int) << 46) | (itp & 0x3ffffffffff);
         }
 
-        //inject_particle(electron, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
-        if (z>0) {
-            inject_particle(electronTop, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
+        inject_particle(electron, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
 #ifndef VPIC_FILE_PER_PARTICLE
-            namefd.print("eT.%016lx", tag);
+        namefd.print("e%016lx", tag);
 #endif
-        } else {
-            inject_particle(electronBot, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
-#ifndef VPIC_FILE_PER_PARTICLE
-            namefd.print("eB.%016lx", tag);
-#endif
-        }
 
-        if (particle_tracing == 1) {
-            if (i%particle_select == 0) {
-                if (z>0)
-                    tag_tracer((electronTop->p + electronTop->np-1), e_tracer, tag);
-                else
-                    tag_tracer((electronBot->p + electronBot->np-1), e_tracer, tag);
+        if ((particle_tracing == 1) && (i%particle_select == 0)) {
+            tag_tracer((electron->p + electron->np-1), etracer, tag);
 #ifdef VPIC_FILE_PER_PARTICLE
-                namefd.print("eR.%016lx", tag);
+            namefd.print("e%016lx", tag);
 #endif
-            }
         }
 
         //  Ions are spatially uniform Maxwellian with no drifts
@@ -587,38 +554,23 @@ begin_initialization
         uy = (-GVD*upa1*VDY/VD - upe1*VDX/VD) - GVD*VDY*gu1;
         uz = uz1;
 
-        if (particle_tracing == 1) {
-            if (i % particle_select == 0) {
-                itp++;
-                // Tag format: 18 bits for rank (up to 250K nodes) and
-                //             46 bits for particleID (up to 70T particles/node)
-                tag = (((int64_t) rank_int) << 46) | (itp & 0x3ffffffffff);
-            }
+        if ((particle_tracing == 1) && (i % particle_select == 0)) {
+            itp++;
+            // Tag format: 18 bits for rank (up to 250K nodes) and
+            //             46 bits for particleID (up to 70T particles/node)
+            tag = (((int64_t) rank_int) << 46) | (itp & 0x3ffffffffff);
         }
 
-        //inject_particle(ion, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
-        if (z>0) {
-            inject_particle(ionTop, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
+        inject_particle(ion, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
 #ifndef VPIC_FILE_PER_PARTICLE
-            namefd.print("iT.%016lx", tag);
+        namefd.print("i%016lx", tag);
 #endif
-        } else {
-            inject_particle(ionBot, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
-#ifndef VPIC_FILE_PER_PARTICLE
-            namefd.print("iB.%016lx", tag);
-#endif
-        }
 
-        if (particle_tracing == 1) {
-            if (i%particle_select == 0) {
-                if (z>0)
-                    tag_tracer( (ionTop->p + ionTop->np-1), i_tracer, tag );
-                else
-                    tag_tracer( (ionBot->p + ionBot->np-1), i_tracer, tag );
+        if ((particle_tracing == 1) && (i % particle_select == 0)) {
+            tag_tracer((ion->p + ion->np-1), itracer, tag);
 #ifdef VPIC_FILE_PER_PARTICLE
-                namefd.print("iR.%016lx", tag);
+            namefd.print("i%016lx", tag);
 #endif
-            }
         }
     }
 
@@ -655,15 +607,11 @@ begin_initialization
     sim_log ( "Fields output format = band" );
 #endif
     global->hedParams.format = band;
-    //global->eTopdParams.format = band;
-    //global->eBotdParams.format = band;
 
 #ifndef QUIET_RUN
     sim_log ( "Electron species output format = band" );
 #endif
 	global->hHdParams.format = band;
-    //global->iTopdParams.format = band;
-    //global->iBotdParams.format = band;
 
 #ifndef QUIET_RUN
     sim_log ( "Ion species output format = band" );
@@ -724,73 +672,41 @@ begin_initialization
 
     // relative path to electron species data from global header
     sprintf(global->hedParams.baseDir, "hydro");
-    //sprintf(global->eTopdParams.baseDir, "hydro");
-    //sprintf(global->eBotdParams.baseDir, "hydro");
 
     // base file name for fields output
     sprintf(global->hedParams.baseFileName, "ehydro");
-    //sprintf(global->eTopdParams.baseFileName, "eTophydro");
-    //sprintf(global->eBotdParams.baseFileName, "eBothydro");
 
     global->hedParams.stride_x = 1;
     global->hedParams.stride_y = 1;
     global->hedParams.stride_z = 1;
-    //global->eTopdParams.stride_x = 1;
-    //global->eTopdParams.stride_y = 1;
-    //global->eTopdParams.stride_z = 1;
-
-    //global->eBotdParams.stride_x = 1;
-    //global->eBotdParams.stride_y = 1;
-    //global->eBotdParams.stride_z = 1;
 
     // add electron species parameters to list
     global->outputParams.push_back(&global->hedParams);
-    //global->outputParams.push_back(&global->eTopdParams);
-    //global->outputParams.push_back(&global->eBotdParams);
 
 #ifndef QUIET_RUN
     sim_log ( "Electron species x-stride " << global->hedParams.stride_x );
     sim_log ( "Electron species y-stride " << global->hedParams.stride_y );
     sim_log ( "Electron species z-stride " << global->hedParams.stride_z );
-    //sim_log ( "Electron species x-stride " << global->eTopdParams.stride_x );
-    //sim_log ( "Electron species y-stride " << global->eTopdParams.stride_y );
-    //sim_log ( "Electron species z-stride " << global->eTopdParams.stride_z );
 #endif
 
     // relative path to electron species data from global header
     sprintf(global->hHdParams.baseDir, "hydro");
-    //sprintf(global->iTopdParams.baseDir, "hydro");
-    //sprintf(global->iBotdParams.baseDir, "hydro");
 
     // base file name for fields output
     sprintf(global->hHdParams.baseFileName, "Hhydro");
-    //sprintf(global->iTopdParams.baseFileName, "HTophydro");
-    //sprintf(global->iBotdParams.baseFileName, "HBothydro");
 
     global->hHdParams.stride_x = 1;
     global->hHdParams.stride_y = 1;
     global->hHdParams.stride_z = 1;
-    //global->iTopdParams.stride_x = 1;
-    //global->iTopdParams.stride_y = 1;
-    //global->iTopdParams.stride_z = 1;
-
-    //global->iBotdParams.stride_x = 1;
-    //global->iBotdParams.stride_y = 1;
-    //global->iBotdParams.stride_z = 1;
 
 #ifndef QUIET_RUN
     sim_log ( "Ion species x-stride " << global->hHdParams.stride_x );
     sim_log ( "Ion species y-stride " << global->hHdParams.stride_y );
     sim_log ( "Ion species z-stride " << global->hHdParams.stride_z );
-    //sim_log ( "Ion species x-stride " << global->iTopdParams.stride_x );
-    //sim_log ( "Ion species y-stride " << global->iTopdParams.stride_y );
-    //sim_log ( "Ion species z-stride " << global->iTopdParams.stride_z );
 #endif
 
     // add electron species parameters to list
     global->outputParams.push_back(&global->hHdParams);
-    //global->outputParams.push_back(&global->iTopdParams);
-    //global->outputParams.push_back(&global->iBotdParams);
 
 
     /*--------------------------------------------------------------------------
@@ -831,15 +747,6 @@ begin_initialization
     global->fdParams.output_variables( electric | magnetic );
     global->hedParams.output_variables( current_density | charge_density | stress_tensor );
     global->hHdParams.output_variables( current_density | charge_density | stress_tensor );
-    //global->eTopdParams.output_variables( current_density | charge_density);
-    //global->eBotdParams.output_variables( current_density | charge_density);
-    //global->iTopdParams.output_variables( current_density | charge_density);
-    //global->iBotdParams.output_variables( current_density | charge_density);
-
-    //global->eTopdParams.output_variables( current_density | charge_density | stress_tensor );
-    //global->eBotdParams.output_variables( current_density | charge_density | stress_tensor );
-    //global->iTopdParams.output_variables( current_density | charge_density | stress_tensor );
-    //global->iBotdParams.output_variables( current_density | charge_density | stress_tensor );
 
     //global->fdParams.output_variables( all );
     //global->hedParams.output_variables( all );
@@ -868,18 +775,6 @@ begin_initialization
 	sim_log ( "Ion species variable list: " << varlist );
 #endif
 
-    //create_hydro_list(varlist, global->eTopdParams);
-    //sim_log ( "Electron top species variable list: " << varlist );
-
-    //create_hydro_list(varlist, global->eBotdParams);
-    //sim_log ( "Electron bot species variable list: " << varlist );
-
-    //create_hydro_list(varlist, global->iTopdParams);
-    //sim_log ( "Ion top species variable list: " << varlist );
-
-    //create_hydro_list(varlist, global->iBotdParams);
-    //sim_log ( "Ion bot species variable list: " << varlist );
-
     /* ---------------------------------------------
 	   now add parameters for the energy diagnostics
        --------------------------------------------- */
@@ -891,22 +786,6 @@ begin_initialization
     global->edi.sp_id = ion->id;
     global->edi.vth = sqrt(2.0)*vthi;
     sprintf(global->edi.fname, global->hHdParams.baseFileName);
-
-    //global->edeTop.sp_id = electronTop->id;
-    //global->edeTop.vth = sqrt(2.0)*vthe;
-    //sprintf(global->edeTop.fname,global->eTopdParams.baseFileName);
-
-    //global->edeBot.sp_id = electronBot->id;
-    //global->edeBot.vth = sqrt(2.0)*vthe;
-    //sprintf(global->edeBot.fname,global->eBotdParams.baseFileName);
-
-    //global->ediTop.sp_id = ionTop->id;
-    //global->ediTop.vth = sqrt(2.0)*vthi;
-    //sprintf(global->ediTop.fname, global->iTopdParams.baseFileName);
-
-    //global->ediBot.sp_id = ionBot->id;
-    //global->ediBot.vth = sqrt(2.0)*vthi;
-    //sprintf(global->ediBot.fname, global->iBotdParams.baseFileName);
 
     global->nex  = 6;
 	global->emax = 300;
@@ -1079,15 +958,11 @@ begin_diagnostics
 	 * Electron species output
 	 *------------------------------------------------------------------------*/
 	if(should_dump(ehydro)) hydro_dump("electron", global->hedParams);
-    //if(should_dump(ehydro)) hydro_dump("electronTop", global->eTopdParams);
-    //if(should_dump(ehydro)) hydro_dump("electronBot", global->eBotdParams);
 
 	/*--------------------------------------------------------------------------
 	 * Ion species output
 	 *------------------------------------------------------------------------*/
 	if(should_dump(Hhydro)) hydro_dump("ion", global->hHdParams);
-    //if(should_dump(Hhydro)) hydro_dump("ionTop", global->iTopdParams);
-    //if(should_dump(Hhydro)) hydro_dump("ionBot", global->iBotdParams);
 
 	/*--------------------------------------------------------------------------
 	 * Energy Spectrum Output
@@ -1095,45 +970,38 @@ begin_diagnostics
 #include "energy.cxx"   //  Subroutine to compute energy spectrum diagnostic
 
 #ifdef VPIC_FILE_PER_PARTICLE
-    if(global->particle_tracing==1) {
-        //if (should_dump(tracer)) dump_tracers("tracer");
-        if (should_dump(tracer) && step !=0) {
+    if((global->particle_tracing==1) && (should_dump(tracer) && step !=0)) {
 #ifdef LOG_SYSSTAT
-            if (rank() == 0)
-                parse_meminfo();
+        if (rank() == 0) parse_meminfo();
 #endif
-            sim_log("Dumping trajectory data: step T." << step);
+        sim_log("Dumping trajectory data: step T." << step);
 #ifndef QUIET_RUN
-            /* Collect total number of particles */
-            species_t *Ts = global->tracers_list;
-            int64_t localnp = 0;
+        /* Collect total number of particles */
+        species_t *Ts = global->tracers_list;
+        int64_t localnp = 0;
  
-            while( Ts ) {
-                localnp += Ts->np;
-                Ts = Ts->next;
-            }
- 
-            int64_t globalnp = 0;
-            MPI_Reduce(&localnp, &globalnp, 1, MPI_LONG_LONG_INT, MPI_SUM, 0,
-                       MPI_COMM_WORLD);
-            sim_log("Dumping trajectory data: " << globalnp << " particles");
-#endif
-            double dumpstart = mp_elapsed(grid->mp);
-            //char subdir[36];
-            //sprintf(subdir,"tracer/T.%d",step);
-            //dump_mkdir(subdir);
-            dump_traj("particle");
- 	        double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
-     	    sim_log("Dumping duration "<<dumpelapsed);
+        while( Ts ) {
+            localnp += Ts->np;
+            Ts = Ts->next;
         }
+ 
+        int64_t globalnp = 0;
+        MPI_Reduce(&localnp, &globalnp, 1, MPI_LONG_LONG_INT, MPI_SUM, 0,
+                   MPI_COMM_WORLD);
+        sim_log("Dumping trajectory data: " << globalnp << " particles");
 #endif
+        double dumpstart = mp_elapsed(grid->mp);
+        dump_traj("particle");
+ 	    double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
+     	sim_log("Dumping duration "<<dumpelapsed);
     }
+#endif
 
 	/*--------------------------------------------------------------------------
 	 * Restart dump
 	 *------------------------------------------------------------------------*/
 
-	//	global->restart_interval=8000;
+	//global->restart_interval=8000;
 	if(step && !(step%global->restart_interval)) {
 	    double dumpstart = mp_elapsed(grid->mp);
 
@@ -1158,7 +1026,6 @@ begin_diagnostics
 
 
     // Dump particle data
-
 #ifndef VPIC_FILE_PER_PARTICLE
     char subdir[36];
     //if (should_dump(eparticle) && step !=0 && step > 20*(global->fields_interval)) {
@@ -1172,16 +1039,27 @@ begin_diagnostics
         sim_log("Dumping electron trajectory data: step T." << step);
 #ifndef QUIET_RUN
         /* Collect total number of particles */
-        species_t *s = find_species_name("electron", species_list);
-        int64_t localnp = s->np;
+        species_t *es = find_species_name("e", species_list);
+        species_t *is = find_species_name("i", species_list);
+        int64_t localnp = es->np + is->np;
         int64_t globalnp = 0;
         MPI_Reduce(&localnp, &globalnp, 1, MPI_LONG_LONG_INT, MPI_SUM, 0,
                    MPI_COMM_WORLD);
         sim_log("Dumping electron trajectory data: " << globalnp << " particles");
 #endif
+        double dumpstart = mp_elapsed(grid->mp);
+
 	    sprintf(subdir,"particle/T.%d/eparticle",step); 
-	    dump_particles("electron",subdir);
+	    dump_particles("e",subdir);
+
+	    sprintf(subdir,"particle/T.%d/iparticle",step); 
+	    dump_particles("i",subdir);
+
+        double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
+
+        sim_log("Dumping duration " << dumpelapsed);
     }
+#endif
 
     //if ( should_dump(Hparticle) ) {
     //    dump_particles("ion",  "Hparticle");    
