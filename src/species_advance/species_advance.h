@@ -30,7 +30,8 @@ typedef struct particle {
   int32_t i;
   float ux, uy, uz; // Particle normalized momentum
   float q;          // Particle charge
-  int64_t tag, tag2; // 8b for particle identification (plus 8b for padding)
+  int64_t tag;      // 8b for particle identification
+  float z1, z2, z3, z4, z5, z6; // Free-to-use fields
 } particle_t;
 
 // WARNING: FUNCTIONS THAT USE A PARTICLE_MOVER ASSUME THAT EVERYBODY
