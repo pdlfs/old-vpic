@@ -12,6 +12,9 @@
 
 #define NUM_TURNSTILES 512
 
+// Define variables for Trinity demo
+#include "config.h"
+
 #include "tracer.cxx"
 
 // structure to hold the data for energy diagnostics
@@ -137,13 +140,15 @@ begin_initialization {
   double Ly    = 500.0*di/256;     // size of box in y dimension
   double Lz    = 400.0*di; // size of box in z dimension
 
-  double topology_x = 256;  // Number of domains in x, y, and z
-  double topology_y = 1; 
-  double topology_z = 2;  
+  // George: Relegate control of topology variables to config.h
+  double topology_x = VPIC_TOPOLOGY_X;
+  double topology_y = VPIC_TOPOLOGY_Y;
+  double topology_z = VPIC_TOPOLOGY_Z;
 
-  double nx = 2048;
-  double ny = 1;
-  double nz = 1536;
+  // George: Relegate control of particle numbers to config.h
+  double nx = VPIC_PARTICLE_X;
+  double ny = VPIC_PARTICLE_Y;
+  double nz = VPIC_PARTICLE_Z;
 
   // double nx = 792;
   // double ny = 528;
