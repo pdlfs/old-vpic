@@ -509,8 +509,8 @@ begin_initialization {
   double zmin = grid->z0 , zmax = grid->z0+(grid->dz)*(grid->nz);
 
   int i=0;
-  int itp1=0;
-  int itp2=0;
+  int64_t itp=0;
+  int64_t tag=0;
 
   // Load Harris population
  
@@ -543,8 +543,16 @@ begin_initialization {
     uy = (GVD*upa1*VDY/VD + upe1*VDX/VD) + GVD*VDY*gu1;
     uz = uz1;
 
+    if (particle_tracing == 1) {
+        if (i % particle_select == 0) {
+            itp++;
+            // Tag format: 18 bits for rank (up to 250K nodes) and
+            //             46 bits for particle ID (up to 70T particles/node)
+            int tag = (((int64_t) rank_int) << 46) | (itp & 0x3ffffffffff);
+        }
+    }
 
-    inject_particle(electron, x, y, z, ux, uy, uz, qe, 0, 0 );
+    inject_particle(electron, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
     //if (z>0)
     //  inject_particle(electronTop, x, y, z, ux, uy, uz, qe, 0, 0 );
     //else
@@ -553,8 +561,6 @@ begin_initialization {
 
     if (particle_tracing == 1){
      if (i%particle_select == 0){
-      itp1++;
-      int tag = ((rank_int<<17) | (itp1 & 0x1ffff)); // 15 bits (~30000) for rank and 19 bits (~520k)
       tag_tracer( (electron->p + electron->np-1), e_tracer, tag );
       //if (z>0)
       //  tag_tracer( (electronTop->p + electronTop->np-1), e_tracer, tag );
@@ -578,7 +584,16 @@ begin_initialization {
     uy = (-GVD*upa1*VDY/VD - upe1*VDX/VD) - GVD*VDY*gu1;
     uz = uz1;
 
-    inject_particle(ion, x, y, z, ux, uy, uz, qi, 0, 0 );
+    if (particle_tracing == 1) {
+      if (i % particle_select == 0) {
+        itp++;
+        // Tag format: 18 bits for rank (up to 250K nodes) and
+        //             46 bits for particle ID (up to 70T particles/node)
+        tag = (((int64_t) rank_int) << 46) | (itp & 0x3ffffffffff);
+      }
+    }
+
+    inject_particle(ion, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
    //if (z>0)
    // inject_particle(ionTop, x, y, z, ux, uy, uz, qi, 0, 0 );
    //else
@@ -586,9 +601,7 @@ begin_initialization {
 
     if (particle_tracing == 1){
      if (i%particle_select == 0){
-      itp2++;
-      int tag = ((rank_int<<17) | (itp2 & 0x1ffff)); // 15 bits (~30000) for rank and 19 bits (~520k)
-        tag_tracer( (ion->p + ion->np-1),           i_tracer, tag );
+      tag_tracer( (ion->p + ion->np-1),           i_tracer, tag );
       //if (z>0)
       //  tag_tracer( (ionTop->p + ionTop->np-1),           i_tracer, tag );
       //else 
@@ -935,6 +948,57 @@ begin_initialization {
 
 #include <FileIO.hxx>
 
+#ifdef LOG_SYSSTAT
+/* Parse /proc/meminfo
+ * Returned values are in kiB */
+#include <errno.h>
+
+/* Parse the contents of /proc/meminfo (in buf), return value of "*name" */
+static int64_t get_entry(const char *name, const char *buf)
+{
+    const char *hit = strstr(buf, name);
+    if (hit == NULL)
+        return -1;
+
+    errno = 0;
+    int64_t val = strtoll(hit + strlen(name), NULL, 10);
+    if (errno != 0) {
+        perror("Could not convert number");
+        exit(105);
+    }
+
+    return val;
+}
+
+static void parse_meminfo(void)
+{
+    static FILE* fd;
+    static char buf[8192];
+    int64_t memactiv, memtotal;
+
+    fd = fopen("/proc/meminfo", "r");
+    if (fd == NULL) {
+        perror("Could not open /proc/meminfo");
+        exit(102);
+    }
+
+    size_t len = fread(buf, 1, sizeof(buf) - 1, fd);
+    if (len == 0) {
+        perror("Could not read /proc/meminfo");
+        exit(103);
+    }
+
+    buf[len] = 0; // Make sure buf is zero-terminated
+
+    memtotal = get_entry("MemTotal:", buf);
+    memactiv = get_entry("Active:", buf);
+
+    printf("Free Mem: %3.2lf%%\n", 100.0 - (memactiv * 100.0 / memtotal));
+
+    fclose(fd);
+}
+#endif /* LOG_SYSSTAT */
+
 begin_diagnostics {
 
 
@@ -1074,7 +1138,35 @@ begin_diagnostics {
                 }
               }
             }
+#ifndef VPIC_FILE_PER_PARTICLE
             dump_traj("tracer");
+#else
+
+#ifdef LOG_SYSSTAT
+            if (rank() == 0)
+                parse_meminfo();
+#endif
+            sim_log("Dumping trajectory data: step T." << step);
+#ifndef QUIET_RUN
+            /* Collect total number of particles */
+            species_t *Ts = global->tracers_list;
+            int64_t localnp = 0;
+
+            while( Ts ) {
+                localnp += Ts->np;
+                Ts = Ts->next;
+            }
+
+            int64_t globalnp = 0;
+            MPI_Reduce(&localnp, &globalnp, 1, MPI_LONG_LONG_INT, MPI_SUM, 0,
+                       MPI_COMM_WORLD);
+            sim_log("Dumping trajectory data: " << globalnp << " particles");
+#endif
+            double dumpstart = mp_elapsed(grid->mp);
+            dump_traj("particle");
+            double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
+            sim_log("Dumping duration " << dumpelapsed);
+#endif
         }
         reach_time_limit = step>0 && global->quota_check_interval>0 && 
             (step&global->quota_check_interval)==0 &&
@@ -1119,14 +1211,34 @@ begin_diagnostics {
 
   // Dump particle data
 
+#ifndef VPIC_FILE_PER_PARTICLE
 	char subdir[36];
 	//if ( should_dump(eparticle) && step !=0 && step > 20*(global->fields_interval)  ) {
 	if ( should_dump(eparticle) && step !=0 ) {
+#ifdef LOG_SYSSTAT
+      if (rank() == 0) parse_meminfo();
+#endif
 	  sprintf(subdir,"particle/T.%d",step); 
 	  dump_mkdir(subdir);
+
+      sim_log("Dumping trajectory data: step T." << step);
+#ifndef QUIET_RUN
+      /* Collect total number of particles */
+      species_t *es = find_species_name("electron", species_list);
+      int64_t localnp = es->np;
+      int64_t globalnp = 0;
+      MPI_Reduce(&localnp, &globalnp, 1, MPI_LONG_LONG_INT, MPI_SUM, 0,
+                 MPI_COMM_WORLD);
+      sim_log("Dumping trajectory data: " << globalnp << " particles");
+#endif
+
+      double dumpstart = mp_elapsed(grid->mp);
 	  sprintf(subdir,"particle/T.%d/eparticle",step); 
 	  dump_particles("electron",subdir);
+      double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
+      sim_log("Dumping duration " << dumpelapsed);
 	}
+#endif
 
 //   if ( should_dump(Hparticle) ) {
 //     dump_particles("ion",  "Hparticle");    

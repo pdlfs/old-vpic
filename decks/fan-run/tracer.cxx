@@ -49,6 +49,9 @@
  *
  */
 
+#include <sys/types.h>
+#include <dirent.h> /* Needed for opendir */
+
 // Here, p is the particle to copy and tag and tracer is the species
 // itno which we will inject the tracer. If only one species is
 // defined then tracer = tracers_list. tag shold be a unique
@@ -57,11 +60,20 @@
 // check for free storage space, so we're silently assuming all nodes
 // have enough room to hold all tracers. Not a bad assumption since
 // typically number of tracers will be small due to output size constaraints.
+#ifdef VPIC_FILE_PER_PARTICLE
+inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
+  particle_t *tp = tracer->p + (tracer->np++);
+  tp->dx = p->dx; tp->dy = p->dy; tp->dz = p->dz; tp->i = p->i;
+  tp->ux = p->ux; tp->uy = p->uy; tp->uz = p->uz; tp->q = 0;
+  tp->tag = tag;
+}
+#else
 #define tag_tracer(p, tracer, tag) BEGIN_PRIMITIVE{           \
     float q = * reinterpret_cast<float *>( &tag ) ;           \
     inject_particle_raw(tracer, p->dx, p->dy, p->dz, p->i,    \
                         p->ux, p->uy, p->uz, q);              \
 } END_PRIMITIVE
+#endif
 
 // I'm lazy, so here we are assuming tracers are at the head
 // of the species list (defined last), and that we know
@@ -440,22 +452,28 @@ template <typename T> int is_negative(T val) {
     int ii, n, nvar, ix, iy, iz;                            \
     const int nx2 = grid->nx + 2;                           \
     const int nx2ny2 = (grid->ny+2) * nx2;                  \
-    const particle_t     * ALIGNED(32) p;                   \
-    const particle_t     * ALIGNED(32) p0;                  \
+    particle_t     * ALIGNED(32) p;                   \
+    particle_t     * ALIGNED(32) p0;                  \
     const interpolator_t * ALIGNED(16) f;                   \
     const hydro_t        * ALIGNED(32) hy;                  \
     const grid_t * g = grid;                                \
     const float r8V = 0.125;                                \
     FileIO fh;                                              \
+    int j;                                                  \
+    DIR *d;                                                 \
                                                             \
     sprintf(dname, "%s", fbase );                           \
-    dump_mkdir(dname);                                      \
+    if ( step == 0 )                                        \
+        dump_mkdir(dname);                                  \
+    d = opendir(dname);                                     \
+                                                            \
     nvar = 16;                                              \
     float pout[nvar];                                       \
     while( s ){                                             \
         n = s->np;                                          \
         if ( n > 0 ){                                       \
             p0 = s->p;                                      \
+            j = 0;                                          \
             for ( p=p0; n; n--, p++ ){                      \
                 dx0 = p->dx;                                \
                 dy0 = p->dy;                                \
@@ -487,11 +505,16 @@ template <typename T> int is_negative(T val) {
                 w1 *= dz;       /* w1 = (w/8)(1+x)(1-y)(1-z) *Done */  \
                 w2 *= dz;       /* w2 = (w/8)(1-x)(1+y)(1-z) *Done */  \
                 w3 *= dz;       /* w3 = (w/8)(1+x)(1+y)(1-z) *Done */  \
-                int tag = *reinterpret_cast<int*>(&q);      \
+                int q = *reinterpret_cast<int*>(&q);      \
                 iz = ii / nx2ny2;                           \
                 iy = (ii % nx2ny2) / nx2;                   \
                 ix = ii % nx2;                              \
                 f = interpolator + ii;                      \
+                if (p->tag == 0) {                          \
+                    p->tag = (((int64_t) rank()) << 46) |   \
+                              ((j+1) & 0x3ffffffffff);      \
+                }                                           \
+                int64_t tag = p->tag;                       \
                 if (tag != 0) {                             \
                     ex = f->ex + dy0*f->dexdy + dz0*(f->dexdz+dy0*f->d2exdydz); \
                     ey = f->ey + dz0*f->deydz + dx0*(f->deydx+dz0*f->d2eydzdx); \
@@ -508,7 +531,8 @@ template <typename T> int is_negative(T val) {
                     BULK_VEL(w5, ix+1, iy,   iz+1);             \
                     BULK_VEL(w6, ix,   iy+1, iz+1);             \
                     BULK_VEL(w7, ix+1, iy+1, iz+1);             \
-                    sprintf(fname, "%s/%s.%i", dname , s->name, tag);   \
+                    sprintf(fname, "%s/%s.%016lx",              \
+                            dname , s->name, tag);              \
                     fh.open(fname,io_append);                   \
                     pout[0] = step*grid->dt ;                   \
                     pout[1] = (float) tracer_x ;                \
@@ -523,16 +547,16 @@ template <typename T> int is_negative(T val) {
                     pout[10] = bx;                              \
                     pout[11] = by;                              \
                     pout[12] = bz;                              \
-                    pout[13] = vx;                              \
-                    pout[14] = vy;                              \
-                    pout[15] = vz;                              \
+                    memcpy(pout+13, &tag, sizeof(tag));         \
                     fh.write(pout,nvar);                        \
                     fh.close();                                 \
                 }                                               \
+                j++;                                            \
             }                                                   \
         }                                                       \
         s = s->next;                                            \
     }                                                           \
+    closedir(d);                                                \
 } END_PRIMITIVE
 
 
