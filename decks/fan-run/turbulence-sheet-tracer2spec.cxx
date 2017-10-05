@@ -871,11 +871,11 @@ begin_initialization {
 
 	global->ede.sp_id = electron->id;
 	global->ede.vth = sqrt(2.0)*vthe;
-	sprintf(global->ede.fname,global->hedParams.baseFileName);
+	sprintf(global->ede.fname, "%s", global->hedParams.baseFileName);
 
 	global->edi.sp_id = ion->id;
 	global->edi.vth = sqrt(2.0)*vthi;
-	sprintf(global->edi.fname, global->hHdParams.baseFileName);
+	sprintf(global->edi.fname, "%s", global->hHdParams.baseFileName);
 
   //      global->edeTop.sp_id = electronTop->id;
   //      global->edeTop.vth = sqrt(2.0)*vthe;

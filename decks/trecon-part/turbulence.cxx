@@ -120,7 +120,7 @@ begin_initialization
      * Brief primer on tuning your VPIC run:
      *  - Taui: number of timesteps for the run. wpe_wce = 0.36 (if you didn't
      *    touch anything), so the default 2000/wpe_wce is 5555 time steps
-     *  - Quota: max number of ours before experiment is stopped
+     *  - Quota: max number of hours before experiment is stopped
      *  - Topology_*: Number of domains (=nodes!) in simulation
      *  - nx, ny, nz: Number of particles per dimension
      *    Total number of particles = 2 * (nppc * nx * ny * nz)
