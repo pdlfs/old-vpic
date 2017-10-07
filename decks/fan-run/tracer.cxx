@@ -467,7 +467,7 @@ template <typename T> int is_negative(T val) {
         dump_mkdir(dname);                                  \
     d = opendir(dname);                                     \
                                                             \
-    nvar = 16;                                              \
+    nvar = 18;                                              \
     float pout[nvar];                                       \
     while( s ){                                             \
         n = s->np;                                          \
@@ -547,7 +547,10 @@ template <typename T> int is_negative(T val) {
                     pout[10] = bx;                              \
                     pout[11] = by;                              \
                     pout[12] = bz;                              \
-                    memcpy(pout+13, &tag, sizeof(tag));         \
+                    pout[13] = vx;                              \
+                    pout[14] = vy;                              \
+                    pout[15] = vz;                              \
+                    memcpy(pout+16, &tag, sizeof(tag));         \
                     fh.write(pout,nvar);                        \
                     fh.close();                                 \
                 }                                               \
