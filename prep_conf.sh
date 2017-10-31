@@ -34,9 +34,9 @@ elif [ $(hostname | grep narwhal) ]; then
     echo "Preparing machine.conf for Narwhal (OpenMPI)"
     cp $src_dir/narwhal-openmpi.conf $src_dir/machine.conf
 else
-    echo "prep_conf.sh: WARNING: unknown system, using default"
+    echo "prep_conf.sh: WARNING: unknown system, using default (mpich)"
     echo "Preparing default machine.conf"
-    cp $src_dir/narwhal-openmpi.conf $src_dir/machine.conf
+    cp $src_dir/narwhal-mpich.conf $src_dir/machine.conf
 fi
 
 exit 0
