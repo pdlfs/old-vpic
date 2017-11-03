@@ -1143,7 +1143,7 @@ begin_diagnostics {
                 }
               }
             }
-#ifndef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE == 0)
             dump_traj("tracer");
 #else
 
@@ -1216,7 +1216,7 @@ begin_diagnostics {
 
   // Dump particle data
 
-#ifndef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE == 0)
 	char subdir[36];
 	//if ( should_dump(eparticle) && step !=0 && step > 20*(global->fields_interval)  ) {
 	if ( should_dump(eparticle) && step !=0 ) {

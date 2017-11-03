@@ -529,13 +529,13 @@ begin_initialization
         }
 
         inject_particle(electron, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
-#ifndef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE == 0)
         namefd.print("e%016lx", tag);
 #endif
 
         if ((particle_tracing == 1) && (i%particle_select == 0)) {
             tag_tracer((electron->p + electron->np-1), etracer, tag);
-#ifdef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE)
             namefd.print("e%016lx", tag);
 #endif
         }
@@ -561,13 +561,13 @@ begin_initialization
         }
 
         inject_particle(ion, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
-#ifndef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE == 0)
         namefd.print("i%016lx", tag);
 #endif
 
         if ((particle_tracing == 1) && (i % particle_select == 0)) {
             tag_tracer((ion->p + ion->np-1), itracer, tag);
-#ifdef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE)
             namefd.print("i%016lx", tag);
 #endif
         }
@@ -968,7 +968,7 @@ begin_diagnostics
 	 *------------------------------------------------------------------------*/
 #include "energy.cxx"   //  Subroutine to compute energy spectrum diagnostic
 
-#ifdef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE)
     if((global->particle_tracing==1) && (should_dump(tracer) && step !=0)) {
 #ifdef LOG_SYSSTAT
         if (rank() == 0) parse_meminfo();
@@ -1025,7 +1025,7 @@ begin_diagnostics
 
 
     // Dump particle data
-#ifndef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE == 0)
     char subdir[36];
     //if (should_dump(eparticle) && step !=0 && step > 20*(global->fields_interval)) {
  	if (should_dump(eparticle) && step !=0) {

@@ -552,12 +552,12 @@ begin_initialization
         //inject_particle(electron, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
         if (z>0) {
             inject_particle(electronTop, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
-#ifndef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE == 0)
             namefd.print("eT.%016lx", tag);
 #endif
         } else {
             inject_particle(electronBot, x, y, z, ux, uy, uz, qe, tag, 0, 0 );
-#ifndef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE == 0)
             namefd.print("eB.%016lx", tag);
 #endif
         }
@@ -569,7 +569,7 @@ begin_initialization
                     tag_tracer((electronTop->p + electronTop->np-1), e_tracer, tag);
                 else
                     tag_tracer((electronBot->p + electronBot->np-1), e_tracer, tag);
-#ifdef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE)
                 namefd.print("eR.%016lx", tag);
 #endif
             }
@@ -602,12 +602,12 @@ begin_initialization
         //inject_particle(ion, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
         if (z>0) {
             inject_particle(ionTop, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
-#ifndef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE == 0)
             namefd.print("iT.%016lx", tag);
 #endif
         } else {
             inject_particle(ionBot, x, y, z, ux, uy, uz, qi, tag, 0, 0 );
-#ifndef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE == 0)
             namefd.print("iB.%016lx", tag);
 #endif
         }
@@ -618,7 +618,7 @@ begin_initialization
                     tag_tracer( (ionTop->p + ionTop->np-1), i_tracer, tag );
                 else
                     tag_tracer( (ionBot->p + ionBot->np-1), i_tracer, tag );
-#ifdef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE)
                 namefd.print("iR.%016lx", tag);
 #endif
             }
@@ -1107,7 +1107,7 @@ begin_diagnostics
 	 *------------------------------------------------------------------------*/
 #include "energy.cxx"   //  Subroutine to compute energy spectrum diagnostic
 
-#ifdef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE)
     if(global->particle_tracing==1) {
         //if (should_dump(tracer)) dump_tracers("tracer");
         if (should_dump(tracer) && step !=0) {
@@ -1171,7 +1171,7 @@ begin_diagnostics
 	} // if
 
     // Dump particle data
-#ifndef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE == 0)
 	char subdir[36];
 	//if (should_dump(eparticle) && step !=0 && step > 20*(global->fields_interval)) {
 	if (should_dump(eparticle) && step !=0) {

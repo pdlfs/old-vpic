@@ -60,7 +60,7 @@
 // check for free storage space, so we're silently assuming all nodes
 // have enough room to hold all tracers. Not a bad assumption since
 // typically number of tracers will be small due to output size constaraints.
-#ifdef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE)
 inline void tag_tracer(particle_t *p, species_t *tracer, long tag) {
   particle_t *tp = tracer->p + (tracer->np++);
   tp->dx = p->dx; tp->dy = p->dy; tp->dz = p->dz; tp->i = p->i;

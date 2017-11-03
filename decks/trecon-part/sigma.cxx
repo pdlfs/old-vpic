@@ -486,7 +486,7 @@ begin_initialization {
 
 
     //L.O. inject_particle(electron, x, y, z, ux, uy, uz, qe, 0, 0, 0 );
-#ifdef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE)
     inject_particle(electron, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qe, 0, 0, 0 );
 #else
     inject_particle(electron, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qe, 0, 0 );
@@ -513,7 +513,7 @@ begin_initialization {
 
 
     //L.O. inject_particle(ion, x, y, z, ux, uy, uz, qi, 0, 0, 0 );
-#ifdef VPIC_FILE_PER_PARTICLE
+#if (VPIC_FILE_PER_PARTICLE)
     inject_particle(ion, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qi, 0, 0, 0 );
 #else
     inject_particle(ion, x, y, z, ux*cs+uy*sn,-ux*sn+uy*cs, uz, qi, 0, 0 );

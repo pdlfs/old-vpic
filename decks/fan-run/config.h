@@ -3,7 +3,7 @@
 #define LOG_SYSSTAT
 
 /* Define simulation mode: file per process or particle? */
-//#define VPIC_FILE_PER_PARTICLE
+#define VPIC_FILE_PER_PARTICLE 0
 
 /********************************/
 /* Define simulation parameters */
