@@ -12,7 +12,7 @@
 # Shell commands
 date
 echo '*** Staring Parallel Job ***'
-module load openmpi
+module load intel openmpi
 
 # srun ./test
 srun -n 512 ./turbulence-sheet-tracer2spec.cxx.op

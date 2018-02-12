@@ -24,8 +24,6 @@ struct edata {
 // naming convention for the hydro dump files
 #define HYDRO_FILE_FORMAT "hydro/T.%d/%s.%d.%d"     
 #define SPEC_FILE_FORMAT "hydro/T.%d/spectrum-%s.%d.%d"     
-#define hydro(x,y,z) hydro[INDEX_FORTRAN_3(x,y,z,0,nx+1,0,ny+1,0,nz+1)]
-#define hydro_tot(x,y,z) hydro_tot[INDEX_FORTRAN_3(x,y,z,0,nx+1,0,ny+1,0,nz+1)]
 
 begin_globals {
 
@@ -39,8 +37,7 @@ begin_globals {
   int tracer_interval;
   int particle_tracing;
   int particle_select;
-  int quota_check_interval;  // How frequently to check if quote exceeded
-  int restart_step;          // time step for restart
+  int quota_check_interval;  //  How frequently to check if quote exceeded
 
   int rtoggle;             // enables save of last two restart dumps for safety
   int restart_set;
@@ -50,7 +47,6 @@ begin_globals {
   double topology_x;       // domain topology 
   double topology_y;
   double topology_z;
-  double mi_me;
 
 //  Variables for new output format
 
@@ -90,12 +86,12 @@ begin_initialization {
  double de   = 1;         // Length normalization (electron inertial length)
  double eps0 = 1;         // Permittivity of space
 
-  double cfl_req   = 0.7;  // How close to Courant should we try to run
-  double wpedt_max = 0.2;  // How big a timestep is allowed if Courant is not too restrictive
+  double cfl_req   = 0.9;  // How close to Courant should we try to run
+  double wpedt_max = 0.3;  // How big a timestep is allowed if Courant is not too restrictive
   double damp      = 0.0;   // Level of radiation damping
   int rng_seed     = 1;     // Random number seed increment
   int particle_tracing = 1;
-  int particle_select = 100000;
+  int particle_select = 50000;
 
   // Physics parameters
 
@@ -105,7 +101,6 @@ begin_initialization {
   double vthe    = 0.6;     //  Electron thermal speed over c
   double wpe_wce = 0.1;      // electron plasma freq / electron cyclotron freq
   double bg = 1e-6;           // electron plasma freq / electron cyclotron freq
-  /* double taui    = 2000/wpe_wce;      // simulation wci's to run */
   double taui    = 2000/wpe_wce;      // simulation wci's to run
   
   double quota   = 15.;   // run quota in hours
@@ -130,20 +125,17 @@ begin_initialization {
 
   double nppc  =  100; // Average number of macro particle per cell per species
 
-  /* double Lx    = 600.0*di; // size of box in x dimension */
-  /* double Ly    = 500.0*di/256;     // size of box in y dimension */
-  /* double Lz    = 300.0*di; // size of box in z dimension */
   double Lx    = 600.0*di; // size of box in x dimension
   double Ly    = 500.0*di/256;     // size of box in y dimension
-  double Lz    = 400.0*di; // size of box in z dimension
+  double Lz    = 300.0*di; // size of box in z dimension
 
   double topology_x = 256;  // Number of domains in x, y, and z
   double topology_y = 1; 
   double topology_z = 2;  
 
-  double nx = 2048;
+  double nx = 4096;
   double ny = 1;
-  double nz = 1536;
+  double nz = 2048;
 
   // double nx = 792;
   // double ny = 528;
@@ -175,12 +167,12 @@ begin_initialization {
   int restart_interval = 50000;
   int energies_interval = 100;
   int interval = int(1.0/(wpe*dt)); 
-  int tracer_int = 1;
-  int fields_interval = 20*interval;
-  int ehydro_interval = 20*interval;
-  int Hhydro_interval = 20*interval;
-  int eparticle_interval = 20000*interval;
-  int Hparticle_interval = 20000*interval;
+  int tracer_int = int(1.0/(wpe*dt));
+  int fields_interval = 10*interval;
+  int ehydro_interval = 10*interval;
+  int Hhydro_interval = 10*interval;
+  int eparticle_interval = 50*interval;
+  int Hparticle_interval = 50*interval;
   int quota_check_interval     = 100;
   int tracer_interval = tracer_int;
 
@@ -211,7 +203,6 @@ begin_initialization {
   clean_div_e_interval = status_interval/2;
   clean_div_b_interval = status_interval/2;
 
-  global->mi_me              = mi_me;
   global->restart_interval   = restart_interval;
   global->energies_interval  = energies_interval; 
   global->fields_interval    = fields_interval;  
@@ -219,10 +210,8 @@ begin_initialization {
   global->Hhydro_interval    = Hhydro_interval;  
   global->eparticle_interval = eparticle_interval;  
   global->Hparticle_interval = Hparticle_interval;  
-  global->particle_tracing   = particle_tracing;
-  global->tracer_interval    = tracer_interval;
-  global->restart_step       = 0;
-
+  global->particle_tracing = particle_tracing;
+  global->tracer_interval = tracer_interval;
   global->quota_check_interval     = quota_check_interval;
   global->quota_sec          = quota_sec;  
 
@@ -991,61 +980,17 @@ begin_diagnostics {
 	 * Energy Spectrum Output
 	 *------------------------------------------------------------------------*/
 
-#include "energy.cxx"   //  Subroutine to compute energy spectrum diagnostic
+  #include "energy.cxx"   //  Subroutine to compute energy spectrum diagnostic
 
-    static hydro_t * ALIGNED(128) hydro_tot;
-    bool reach_time_limit = false;
-    const int nx = grid->nx;
-    const int ny = grid->ny;
-    const int nz = grid->nz;
-    int x, y, z;
-    hydro_t *htot0, *h0;
-    float rho_tot;
-    if(global->particle_tracing==1){
-        // Accumulate hydro
-        if ( step == 0 || (step>1 && step==global->restart_step+1) ) {
-          hydro_tot = new_hydro(grid);
+        if(global->particle_tracing==1){
+          if( should_dump(tracer) ) dump_traj("tracer");
+          //if (should_dump(tracer)){
+          //  char subdir[36];
+          //  sprintf(subdir,"tracer/T.%d",step);
+          //  dump_mkdir(subdir);
+          //  #include "dumptracer_h5part.cxx"
+          //}
         }
-        if( should_dump(tracer) ) {
-            clear_hydro(hydro_tot, grid);
-            species_t * sp = find_species_name("electron", species_list);
-            accumulate_hydro_p(hydro_tot, sp->p, sp->np, sp->q_m, interpolator, grid);
-            synchronize_hydro(hydro_tot, grid);
-            sp = find_species_name("ion", species_list);
-            clear_hydro(hydro, grid);
-            accumulate_hydro_p(hydro, sp->p, sp->np, sp->q_m, interpolator, grid);
-            synchronize_hydro(hydro, grid);
-            for (z = 1; z <= nz + 1; z++) {
-              for (y = 1; y <= ny + 1; y++) {
-                htot0 = &hydro_tot(1, y, z);
-                h0    = &hydro(1, y, z);
-                for (x = 1; x <= nx + 1; x++) {
-                  // Assuming electron has -1 charge, ion has +1 charge
-                  rho_tot = fabs(htot0->rho) + h0->rho * global->mi_me;
-                  // jx, jy, jz are actually vx, vy, vz now
-                  htot0->jx = (-htot0->jx + h0->jx*global->mi_me) / rho_tot;
-                  htot0->jy = (-htot0->jy + h0->jy*global->mi_me) / rho_tot;
-                  htot0->jz = (-htot0->jz + h0->jz*global->mi_me) / rho_tot;
-                  htot0++;
-                  h0++;
-                }
-              }
-            }
-            dump_traj("tracer");
-        }
-        reach_time_limit = step>0 && global->quota_check_interval>0 && 
-            (step&global->quota_check_interval)==0 &&
-            mp_elapsed( grid->mp ) > global->quota_sec;
-        if (reach_time_limit || step == num_step - 1 || (step>0 && should_dump(restart))) {
-          delete_hydro(hydro_tot);
-        }
-        //if (should_dump(tracer)){
-        //  char subdir[36];
-        //  sprintf(subdir,"tracer/T.%d",step);
-        //  dump_mkdir(subdir);
-        //  #include "dumptracer_h5part.cxx"
-        //}
-    }
 
 	/*--------------------------------------------------------------------------
 	 * Restart dump
@@ -1057,18 +1002,17 @@ begin_diagnostics {
 	  begin_turnstile(NUM_TURNSTILES);
 	  if(!global->rtoggle) {
 	    global->rtoggle = 1;
-        global->restart_set = 1;
-        dump_tracer_restart();
+      global->restart_set = 1;
+      dump_tracer_restart();
 	    dump_restart("restart1/restart", 0);
 	  }
 	  else {
 	    global->rtoggle = 0;
-        global->restart_set = 0;
-        dump_tracer_restart();
+      global->restart_set = 0;
+      dump_tracer_restart();
 	    dump_restart("restart2/restart", 0);
 	  } // if
 	  end_turnstile;
-      global->restart_step = step;
 	  double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
 	  sim_log("Restart duration "<<dumpelapsed);
 	} // if
@@ -1096,16 +1040,16 @@ begin_diagnostics {
   // few timesteps to eliminate the expensive mp_elapsed call from every
   // timestep. mp_elapsed has an ALL_REDUCE in it!
   
+	   	global->quota_sec = 15*3600;  
 	if  ( step>0 && global->quota_check_interval>0 && (step&global->quota_check_interval)==0 ) {
 	  if( mp_elapsed( grid->mp ) > global->quota_sec ) {
 	    sim_log( "Allowed runtime exceeded for this job.  Terminating....\n");
 	    double dumpstart = mp_elapsed(grid->mp);
 	    begin_turnstile(NUM_TURNSTILES);
-        dump_tracer_restart();
+      dump_tracer_restart();
 	    dump_restart("restart0/restart",0);
 	    end_turnstile;
 	    mp_barrier( grid->mp ); // Just to be safe
-        global->restart_step = step;
 	    sim_log( "Restart dump restart completed." );
 	    double dumpelapsed = mp_elapsed(grid->mp) - dumpstart;
 	    sim_log("Restart duration "<<dumpelapsed);

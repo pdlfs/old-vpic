@@ -417,45 +417,30 @@ template <typename T> int is_negative(T val) {
     f.close();                                                  \
 } END_PRIMITIVE
 
-// Accumulate the hydro fields
-#define BULK_VEL(wn, i, j, k)                   \
-    hy   = &hydro_tot(i, j, k);                 \
-    vx  += wn*hy->jx;                           \
-    vy  += wn*hy->jy;                           \
-    vz  += wn*hy->jz;                           \
-
-/* #   undef ACCUM_HYDRO */
 // dump tracer by particle trajectory
-#define dump_traj(fbase) BEGIN_PRIMITIVE{                   \
-    char dname[256], fname[256] ;                           \
-    char sp_name[16], tracer_name[16];                      \
-    char *pch;                                              \
-    species_t *s = global->tracers_list ;                   \
-    float ex, ey, ez, bx, by, bz;                           \
-    float dx, dy, dz;                                       \
-    float dx0, dy0, dz0;                                    \
-    float ux, uy, uz, q;                                    \
-    float vx, vy, vz;                                       \
-    float w0, w1, w2, w3, w4, w5, w6, w7;                   \
-    int ii, n, nvar, ix, iy, iz;                            \
-    const int nx2 = grid->nx + 2;                           \
-    const int nx2ny2 = (grid->ny+2) * nx2;                  \
-    const particle_t     * ALIGNED(32) p;                   \
-    const particle_t     * ALIGNED(32) p0;                  \
-    const interpolator_t * ALIGNED(16) f;                   \
-    const hydro_t        * ALIGNED(32) hy;                  \
-    const grid_t * g = grid;                                \
-    const float r8V = 0.125;                                \
-    FileIO fh;                                              \
-                                                            \
-    sprintf(dname, "%s", fbase );                           \
-    dump_mkdir(dname);                                      \
-    nvar = 16;                                              \
-    float pout[nvar];                                       \
-    while( s ){                                             \
-        n = s->np;                                          \
-        if ( n > 0 ){                                       \
-            p0 = s->p;                                      \
+#define dump_traj(fbase) BEGIN_PRIMITIVE{   \
+    char dname[256], fname[256] ;           \
+    species_t *s = global->tracers_list ;   \
+    float ex, ey, ez, bx, by, bz;           \
+    float dx0, dy0, dz0;                    \
+    float ux, uy, uz, q;                    \
+    int ii, n, nvar;                        \
+    const particle_t     * ALIGNED(32) p;   \
+    const particle_t     * ALIGNED(32) p0;  \
+    const interpolator_t * ALIGNED(16) f;   \
+    const grid_t * g;                       \
+    FileIO fh;                              \
+                                            \
+    sprintf(dname, "%s", fbase );           \
+    dump_mkdir(dname);                      \
+    nvar = 13;                              \
+    float pout[nvar];                       \
+    g = grid;                               \
+                                            \
+    while( s ){                             \
+        n = s->np;                          \
+        if ( n > 0 ){                       \
+            p0 = s->p;                      \
             for ( p=p0; n; n--, p++ ){                      \
                 dx0 = p->dx;                                \
                 dy0 = p->dy;                                \
@@ -465,32 +450,7 @@ template <typename T> int is_negative(T val) {
                 uy = p->uy;                                 \
                 uz = p->uz;                                 \
                 q = p->q;                                   \
-                /* Compute the trilinear coefficients */               \
-                dx=dx0; dy=dy0; dz=dz0;                                \
-                w0  = r8V;      /* w0 = 1/(8V) = w/8               */  \
-                dx *= w0;       /* dx = wx                         */  \
-                w1  = w0+dx;    /* w1 = w/8 + wx/8 = (w/8)(1+x)    */  \
-                w0 -= dx;       /* w0 = w/8 - wx/8 = (w/8)(1-x)    */  \
-                w3  = 1+dy;     /* w3 = 1+y                        */  \
-                w2  = w0*w3;    /* w2 = (w/8)(1-x)(1+y)            */  \
-                w3 *= w1;       /* w3 = (w/8)(1+x)(1+y)            */  \
-                dy  = 1-dy;     /* dy = 1-y                        */  \
-                w0 *= dy;       /* w0 = (w/8)(1-x)(1-y)            */  \
-                w1 *= dy;       /* w1 = (w/8)(1+x)(1-y)            */  \
-                w7  = 1+dz;     /* w7 = 1+z                        */  \
-                w4  = w0*w7;    /* w4 = (w/8)(1-x)(1-y)(1+z) *Done */  \
-                w5  = w1*w7;    /* w5 = (w/8)(1+x)(1-y)(1+z) *Done */  \
-                w6  = w2*w7;    /* w6 = (w/8)(1-x)(1+y)(1+z) *Done */  \
-                w7 *= w3;       /* w7 = (w/8)(1+x)(1+y)(1+z) *Done */  \
-                dz  = 1-dz;     /* dz = 1-z                        */  \
-                w0 *= dz;       /* w0 = (w/8)(1-x)(1-y)(1-z) *Done */  \
-                w1 *= dz;       /* w1 = (w/8)(1+x)(1-y)(1-z) *Done */  \
-                w2 *= dz;       /* w2 = (w/8)(1-x)(1+y)(1-z) *Done */  \
-                w3 *= dz;       /* w3 = (w/8)(1+x)(1+y)(1-z) *Done */  \
                 int tag = *reinterpret_cast<int*>(&q);      \
-                iz = ii / nx2ny2;                           \
-                iy = (ii % nx2ny2) / nx2;                   \
-                ix = ii % nx2;                              \
                 f = interpolator + ii;                      \
                 if (tag != 0) {                             \
                     ex = f->ex + dy0*f->dexdy + dz0*(f->dexdz+dy0*f->d2exdydz); \
@@ -499,15 +459,6 @@ template <typename T> int is_negative(T val) {
                     bx = f->cbx + dx0*f->dcbxdx;                \
                     by = f->cby + dy0*f->dcbydy;                \
                     bz = f->cbz + dz0*f->dcbzdz;                \
-                    vx = 0.0; vy = 0.0; vz = 0.0;               \
-                    BULK_VEL(w0, ix,   iy,   iz);               \
-                    BULK_VEL(w1, ix+1, iy,   iz);               \
-                    BULK_VEL(w2, ix,   iy+1, iz);               \
-                    BULK_VEL(w3, ix+1, iy+1, iz);               \
-                    BULK_VEL(w4, ix,   iy,   iz+1);             \
-                    BULK_VEL(w5, ix+1, iy,   iz+1);             \
-                    BULK_VEL(w6, ix,   iy+1, iz+1);             \
-                    BULK_VEL(w7, ix+1, iy+1, iz+1);             \
                     sprintf(fname, "%s/%s.%i", dname , s->name, tag);   \
                     fh.open(fname,io_append);                   \
                     pout[0] = step*grid->dt ;                   \
@@ -523,9 +474,6 @@ template <typename T> int is_negative(T val) {
                     pout[10] = bx;                              \
                     pout[11] = by;                              \
                     pout[12] = bz;                              \
-                    pout[13] = vx;                              \
-                    pout[14] = vy;                              \
-                    pout[15] = vz;                              \
                     fh.write(pout,nvar);                        \
                     fh.close();                                 \
                 }                                               \
