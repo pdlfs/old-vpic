@@ -1,0 +1,23 @@
+#!/bin/tcsh
+#SBATCH --qos=interactive       # standard, interactive or standby
+#SBATCH --time=4:00:00
+#SBATCH --nodes=15
+#SBATCH --ntasks-per-node=36
+#SBATCH --output slurm%j.out
+#SBATCH --error slurm%j.err
+#SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --mail-user=guofan@lanl.gov
+##SBATCH -A account_name     # slurm account 
+
+# Shell commands
+date
+echo '*** Staring Parallel Job ***'
+module load openmpi
+
+# srun ./test
+srun -n 512 ./turbulence-sheet-tracer2spec.cxx.op
+
+date
+echo '*** All Done ***'
+# 
+
