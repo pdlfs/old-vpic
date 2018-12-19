@@ -176,7 +176,7 @@ move_p_spu( particle_t       * ALIGNED(32) p,
     s_dir[0] = (s_dispx>0) ? 1 : -1;
     s_dir[1] = (s_dispy>0) ? 1 : -1;
     s_dir[2] = (s_dispz>0) ? 1 : -1;
-
+    
     // Compute the twice the fractional distance to each potential
     // streak/cell face intersection.
 
@@ -187,7 +187,7 @@ move_p_spu( particle_t       * ALIGNED(32) p,
     // Determine the fractional length and type of current streak. The
     // streak ends on either the first face intersected by the
     // particle track or at the end of the particle track.
-    //
+    // 
     //   type 0,1 or 2 ... streak ends on a x,y or z-face respectively
     //   type 3        ... streak ends at end of the particle track
 
@@ -446,7 +446,7 @@ advance_p_pipeline_spu( particle_t       * ALIGNED(128) p, // Particle array
     STORE_4x1( p1u, &p[1].ux );
     STORE_4x1( p2u, &p[2].ux );
     STORE_4x1( p3u, &p[3].ux );
-
+    
     // Update the position of inbnd particles
 
     rgamma = RSQRT( ADD( one, FMA( uxh,uxh, FMA( uyh,uyh, MUL(uzh,uzh) ) ) ) );
@@ -471,7 +471,7 @@ advance_p_pipeline_spu( particle_t       * ALIGNED(128) p, // Particle array
     STORE_4x1( p1r, &p[1].dx );
     STORE_4x1( p2r, &p[2].dx );
     STORE_4x1( p3r, &p[3].dx );
-
+   
     // Accumulate current of inbnd particles
     // Note: accumulator values are 4 times the total physical charge that
     // passed through the appropriate current quadrant in a time-step
@@ -542,7 +542,7 @@ advance_p_pipeline_spu( particle_t       * ALIGNED(128) p, // Particle array
     MOVE_OUTBND(3);
 
 #   undef MOVE_OUTBND
-
+    
   }
 
   return nm;
@@ -595,7 +595,7 @@ main( uint64_t spu_id,
   // Determine which movers are reserved for this pipeline
   // Movers (16 bytes) are reserved for pipelines in multiples of 8
   // such that the set of particle movers reserved for a pipeline is
-  // 128-byte aligned and a multiple of 128-bytes in size.
+  // 128-byte aligned and a multiple of 128-bytes in size. 
 
   args->max_nm -= args->np&15; // Insure host gets enough
   if( args->max_nm<0 ) args->max_nm = 0;
@@ -627,7 +627,7 @@ main( uint64_t spu_id,
                np_block[buffer]*sizeof(particle_t),             \
                3*(buffer)+0, 0, 0 );                            \
   } while(0)
-
+  
 # define END_GET_PBLOCK(buffer) do {                                    \
     /* If we have a block, stop reading it into the buffer */           \
     if( np_block[buffer] ) {                                            \
@@ -635,7 +635,7 @@ main( uint64_t spu_id,
       mfc_read_tag_status_all();                                        \
     }                                                                   \
   } while(0)
-
+  
 # define PROCESS_PBLOCK(buffer)                                         \
   nm_block[buffer] = advance_p_pipeline_spu( p_block[buffer],           \
                                              pm_block[buffer],          \
@@ -710,7 +710,7 @@ main( uint64_t spu_id,
            31, 0, 0 );
   mfc_write_tag_mask( (1<<31) );
   mfc_read_tag_status_all();
-
+  
 # ifdef IN_HARNESS
   prof_stop();
 # endif

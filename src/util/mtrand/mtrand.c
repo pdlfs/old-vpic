@@ -1,4 +1,4 @@
-/*
+/* 
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -402,25 +402,25 @@ mt_drandn( mt_rng_t * rng ) {
 
   for(;;) {
 
-    // Extract components of a 32-bit rand
+    // Extract components of a 32-bit rand 
 
     URAND32( rng, a );
     URAND32( rng, b );
 
-    s = ( a & 0x00000001 );      //         1-bit uniform   rand
+    s = ( a & 0x00000001 );      //         1-bit uniform   rand 
     i = ( a & 0x000001fe ) >> 1; //         8-bit uniform   rand
     j = 4294967296.*b + (( a & 0xfffff800 ) + (( a & 0x00000400 ) << 1));
                                  // 2^11 ( 53-bit trapezoid rand )
 
-    // Construct |x| and see if we can accept this point
+    // Construct |x| and see if we can accept this point 
     // FIXME: COULD PRECOMPUTE SCALE * ZIG_X[i+1] AND/OR
     // EVEN DO THE COMPARE DIRECTLY ON j!
 
     x = j*(scale*zig_x[i+1]);
     if( x<zig_x[i] ) break; /* Vast majority of the time */
-
-    // Construct a y for rejection testing
-
+ 
+    // Construct a y for rejection testing 
+ 
     URAND32( rng, a );
     URAND32( rng, b );
     y = drand53_c( a, b );
@@ -435,7 +435,7 @@ mt_drandn( mt_rng_t * rng ) {
     if( y < exp(-0.5*x*x) ) break;
  }
 
- return sgn[s]*x; // FIXME: Use copysign, trinary or branch?
+ return sgn[s]*x; // FIXME: Use copysign, trinary or branch? 
 }
 
 void
@@ -456,23 +456,23 @@ mt_frandn( mt_rng_t * rng ) {
 
   for(;;) {
 
-    // Extract components of a 32-bit rand
+    // Extract components of a 32-bit rand 
 
     URAND32( rng, a );
-    s = ( a & 0x00000001 );      //        1-bit uniform   rand
+    s = ( a & 0x00000001 );      //        1-bit uniform   rand 
     i = ( a & 0x0000007e ) >> 1; //        6-bit uniform   rand
     j = ( a & 0x00000080 ) << 1; // 2^8 (  1-bit uniform   rand )
     j = ( a & 0xffffff00 ) + j;  // 2^8 ( 24-bit trapezoid rand )
 
-    // Construct |x| and see if we can accept this point
+    // Construct |x| and see if we can accept this point 
     // FIXME: COULD PRECOMPUTE SCALE * ZIG_X[i+1] AND/OR
     // EVEN DO THE COMPARE DIRECTLY ON j!
 
     x = j*(scale*zig_x[i+1]);
     if( x<zig_x[i] ) break; /* Vast majority of the time */
-
-    // Construct a y for rejection testing
-
+ 
+    // Construct a y for rejection testing 
+ 
     URAND32( rng, a );
     y = frand24_c(a);
     if( i!=N-1 ) y = zig_y[i]+(zig_y[i+1]-zig_y[i])*y;
@@ -485,7 +485,7 @@ mt_frandn( mt_rng_t * rng ) {
     if( y < expf(-0.5f*x*x) ) break;
  }
 
- return sgn[s]*x; // FIXME: Use copysign, trinary or branch?
+ return sgn[s]*x; // FIXME: Use copysign, trinary or branch? 
 }
 
 void

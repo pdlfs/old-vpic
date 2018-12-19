@@ -30,7 +30,7 @@ _SPUEAR_clear_accumulators_pipeline_spu(
   DISTRIBUTE( args->n, NB, pipeline_rank, n_pipeline, i, n );
   a = args->a + i*sizeof(accumulator_t);
   for( c=0; n>0; n-=NB, a+=NB*sizeof(accumulator_t), c=(c+1)&0x1f )
-    mfc_put( zeros, a, NB*sizeof(accumulator_t), c, 0, 0 );
+    mfc_put( zeros, a, NB*sizeof(accumulator_t), c, 0, 0 ); 
 
   // Wait for the zeroing to complete
   mfc_write_tag_mask( 0xffffffff );

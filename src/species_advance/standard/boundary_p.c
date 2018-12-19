@@ -38,7 +38,7 @@ accumulate_rhob( field_t          * __restrict__ ALIGNED(128) f,
   w1 *= t;                          // w1 = (w/8)(1+x)(1-y)(1-z) *Done
   w2 *= t;                          // w2 = (w/8)(1-x)(1+y)(1-z) *Done
   w3 *= t;                          // w3 = (w/8)(1+x)(1+y)(1-z) *Done
-
+  
   // Adjust the weights for a corrected local accumulation of rhob
   // See note in synchronize_rho why we must do this for rhob and
   // not for rhof.
@@ -55,7 +55,7 @@ accumulate_rhob( field_t          * __restrict__ ALIGNED(128) f,
   if( j==g->ny ) w2 += w2, w3 += w3, w6 += w6, w7 += w7;
   if( k==1     ) w0 += w0, w1 += w1, w2 += w2, w3 += w3;
   if( k==g->nz ) w4 += w4, w5 += w5, w6 += w6, w7 += w7;
-
+  
   // Update rhob
   i = &f(1,0,0).rhob - &f(0,0,0).rhob;
   j = &f(0,1,0).rhob - &f(1,0,0).rhob;
@@ -121,7 +121,7 @@ boundary_p( species_t        * __restrict__ sp_list,
     g->range[g->bc[sf2b[5]]] : 0;
 
   boundary_t * __restrict__ boundary = g->boundary;
-  const int                 nb       = g->nb;
+  const int                 nb       = g->nb; 
 
   species_t * __restrict__ sp;
   int face, ns[6], ncm;
@@ -149,13 +149,13 @@ boundary_p( species_t        * __restrict__ sp_list,
 
   do {
     int nm = 0; LIST_FOR_EACH( sp, sp_list ) nm += sp->nm;
-
+    
     for( face=0; face<6; face++ )
       if( SHARED_REMOTELY(sf2b[face] ) )
         mp_size_send_buffer( sf2b[face],
                              16 + nm*sizeof(particle_injector_t),
                              g->mp );
-
+    
     if( cmlist_size<nm ) {
       particle_injector_t * tmp = cmlist; // Hack around __restrict__
       FREE_ALIGNED( tmp );
@@ -164,7 +164,7 @@ boundary_p( species_t        * __restrict__ sp_list,
       cmlist_size = nm;
     }
   } while(0);
-
+  
   // Load the particle send buffers and the local particle injection
   // buffer.  Note: particle movers for each species are processed
   // in reverse order.  This allows us to backfill holes in the
@@ -174,7 +174,7 @@ boundary_p( species_t        * __restrict__ sp_list,
   // n=1...nm-1.  advance_p and inject_particle create movers with
   // property if all aged particle injection occurs after advance_p
   // and before this
-
+  
   do {
     particle_injector_t * __restrict__ ALIGNED(16) ps0 =
       (particle_injector_t *)( ((char *)mp_send_buffer(sf2b[0],g->mp))+16 );
@@ -190,14 +190,14 @@ boundary_p( species_t        * __restrict__ sp_list,
       (particle_injector_t *)( ((char *)mp_send_buffer(sf2b[5],g->mp))+16 );
     particle_injector_t * /*__restrict__*/ ALIGNED(16) cm  = cmlist;
     int ns0 = 0, ns1 = 0, ns2 = 0, ns3 = 0, ns4 = 0, ns5 = 0;
-
+    
     LIST_FOR_EACH( sp, sp_list ) {
       particle_t       * __restrict__ ALIGNED(128) p0 = sp->p;
       particle_mover_t * __restrict__ ALIGNED(16)  pm = sp->pm + sp->nm - 1;
       const int32_t sp_id = sp->id;
       int np = sp->np;
       int nm = sp->nm;
-
+      
       for( ; nm; pm--, nm-- ) {
         particle_t * __restrict__ ALIGNED(32) r = p0 + pm->i;
         float   dx = r->dx;
@@ -208,14 +208,14 @@ boundary_p( species_t        * __restrict__ sp_list,
         float   uy = r->uy;
         float   uz = r->uz;
         float   q  = r->q;
-
+        
         // FIXME: HAVE SPE HANDLER INDICATE THE FACE IN THE MOVER
         // E.G. LIKE pm->i == 8*cell + FACE.  THIS ELIMINATES THE
         // NEED TO TEST FACES FOR INTERACTION AT ALL!
-
+        
         // FIXME: BOUNDARY_HANDLERS SHOULD RETURN THE NUMBER OF
         // INJECTORS THEY USED.  CM CAN THEN BE ELIMINATED TOO.
-
+        
         // FIXME: Currently, after a particle interacts with a
         // boundary it is removed from the local particle list.
         // Thus, if a boundary handler does not want a particle
@@ -236,7 +236,7 @@ boundary_p( species_t        * __restrict__ sp_list,
         // to determine whether or not the interacting particle
         // should be removed in addition to keeping the charge
         // conservation books.
-
+        
 #       define TEST_FACE(FACE,cond)                                     \
         if(cond) {                                                      \
           int64_t nn = neighbor[ 6*i + FACE ];                          \
@@ -276,7 +276,7 @@ boundary_p( species_t        * __restrict__ sp_list,
             continue;                                                   \
           }                                                             \
         }
-
+        
 /* Debug logic taken from macro */
 #if 0
           int64_t nn_old = neighbor_old[ 6*i + FACE ];                  \
@@ -308,13 +308,13 @@ boundary_p( species_t        * __restrict__ sp_list,
         TEST_FACE(4,(dy== 1) & (uy>0));
         TEST_FACE(5,(dz== 1) & (uz>0));
 #       undef TEST_FACE
-
+        
         WARNING(( "Unknown boundary interaction ... using absorption "
                   "(species=%s, rank=%i)", sp->name, rank ));
         accumulate_rhob( f, r, g );
         r[0] = p0[--np];
       }
-
+      
       sp->np = np;
       sp->nm = 0;
     }
@@ -329,15 +329,15 @@ boundary_p( species_t        * __restrict__ sp_list,
   } while(0);
 
   // Exchange particle counts
-
+  
   // FIXME: WASTEFULL OF COMMUNICATIONS HERE.  COULD AT LEAST NOT DO
   // THE SECOND COMMUNICATION IF NO DATA TO SEND (BOTH ENDS KNOW
   // THIS!)  BETTER WOULD BE TO USE EITHER PRESIZED BUFFERS OR A
   // STATEFUL PROTOCOL TO PERMIT ONE MESSAGE PER FACE TO BE SENT
   // RATHER THAN TWO!
-
+  
   // FIXME: ARE MP_SIZES HERE REALLY NECESSARY??
-
+  
   for( face=0; face<6; face++ )
     if( SHARED_REMOTELY(sf2b[face]) ) {
       *((int *)mp_send_buffer( sf2b[face], g->mp )) = ns[face];
@@ -347,7 +347,7 @@ boundary_p( species_t        * __restrict__ sp_list,
                      sf2b[face],
                      g->mp );
     }
-
+  
   for( face=0; face<6; face++ )
     if( SHARED_REMOTELY(rf2b[face]) ) {
       mp_size_recv_buffer( rf2b[face], sizeof(int), g->mp );
@@ -357,21 +357,21 @@ boundary_p( species_t        * __restrict__ sp_list,
                      sf2b[face],
                      g->mp );
     }
-
+  
   for( face=0; face<6; face++ )
     if( SHARED_REMOTELY(rf2b[face]) ) mp_end_recv( rf2b[face], g->mp );
-
+  
   for( face=0; face<6; face++ )
     if( SHARED_REMOTELY(sf2b[face]) ) mp_end_send( sf2b[face], g->mp );
-
+  
   // Exchange particles
-
+  
   for( face=0; face<6; face++ )
     if( SHARED_REMOTELY(sf2b[face]) )
       mp_begin_send( sf2b[face],
                      16 + ns[face]*sizeof(particle_injector_t),
                      g->bc[sf2b[face]], sf2b[face], g->mp );
-
+  
   for( face=0; face<6; face++ )
     if( SHARED_REMOTELY(rf2b[face]) ) {
       int sz = *((int *)mp_recv_buffer( rf2b[face], g->mp ));
@@ -379,25 +379,25 @@ boundary_p( species_t        * __restrict__ sp_list,
       mp_size_recv_buffer( rf2b[face], sz, g->mp );
       mp_begin_recv( rf2b[face], sz, g->bc[rf2b[face]], sf2b[face], g->mp );
     }
-
+  
   for( face=0; face<6; face++ )
     if( SHARED_REMOTELY(rf2b[face]) ) mp_end_recv( rf2b[face], g->mp );
-
+  
   // Inject received particles
-
+  
   do {
     particle_injector_t * __restrict__ ALIGNED(16) pi;
     species_t * sp_table[ 64 ];
     int n, n_inj[ 64 ];
-
+    
     // Count the number of particles each species will inject
-
+    
     LIST_FOR_EACH( sp, sp_list ) {
       if( sp->id<0 || sp->id>=64 ) ERROR(( "Invalid sp->id" ));
       sp_table[ sp->id ] = sp;
       n_inj[    sp->id ] = 0;
     }
-
+    
     for( face=0; face<7; face++ ) {
       if( face==6 ) pi = cmlist, n = ncm;
       else if( !SHARED_REMOTELY(rf2b[face]) ) continue;
@@ -406,13 +406,13 @@ boundary_p( species_t        * __restrict__ sp_list,
         pi = (particle_injector_t *)( buf + 16 );
         n  = *((int *)buf);
       }
-
+      
       for( ; n; pi++, n-- ) n_inj[ pi->sp_id ]++;
     }
-
+    
     // Resize each species's particle and mover storage to be large
     // enough to guarantee successful injection if necessary
-
+    
     LIST_FOR_EACH( sp, sp_list ) {
       n = sp->np + n_inj[sp->id];
       if( n>sp->max_np ) {
@@ -429,7 +429,7 @@ boundary_p( species_t        * __restrict__ sp_list,
         sp->p      = new_p;
         sp->max_np = n;
       }
-
+      
       n = sp->nm + n_inj[sp->id];
       if( n>sp->max_nm ) {
         particle_mover_t * new_pm;
@@ -446,9 +446,9 @@ boundary_p( species_t        * __restrict__ sp_list,
         sp->max_nm = n;
       }
     }
-
+    
     // Inject particles
-
+    
     // FIXME: THERE IS _NO_ REASON THAT ALL THE INJECTOR BUFFERS
     // COULDN'T BE MERGED INTO A NICE BIG ARRAY OF SINGLE BUFFER OF
     // INJECTORS.  SEE NOTE ABOVE ABOUT BEING MORE EFFICIENT WITH
@@ -465,7 +465,7 @@ boundary_p( species_t        * __restrict__ sp_list,
         pi = (particle_injector_t *)( buf + 16 );
         n     = *((int *)buf);
       }
-
+      
       // Reverse order injection is done to reduce thrashing of the
       // particle list (particles are removed reverse order so the
       // overall impact of removal + injection is to keep injected
@@ -487,7 +487,7 @@ boundary_p( species_t        * __restrict__ sp_list,
 
         p->dx = pi->dx; p->dy = pi->dy; p->dz = pi->dz; p->i = pi->i; /* FIXME: v4 accelerate */
         p->ux = pi->ux; p->uy = pi->uy; p->uz = pi->uz; p->q = pi->q; /* FIXME: v4 accelerate */
-
+       
         pm->dispx = pi->dispx; pm->dispy = pi->dispy; pm->dispz = pi->dispz; pm->i = pi->sp_id; /* FIXME: v4 accelerate */
 
         pm->i  = np;
@@ -495,11 +495,11 @@ boundary_p( species_t        * __restrict__ sp_list,
         sp->nm = nm + move_p( sp->p, pm, a0, g );
       }
     }
-
+    
   } while(0);
-
+  
   // Communication wrap up
-
+  
   for( face=0; face<6; face++ )
     if( SHARED_REMOTELY(sf2b[face]) ) mp_end_send( sf2b[face], g->mp );
 }

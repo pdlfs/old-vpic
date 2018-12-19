@@ -191,7 +191,7 @@ move_p_spu( particle_t       * ALIGNED(32) p,
     s_dir[0] = (s_dispx>0) ? 1 : -1;
     s_dir[1] = (s_dispy>0) ? 1 : -1;
     s_dir[2] = (s_dispz>0) ? 1 : -1;
-
+    
     // Compute the twice the fractional distance to each potential
     // streak/cell face intersection.
 
@@ -202,7 +202,7 @@ move_p_spu( particle_t       * ALIGNED(32) p,
     // Determine the fractional length and type of current streak. The
     // streak ends on either the first face intersected by the
     // particle track or at the end of the particle track.
-    //
+    // 
     //   type 0,1 or 2 ... streak ends on a x,y or z-face respectively
     //   type 3        ... streak ends at end of the particle track
 
@@ -322,13 +322,13 @@ advance_p_pipeline_spu( particle_t       * ALIGNED(128) p,  // Particle array
   vec_float4 p0u, p1u, p2u, p3u;                                     vec_float4 p4u, p5u, p6u, p7u;
 
   vec_float4 dx, dy, dz;    vec_int4 i;                              vec_float4 dx_, dy_, dz_;    vec_int4 i_;
-  vec_float4 ux, uy, uz, q;                                          vec_float4 ux_, uy_, uz_, q_;
+  vec_float4 ux, uy, uz, q;                                          vec_float4 ux_, uy_, uz_, q_;           
 
   vec_float4 ex0,  dexdy,  dexdz, d2exdydz;                          vec_float4 ex0_,  dexdy_,  dexdz_, d2exdydz_;
   vec_float4 ey0,  deydz,  deydx, d2eydzdx;                          vec_float4 ey0_,  deydz_,  deydx_, d2eydzdx_;
   vec_float4 ez0,  dezdx,  dezdy, d2ezdxdy;                          vec_float4 ez0_,  dezdx_,  dezdy_, d2ezdxdy_;
   vec_float4 cbx0, dcbxdx, cby0,  dcbydy;                            vec_float4 cbx0_, dcbxdx_, cby0_,  dcbydy_;
-  vec_float4 cbz0, dcbzdz, v12,   v13;                               vec_float4 cbz0_, dcbzdz_, v12_,   v13_;
+  vec_float4 cbz0, dcbzdz, v12,   v13;                               vec_float4 cbz0_, dcbzdz_, v12_,   v13_; 
 
   vec_float4 hax, hay, haz;                                          vec_float4 hax_, hay_, haz_;
   vec_float4 cbx, cby, cbz;                                          vec_float4 cbx_, cby_, cbz_;
@@ -338,11 +338,11 @@ advance_p_pipeline_spu( particle_t       * ALIGNED(128) p,  // Particle array
   vec_float4 wx0, wy0, wz0;                                          vec_float4 wx0_, wy0_, wz0_;
   vec_float4 uxh, uyh, uzh;                                          vec_float4 uxh_, uyh_, uzh_;
 
-  vec_float4 rgamma;                                                 vec_float4 rgamma_;
+  vec_float4 rgamma;                                                 vec_float4 rgamma_; 
   vec_float4 ddx, ddy, ddz;                                          vec_float4 ddx_, ddy_, ddz_;
   vec_float4 dxh, dyh, dzh;                                          vec_float4 dxh_, dyh_, dzh_;
   vec_float4 dx1, dy1, dz1;                                          vec_float4 dx1_, dy1_, dz1_;
-  vec_uint4  outbnd;                                                 vec_uint4  outbnd_;
+  vec_uint4  outbnd;                                                 vec_uint4  outbnd_; 
 
   vec_float4 qa, ccc;                                                vec_float4 qa_, ccc_;
   vec_float4 a0x, a1x, a2x, a3x, a4x;                                vec_float4 a0x_, a1x_, a2x_, a3x_, a4x_;
@@ -469,7 +469,7 @@ advance_p_pipeline_spu( particle_t       * ALIGNED(128) p,  // Particle array
     uz0 = ADD( uz, haz );                                            uz0_ = ADD( uz_, haz_ );
     v14 = MUL( qdt_2mc, RSQRT( ADD( one, FMA( ux0,ux0, FMA( uy0,uy0, MUL( uz0,uz0 ) ) ) ) ) );
     /**/                                                             v14_ = MUL( qdt_2mc, RSQRT( ADD( one, FMA( ux0_,ux0_, FMA( uy0_,uy0_, MUL( uz0_,uz0_ ) ) ) ) ) );
-    cbs = FMA( cbx,cbx, FMA( cby,cby, MUL(cbz,cbz) ) );              cbs_ = FMA( cbx_,cbx_, FMA( cby_,cby_, MUL(cbz_,cbz_) ) );
+    cbs = FMA( cbx,cbx, FMA( cby,cby, MUL(cbz,cbz) ) );              cbs_ = FMA( cbx_,cbx_, FMA( cby_,cby_, MUL(cbz_,cbz_) ) ); 
     ths = MUL( MUL( v14,v14 ), cbs );                                ths_ = MUL( MUL( v14_,v14_ ), cbs_ );
     v15 = MUL( v14, FMA( FMA( two_fifteenths, ths, one_third ), ths, one ) );
     /**/                                                             v15_ = MUL( v14_, FMA( FMA( two_fifteenths, ths_, one_third ), ths_, one ) );
@@ -490,7 +490,7 @@ advance_p_pipeline_spu( particle_t       * ALIGNED(128) p,  // Particle array
     STORE_4x1( p1u, &p[1].ux );                                      STORE_4x1( p5u, &p[5].ux );
     STORE_4x1( p2u, &p[2].ux );                                      STORE_4x1( p6u, &p[6].ux );
     STORE_4x1( p3u, &p[3].ux );                                      STORE_4x1( p7u, &p[7].ux );
-
+    
     // Update the position of inbnd particles
 
     rgamma = RSQRT( ADD( one, FMA( uxh,uxh, FMA( uyh,uyh, MUL(uzh,uzh) ) ) ) );
@@ -500,7 +500,7 @@ advance_p_pipeline_spu( particle_t       * ALIGNED(128) p,  // Particle array
     ddz    = MUL( MUL( uzh, cdt_dz ), rgamma );                      ddz_    = MUL( MUL( uzh_, cdt_dz ), rgamma_ );
     dxh    = ADD( dx,  ddx );                                        dxh_    = ADD( dx_,  ddx_ );
     dyh    = ADD( dy,  ddy );                                        dyh_    = ADD( dy_,  ddy_ );
-    dzh    = ADD( dz,  ddz );                                        dzh_    = ADD( dz_,  ddz_ );
+    dzh    = ADD( dz,  ddz );                                        dzh_    = ADD( dz_,  ddz_ );        
     dx1    = ADD( dxh, ddx );                                        dx1_    = ADD( dxh_, ddx_ );
     dy1    = ADD( dyh, ddy );                                        dy1_    = ADD( dyh_, ddy_ );
     dz1    = ADD( dzh, ddz );                                        dz1_    = ADD( dzh_, ddz_ );
@@ -518,7 +518,7 @@ advance_p_pipeline_spu( particle_t       * ALIGNED(128) p,  // Particle array
     STORE_4x1( p1r, &p[1].dx );                                      STORE_4x1( p5r, &p[5].dx );
     STORE_4x1( p2r, &p[2].dx );                                      STORE_4x1( p6r, &p[6].dx );
     STORE_4x1( p3r, &p[3].dx );                                      STORE_4x1( p7r, &p[7].dx );
-
+   
     // Accumulate current of inbnd particles
     // Note: accumulator values are 4 times the total physical charge that
     // passed through the appropriate current quadrant in a time-step
@@ -674,7 +674,7 @@ main( uint64_t spu_id,
   // Determine which movers are reserved for this pipeline
   // Movers (16 bytes) are reserved for pipelines in multiples of 8
   // such that the set of particle movers reserved for a pipeline is
-  // 128-bit aligned and a multiple of 128-bits in size.
+  // 128-bit aligned and a multiple of 128-bits in size. 
 
   args->max_nm -= args->np&15; // Insure host gets enough
   if( args->max_nm<0 ) args->max_nm = 0;
@@ -706,7 +706,7 @@ main( uint64_t spu_id,
                np_block[buffer]*sizeof(particle_t),             \
                3*(buffer)+0, 0, 0 );                            \
   } while(0)
-
+  
 # define END_GET_PBLOCK(buffer) do {                                    \
     /* If we have a block, stop reading it into the buffer */           \
     if( np_block[buffer] ) {                                            \
@@ -714,7 +714,7 @@ main( uint64_t spu_id,
       mfc_read_tag_status_all();                                        \
     }                                                                   \
   } while(0)
-
+  
 # define PROCESS_PBLOCK(buffer)                                         \
   nm_block[buffer] = advance_p_pipeline_spu( p_block[buffer],           \
                                              pm_block[buffer],          \
@@ -791,7 +791,7 @@ main( uint64_t spu_id,
            31, 0, 0 );
   mfc_write_tag_mask( (1<<31) );
   mfc_read_tag_status_all();
-
+  
 # ifdef IN_HARNESS
   prof_stop();
 # endif

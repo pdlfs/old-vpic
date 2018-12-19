@@ -1,4 +1,4 @@
-/*
+/* 
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -42,7 +42,7 @@ new_interpolator( grid_t * g ) {
   interpolator_t * ALIGNED(128) fi;
 
   if( g==NULL ) ERROR(("Invalid grid."));
-  if( g->nx<1 || g->ny<1 || g->nz<1 ) ERROR(("Invalid grid resolution."));
+  if( g->nx<1 || g->ny<1 || g->nz<1 ) ERROR(("Invalid grid resolution.")); 
   MALLOC_ALIGNED( fi, (g->nx+2)*(g->ny+2)*(g->nz+2), 128 );
   CLEAR( fi, (g->nx+2)*(g->ny+2)*(g->nz+2) );
   return fi;
@@ -62,7 +62,7 @@ new_accumulators( grid_t * g ) {
 
   if( g==NULL ) ERROR(("Bad grid."));
   if( g->nx<1 || g->ny<1 || g->nz<1 ) ERROR(("Bad resolution."));
-
+  
   /**/                        req = serial.n_pipeline;
   if( req<thread.n_pipeline ) req = thread.n_pipeline;
 # if defined(CELL_PPU_BUILD) && defined(USE_CELL_SPUS)

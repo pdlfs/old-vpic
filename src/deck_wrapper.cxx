@@ -1,4 +1,4 @@
-/*
+/* 
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -21,7 +21,7 @@
 	                                     char **cmdline_argument )
 
 #define begin_diagnostics \
-  void vpic_simulation::user_diagnostics(void)
+  void vpic_simulation::user_diagnostics(void) 
 
 #define begin_particle_injection \
   void vpic_simulation::user_particle_injection(void)
@@ -62,7 +62,7 @@
 // inside the intended region and 0 if not. The field macros also take
 // several other equations to set field values. For example:
 //
-// set_region_field( x>0 && sqrt(x*x+y*y+z*z)<1,  // A half-sphere region
+// set_region_field( x>0 && sqrt(x*x+y*y+z*z)<1,  // A half-sphere region 
 //                   sin(k*x), 0, 0,              // electric field
 //                   0, sin(k*x), bz );           // magnetic field
 //
@@ -82,7 +82,7 @@
 // Interior cells are cells whose centers are inside the
 // region. Exterior cells are cells whose centers are outside the
 // region.
-//
+// 
 // Surface faces are faces for which one associated cell-center is
 // inside the region. Interior faces are faces where both associated
 // cell-centers are inside the region. Interior surface faces are
@@ -509,7 +509,7 @@
 // For example, to set up 10 turnstiles (i.e., at most 10 simultaneous
 // writes):
 //
-// begin_turnstile(10);
+// begin_turnstile(10); 
 //   [code]
 // end_turnstile;
 //

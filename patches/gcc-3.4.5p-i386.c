@@ -525,7 +525,7 @@ const int x86_rep_movl_optimal = m_386 | m_PENT | m_PPRO | m_K6;
 
 /* ??? HACK!  The following is a lie.  SSE can hold e.g. SImode, and
    indeed *must* be able to hold SImode so that SSE2 shifts are able
-   to work right.  But this can result in some mighty surprising
+   to work right.  But this can result in some mighty surprising 
    register allocation when building kernels.  Turning this off should
    make us less likely to all-of-the-sudden select an SSE register.  */
 const int x86_inter_unit_moves = 0;  /* ~(m_ATHLON_K8) */
@@ -788,7 +788,7 @@ const char *ix86_align_funcs_string;
 /* Prefix built by ASM_GENERATE_INTERNAL_LABEL.  */
 static char internal_label_prefix[16];
 static int internal_label_prefix_len;
-
+
 static int local_symbolic_operand (rtx, enum machine_mode);
 static int tls_symbolic_operand_1 (rtx, enum tls_model);
 static void output_pic_addr_const (FILE *, rtx, int);
@@ -931,7 +931,7 @@ static enum x86_64_reg_class merge_classes (enum x86_64_reg_class,
 static REAL_VALUE_TYPE ext_80387_constants_table [5];
 static bool ext_80387_constants_init = 0;
 static void init_ext_80387_constants (void);
-
+
 /* Initialize the GCC target structure.  */
 #undef TARGET_ATTRIBUTE_TABLE
 #define TARGET_ATTRIBUTE_TABLE ix86_attribute_table
@@ -1031,7 +1031,7 @@ static void init_ext_80387_constants (void);
 #define TARGET_BUILD_BUILTIN_VA_LIST ix86_build_builtin_va_list
 
 struct gcc_target targetm = TARGET_INITIALIZER;
-
+
 /* The svr4 ABI for the i386 says that records and unions are returned
    in memory.  */
 #ifndef DEFAULT_PCC_STRUCT_RETURN
@@ -1498,7 +1498,7 @@ override_options (void)
     *p = '\0';
   }
 }
-
+
 void
 optimization_options (int level, int size ATTRIBUTE_UNUSED)
 {
@@ -1518,7 +1518,7 @@ optimization_options (int level, int size ATTRIBUTE_UNUSED)
   flag_pcc_struct_return = 2;
   flag_asynchronous_unwind_tables = 2;
 }
-
+
 /* Table of valid machine attributes.  */
 const struct attribute_spec ix86_attribute_table[] =
 {
@@ -1706,7 +1706,7 @@ ix86_comp_type_attributes (tree type1, tree type2)
     return 0;
   return 1;
 }
-
+
 /* Return the regparm value for a fuctio with the indicated TYPE and DECL.
    DECL may be NULL when calling function indirectly
    or considering a libcall.  */
@@ -1752,7 +1752,7 @@ ix86_function_regparm (tree type, tree decl)
   return regparm;
 }
 
-/* Return true if EAX is live at the start of the function.  Used by
+/* Return true if EAX is live at the start of the function.  Used by 
    ix86_expand_prologue to determine if we need special help before
    calling allocate_stack_worker.  */
 
@@ -1818,7 +1818,7 @@ ix86_return_pops_args (tree fundecl, tree funtype, int size)
 
   return 0;
 }
-
+
 /* Argument support functions.  */
 
 /* Return true when register may be used to pass function parameters.  */
@@ -2547,7 +2547,7 @@ function_arg_advance (CUMULATIVE_ARGS *cum,	/* current arg information */
    type is MODE in REGNO.  We try to minimize ABI variation, so MODE may not
    actually be valid for REGNO with the current ISA.  In this case, ALT_MODE
    is used instead.  It must be the same size as MODE, and must be known to
-   be valid for REGNO.  Finally, ORIG_MODE is the original mode of the
+   be valid for REGNO.  Finally, ORIG_MODE is the original mode of the 
    parameter, as seen by the type system.  This may be different from MODE
    when we're mucking with things minimizing ABI variations.
 
@@ -2962,7 +2962,7 @@ ix86_value_regno (enum machine_mode mode)
   /* Everything else in %eax.  */
   return 0;
 }
-
+
 /* Create the va_list data type.  */
 
 static tree
@@ -3416,7 +3416,7 @@ ix86_va_arg (tree valist, tree type)
 
   return addr_rtx;
 }
-
+
 /* Return nonzero if OP is either a i387 or SSE fp register.  */
 int
 any_fp_register_operand (rtx op, enum machine_mode mode ATTRIBUTE_UNUSED)
@@ -4361,7 +4361,7 @@ compare_operator (rtx op, enum machine_mode mode ATTRIBUTE_UNUSED)
 {
   return GET_CODE (op) == COMPARE;
 }
-
+
 /* Initialize the table of extra 80387 mathematical constants.  */
 
 static void
@@ -4552,7 +4552,7 @@ ix86_can_use_return_insn_p (void)
   ix86_compute_frame_layout (&frame);
   return frame.to_allocate == 0 && frame.nregs == 0;
 }
-
+
 /* Return 1 if VALUE can be stored in the sign extended immediate field.  */
 int
 x86_64_sign_extended_value (rtx value)
@@ -4780,7 +4780,7 @@ ix86_setup_frame_addresses (void)
 {
   cfun->machine->accesses_prev_frame = 1;
 }
-
+
 #if defined(HAVE_GAS_HIDDEN) && defined(SUPPORTS_ONE_ONLY)
 # define USE_HIDDEN_LINKONCE 1
 #else
@@ -5557,7 +5557,7 @@ ix86_output_function_epilogue (FILE *file ATTRIBUTE_UNUSED,
   if (pic_offset_table_rtx)
     REGNO (pic_offset_table_rtx) = REAL_PIC_OFFSET_TABLE_REGNUM;
 }
-
+
 /* Extract the parts of an RTL expression that is a valid memory address
    for an instruction.  Return 0 if the structure of the address is
    grossly off.  Return -1 if the address contains ASHIFT, so it is not
@@ -5711,7 +5711,7 @@ ix86_decompose_address (rtx addr, struct ix86_address *out)
 
   return retval;
 }
-
+
 /* Return cost of the memory address x.
    For i386, it is better to use a complex address than let gcc copy
    the address into a reg and make a new pseudo.  But not if the address
@@ -5770,7 +5770,7 @@ ix86_address_cost (rtx x)
 
   return cost;
 }
-
+
 /* If X is a machine specific address (i.e. a symbol or label being
    referenced as a displacement from the GOT implemented using an
    UNSPEC), then return the base term.  Otherwise return X.  */
@@ -5810,7 +5810,7 @@ ix86_find_base_term (rtx x)
 
   return term;
 }
-
+
 /* Determine if a given RTX is a valid constant.  We already know this
    satisfies CONSTANT_P.  */
 
@@ -6242,7 +6242,7 @@ legitimate_address_p (enum machine_mode mode, rtx addr, int strict)
     }
   return FALSE;
 }
-
+
 /* Return an unique alias set for the GOT.  */
 
 static HOST_WIDE_INT
@@ -6421,7 +6421,7 @@ legitimize_pic_address (rtx orig, rtx reg)
     }
   return new;
 }
-
+
 /* Load the thread pointer.  If TO_REG is true, force it into a register.  */
 
 static rtx
@@ -6750,7 +6750,7 @@ legitimize_address (rtx x, rtx oldx ATTRIBUTE_UNUSED, enum machine_mode mode)
 
   return x;
 }
-
+
 /* Print an integer constant expression in assembler syntax.  Addition
    and subtraction are the only arithmetic that may appear in these
    expressions.  FILE is the stdio stream to write to, X is the rtx, and
@@ -7006,7 +7006,7 @@ ix86_delegitimize_address (rtx orig_x)
 
   return orig_x;
 }
-
+
 static void
 put_condition_code (enum rtx_code code, enum machine_mode mode, int reverse,
 		    int fp, FILE *file)
@@ -7619,7 +7619,7 @@ print_operand (FILE *file, rtx x, int code)
 	output_addr_const (file, x);
     }
 }
-
+
 /* Print a memory operand whose address is ADDR.  */
 
 void
@@ -7811,7 +7811,7 @@ output_addr_const_extra (FILE *file, rtx x)
 
   return true;
 }
-
+
 /* Split one or more DImode RTL references into pairs of SImode
    references.  The RTL can be REG, offsettable MEM, integer constant, or
    CONST_DOUBLE.  "operands" is a pointer to an array of DImode RTL to
@@ -7870,7 +7870,7 @@ split_ti (rtx operands[], int num, rtx lo_half[], rtx hi_half[])
 	}
     }
 }
-
+
 /* Output code to perform a 387 binary operation in INSN, one of PLUS,
    MINUS, MULT or DIV.  OPERANDS are the insn operands, where operands[3]
    is the expression of the binary operation.  The output may either be
@@ -8308,7 +8308,7 @@ ix86_output_addr_diff_elt (FILE *file, int value, int rel)
     asm_fprintf (file, "%s%U%s+[.-%s%d]\n",
 		 ASM_LONG, GOT_SYMBOL_NAME, LPREFIX, value);
 }
-
+
 /* Generate either "mov $0, reg" or "xor reg, reg", as appropriate
    for the target.  */
 
@@ -11155,7 +11155,7 @@ ix86_expand_movstr (rtx dst, rtx src, rtx count_exp, rtx align_exp)
 				       GEN_INT ((count >> (size == 4 ? 2 : 3))
 						& (TARGET_64BIT ? -1 : 0x3fffffff)));
 	  countreg = ix86_zero_extend_to_Pmode (countreg);
-
+	  
 	  destexp = gen_rtx_ASHIFT (Pmode, countreg,
 				    GEN_INT (size == 4 ? 2 : 3));
 	  srcexp = gen_rtx_PLUS (Pmode, destexp, srcreg);
@@ -11903,7 +11903,7 @@ ix86_expand_call (rtx retval, rtx fnaddr, rtx callarg1,
     CALL_INSN_FUNCTION_USAGE (call) = use;
 }
 
-
+
 /* Clear stack slot assignments remembered from previous functions.
    This is called from INIT_EXPANDERS once before RTL is emitted for each
    function.  */
@@ -11965,7 +11965,7 @@ ix86_tls_get_addr (void)
 
   return ix86_tls_symbol;
 }
-
+
 /* Calculate the length of the memory address in the instruction
    encoding.  Does not include the one-byte modrm, opcode, or prefix.  */
 
@@ -12113,7 +12113,7 @@ ix86_attr_length_address_default (rtx insn)
       }
   return 0;
 }
-
+
 /* Return the maximum number of instructions a cpu can issue.  */
 
 static int
@@ -12625,7 +12625,7 @@ ia32_multipass_dfa_lookahead (void)
    return 0;
 }
 
-
+
 /* Compute the alignment given to a constant that is being placed in memory.
    EXP is the constant and ALIGN is the alignment that the object would
    ordinarily have.
@@ -12767,7 +12767,7 @@ ix86_local_alignment (tree type, int align)
     }
   return align;
 }
-
+
 /* Emit RTL insns to initialize the variable parts of a trampoline.
    FNADDR is an RTX for the address of the function's pure code.
    CXT is an RTX for the static chain value for the function.  */
@@ -12831,7 +12831,7 @@ x86_initialize_trampoline (rtx tramp, rtx fnaddr, rtx cxt)
 		     LCT_NORMAL, VOIDmode, 1, tramp, Pmode);
 #endif
 }
-
+
 #define def_builtin(MASK, NAME, TYPE, CODE)			\
 do {								\
   if ((MASK) & target_flags					\
@@ -16011,13 +16011,13 @@ ix86_expand_vector_init (rtx target, rtx vals)
   int elt_size = GET_MODE_SIZE (GET_MODE_INNER (mode));
   int n_elts = (GET_MODE_SIZE (mode) / elt_size);
   int i;
-
+  
   for (i = n_elts - 1; i >= 0; i--)
     if (GET_CODE (XVECEXP (vals, 0, i)) != CONST_INT
 	&& GET_CODE (XVECEXP (vals, 0, i)) != CONST_DOUBLE)
       break;
 
-  /* Few special cases first...
+  /* Few special cases first...  
      ... constants are best loaded from constant pool.  */
   if (i < 0)
     {

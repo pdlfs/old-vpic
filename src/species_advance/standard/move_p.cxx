@@ -3,7 +3,7 @@
 
 /* move_p moves the particle m->p by m->dispx, m->dispy, m->dispz
    depositing particle current as it goes. If the particle was moved
-   sucessfully (particle mover is no longer in use) returns 0. If the
+   sucessfully (particle mover is no longer in use) returns 0. If the  
    particle interacted with something this routine could not handle,
    this routine returns 1 (particle mover is still in use). On a
    successful move, the particle position is updated and m->dispx,
@@ -12,7 +12,7 @@
    m->dispx, m->dispy, m->dispz contains the remaining particle
    displacement. The displacements are the physical displacments
    normalized current cell size.
-
+  
    Because move_p is internal use only and frequently called, it does
    not check its input arguments. Higher level routines are
    responsible for insuring valid arguments. */
@@ -23,7 +23,7 @@
 
 #ifndef RESTRICT
 #define RESTRICT __restrict
-#endif
+#endif 
 
 using namespace v4;
 
@@ -61,10 +61,10 @@ move_p( particle_t       * RESTRICT ALIGNED(128) p,
 
   q  = splat( u, 3 );          // q  = p_q,   p_q,   p_q,   D/C
   q3 = one_third*q;            // q3 = p_q/3, p_q/3, p_q/3, D/C
-  dr = shuffle( dr, 0,1,2,2 ); // dr = p_ddx, p_ddy, p_ddz, D/C
+  dr = shuffle( dr, 0,1,2,2 ); // dr = p_ddx, p_ddy, p_ddz, D/C 
   r  = shuffle( r,  0,1,2,2 ); // r  = p_dx,  p_dy,  p_dz,  D/C
   u  = shuffle( u,  0,1,2,2 ); // u  = p_ux,  p_uy,  p_uz,  D/C
-
+  
   store_4x1( v4int( -1,  0,  0, 0 ), &element[0] );
   store_4x1( v4int(  0, -1,  0, 0 ), &element[1] );
   store_4x1( v4int(  0,  0, -1, 0 ), &element[2] );
@@ -85,7 +85,7 @@ move_p( particle_t       * RESTRICT ALIGNED(128) p,
        streak made by the particle through this voxel.  The streak
        ends on either the first voxel face intersected by the
        particle track or at the end of the particle track.
-
+      
        Note: a divide by zero cannot occur below due to the shift of
        the denominator by tiny.  Also, the shift by tiny is large
        enough that the divide will never overflow when dr is tiny
@@ -156,7 +156,7 @@ move_p( particle_t       * RESTRICT ALIGNED(128) p,
     /* If streak ended at the end of the particle track, this mover
        was succesfully processed.  Should be just under ~50% of the
        time. */
-
+       
     if( type==3 ) {
       store_4x1( r, &p[n].dx ); p[n].i = voxel;
       break;
@@ -190,7 +190,7 @@ move_p( particle_t       * RESTRICT ALIGNED(128) p,
     if( neighbor>=g->rangel && neighbor<=g->rangeh ) {
 
       /* Crossed into a normal voxel */
-
+      
       voxel = (int32_t)( neighbor - g->rangel );
       r = toggle_bits( bits, r );
 
@@ -205,11 +205,11 @@ move_p( particle_t       * RESTRICT ALIGNED(128) p,
       store_4x1( u, &p[n].ux );
 
     } else {
-
+        
       /* Cannot handle the boundary condition here.  Save the updated
          particle position and update the remaining displacement in
          the particle mover. */
-
+      
       store_4x1( r, &p[n].dx );    p[n].i = voxel;
       store_4x1( dr, &pm->dispx ); pm->i  = n;
       return 1;
@@ -248,7 +248,7 @@ move_p( particle_t       * ALIGNED(128) p0,
     s_dir[0] = (s_dispx>0) ? 1 : -1;
     s_dir[1] = (s_dispy>0) ? 1 : -1;
     s_dir[2] = (s_dispz>0) ? 1 : -1;
-
+    
     // Compute the twice the fractional distance to each potential
     // streak/cell face intersection.
     v0 = (s_dispx==0) ? 3.4e38 : (s_dir[0]-s_midx)/s_dispx;
@@ -258,7 +258,7 @@ move_p( particle_t       * ALIGNED(128) p0,
     // Determine the fractional length and type of current streak. The
     // streak ends on either the first face intersected by the
     // particle track or at the end of the particle track.
-    //
+    // 
     //   type 0,1 or 2 ... streak ends on a x,y or z-face respectively
     //   type 3        ... streak ends at end of the particle track
     /**/      v3=2,  type=3;

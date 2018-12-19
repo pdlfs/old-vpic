@@ -1,4 +1,4 @@
-/*
+/* 
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -39,7 +39,7 @@ partition_periodic_box( grid_t * g,
                         int gnx, int gny, int gnz,
                         int gpx, int gpy, int gpz ) {
   double f;
-  int rank, nproc, px, py, pz;
+  int rank, nproc, px, py, pz; 
 
   // Make sure the grid can be setup
   if( g==NULL                      ) ERROR(("Bad grid"));
@@ -91,7 +91,7 @@ partition_absorbing_box( grid_t * g,
                          int gnx, int gny, int gnz,
                          int gpx, int gpy, int gpz,
                          int pbc ) {
-  int rank, nproc, px, py, pz;
+  int rank, nproc, px, py, pz; 
 
   partition_periodic_box( g,
                           gx0, gy0, gz0,
@@ -105,29 +105,29 @@ partition_absorbing_box( grid_t * g,
   nproc = mp_nproc(g->mp);
   RANK_TO_INDEX(rank,px,py,pz);
 
-  if( px==0 && gnx>1 ) {
+  if( px==0 && gnx>1 ) { 
     set_fbc(g,BOUNDARY(-1,0,0),absorb_fields);
     set_pbc(g,BOUNDARY(-1,0,0),pbc);
-  }
+  } 
   if( px==gpx-1 && gnx>1 ) {
     set_fbc(g,BOUNDARY( 1,0,0),absorb_fields);
     set_pbc(g,BOUNDARY( 1,0,0),pbc);
   }
 
-  if( py==0 && gny>1 ) {
+  if( py==0 && gny>1 ) { 
     set_fbc(g,BOUNDARY(0,-1,0),absorb_fields);
     set_pbc(g,BOUNDARY(0,-1,0),pbc);
-  }
+  } 
 
   if( py==gpy-1 && gny>1 ) {
     set_fbc(g,BOUNDARY(0, 1,0),absorb_fields);
     set_pbc(g,BOUNDARY(0, 1,0),pbc);
   }
 
-  if( pz==0 && gnz>1 ) {
+  if( pz==0 && gnz>1 ) { 
     set_fbc(g,BOUNDARY(0,0,-1),absorb_fields);
     set_pbc(g,BOUNDARY(0,0,-1),pbc);
-  }
+  } 
 
   if( pz==gpz-1 && gnz>1 ) {
     set_fbc(g,BOUNDARY(0,0, 1),absorb_fields);
@@ -164,7 +164,7 @@ partition_absorbing_box( grid_t * g,
 			 ERROR(("Invalid id in boundary(low): %ld %ld %ld %ld %ld %ld %ld, (%d, %d, %d)",
 			 	g->rangel, g->neighbor[i+0], g->neighbor[i+1], g->neighbor[i+2],
 				g->neighbor[i+3], g->neighbor[i+4], g->neighbor[i+5], x, y, z));
-		   } // if
+		   } // if 
 
 	       if((g->neighbor[i+0] >= g->rangeh) ||
 	         (g->neighbor[i+1]  >= g->rangeh) ||
@@ -175,7 +175,7 @@ partition_absorbing_box( grid_t * g,
 			 ERROR(("Invalid id in boundary(high): %ld %ld %ld %ld %ld %ld %ld",
 			 	g->rangeh, g->neighbor[i+0], g->neighbor[i+1], g->neighbor[i+2],
 				g->neighbor[i+3], g->neighbor[i+4], g->neighbor[i+5]));
-		   } // if
+		   } // if 
 		} // if
       } // for
     } // for
@@ -192,7 +192,7 @@ partition_metal_box( grid_t * g,
                      double gx1, double gy1, double gz1,
                      int gnx, int gny, int gnz,
                      int gpx, int gpy, int gpz ) {
-  int rank, nproc, px, py, pz;
+  int rank, nproc, px, py, pz; 
 
   partition_periodic_box( g,
                           gx0, gy0, gz0,

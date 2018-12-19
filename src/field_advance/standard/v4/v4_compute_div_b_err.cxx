@@ -16,7 +16,7 @@ pipeline( pipeline_args_t * args,
           int n_pipeline ) {
   field_t      * ALIGNED(128) f = args->f;
   const grid_t *              g = args->g;
-
+  
   field_t * ALIGNED(16) f0;
   field_t * ALIGNED(16) fx, * ALIGNED(16) fy, * ALIGNED(16) fz;
   int x, y, z, n_voxel;
@@ -30,7 +30,7 @@ pipeline( pipeline_args_t * args,
   const float pz = (nz>1) ? g->rdz : 0;
 
   // Process the voxels assigned to this pipeline
-
+  
   n_voxel = distribute_voxels( 1,nx, 1,ny, 1,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
@@ -48,7 +48,7 @@ pipeline( pipeline_args_t * args,
 	            py*( fy->cby - f0->cby ) +
                     pz*( fz->cbz - f0->cbz );
     f0++; fx++; fy++; fz++;
-
+    
     x++;
     if( x>nx ) {
       x=1, y++;
@@ -98,8 +98,8 @@ v4_pipeline( pipeline_args_t * args,
   field_t * ALIGNED(16) fy0, * ALIGNED(16) fy1, * ALIGNED(16) fy2, * ALIGNED(16) fy3; // Voxel quad +x neighbors
   field_t * ALIGNED(16) fz0, * ALIGNED(16) fz1, * ALIGNED(16) fz2, * ALIGNED(16) fz3; // Voxel quad +x neighbors
 
-  // Process the voxels assigned to this pipeline
-
+  // Process the voxels assigned to this pipeline 
+  
   n_voxel = distribute_voxels( 1,nx, 1,ny, 1,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
@@ -149,10 +149,10 @@ void
 v4_compute_div_b_err( field_t      * ALIGNED(128) f,
                       const grid_t *              g ) {
   pipeline_args_t args[1];
-
+  
   if( f==NULL ) ERROR(("Bad field"));
   if( g==NULL ) ERROR(("Bad grid"));
-
+  
 # if 0 // Original non-pipelined version
   for( z=1; z<=nz; z++ ) {
     for( y=1; y<=ny; y++ ) {

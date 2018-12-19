@@ -708,7 +708,7 @@ const char *ix86_align_funcs_string;
 /* Prefix built by ASM_GENERATE_INTERNAL_LABEL.  */
 static char internal_label_prefix[16];
 static int internal_label_prefix_len;
-
+
 static int local_symbolic_operand PARAMS ((rtx, enum machine_mode));
 static int tls_symbolic_operand_1 PARAMS ((rtx, enum tls_model));
 static void output_pic_addr_const PARAMS ((FILE *, rtx, int));
@@ -839,7 +839,7 @@ static rtx construct_container PARAMS ((enum machine_mode, tree, int, int, int,
 					const int *, int));
 static enum x86_64_reg_class merge_classes PARAMS ((enum x86_64_reg_class,
 						    enum x86_64_reg_class));
-
+
 /* Initialize the GCC target structure.  */
 #undef TARGET_ATTRIBUTE_TABLE
 #define TARGET_ATTRIBUTE_TABLE ix86_attribute_table
@@ -911,7 +911,7 @@ static enum x86_64_reg_class merge_classes PARAMS ((enum x86_64_reg_class,
 #define TARGET_ASM_CAN_OUTPUT_MI_THUNK x86_can_output_mi_thunk
 
 struct gcc_target targetm = TARGET_INITIALIZER;
-
+
 /* The svr4 ABI for the i386 says that records and unions are returned
    in memory.  */
 #ifndef DEFAULT_PCC_STRUCT_RETURN
@@ -1343,7 +1343,7 @@ override_options ()
     *p = '\0';
   }
 }
-
+
 void
 optimization_options (level, size)
      int level;
@@ -1365,7 +1365,7 @@ optimization_options (level, size)
   flag_pcc_struct_return = 2;
   flag_asynchronous_unwind_tables = 2;
 }
-
+
 /* Table of valid machine attributes.  */
 const struct attribute_spec ix86_attribute_table[] =
 {
@@ -1477,7 +1477,7 @@ ix86_comp_type_attributes (type1, type2)
     return 0;
   return 1;
 }
-
+
 /* Return the regparm value for a fuctio with the indicated TYPE.  */
 
 static int
@@ -1544,7 +1544,7 @@ ix86_return_pops_args (fundecl, funtype, size)
 
   return 0;
 }
-
+
 /* Argument support functions.  */
 
 /* Return true when register may be used to pass function parameters.  */
@@ -2403,7 +2403,7 @@ ix86_function_arg_boundary (mode, type)
     {
       /* i386 ABI defines all arguments to be 4 byte aligned.  We have to
 	 make an exception for SSE modes since these require 128bit
-	 alignment.
+	 alignment.  
 
 	 The handling here differs from field_alignment.  ICC aligns MMX
 	 arguments to 4 byte boundaries, while structure fields are aligned
@@ -2564,7 +2564,7 @@ ix86_value_regno (mode)
   /* Everything else in %eax.  */
   return 0;
 }
-
+
 /* Create the va_list data type.  */
 
 tree
@@ -3025,7 +3025,7 @@ ix86_va_arg (valist, type)
 
   return addr_rtx;
 }
-
+
 /* Return nonzero if OP is either a i387 or SSE fp register.  */
 int
 any_fp_register_operand (op, mode)
@@ -3947,7 +3947,7 @@ aligned_operand (op, mode)
   /* Didn't find one -- this must be an aligned address.  */
   return 1;
 }
-
+
 /* Return true if the constant is something that can be loaded with
    a special instruction.  Only handle 0.0 and 1.0; others are less
    worthwhile.  */
@@ -4044,7 +4044,7 @@ ix86_can_use_return_insn_p ()
   ix86_compute_frame_layout (&frame);
   return frame.to_allocate == 0 && frame.nregs == 0;
 }
-
+
 /* Return 1 if VALUE can be stored in the sign extended immediate field.  */
 int
 x86_64_sign_extended_value (value)
@@ -4268,7 +4268,7 @@ ix86_setup_frame_addresses ()
 {
   cfun->machine->accesses_prev_frame = 1;
 }
-
+
 #if defined(HAVE_GAS_HIDDEN) && (defined(SUPPORTS_ONE_ONLY) && SUPPORTS_ONE_ONLY)
 # define USE_HIDDEN_LINKONCE 1
 #else
@@ -4980,7 +4980,7 @@ ix86_output_function_epilogue (file, size)
   if (pic_offset_table_rtx)
     REGNO (pic_offset_table_rtx) = REAL_PIC_OFFSET_TABLE_REGNUM;
 }
-
+
 /* Extract the parts of an RTL expression that is a valid memory address
    for an instruction.  Return 0 if the structure of the address is
    grossly off.  Return -1 if the address contains ASHIFT, so it is not
@@ -5110,7 +5110,7 @@ ix86_decompose_address (addr, out)
 
   return retval;
 }
-
+
 /* Return cost of the memory address x.
    For i386, it is better to use a complex address than let gcc copy
    the address into a reg and make a new pseudo.  But not if the address
@@ -5168,7 +5168,7 @@ ix86_address_cost (x)
 
   return cost;
 }
-
+
 /* If X is a machine specific address (i.e. a symbol or label being
    referenced as a displacement from the GOT implemented using an
    UNSPEC), then return the base term.  Otherwise return X.  */
@@ -5223,7 +5223,7 @@ ix86_find_base_term (x)
 
   return term;
 }
-
+
 /* Determine if a given RTX is a valid constant.  We already know this
    satisfies CONSTANT_P.  */
 
@@ -5674,7 +5674,7 @@ legitimate_address_p (mode, addr, strict)
     }
   return FALSE;
 }
-
+
 /* Return an unique alias set for the GOT.  */
 
 static HOST_WIDE_INT
@@ -5926,7 +5926,7 @@ ix86_strip_name_encoding (str)
     str += 1;
   return str;
 }
-
+
 /* Load the thread pointer into a register.  */
 
 static rtx
@@ -6244,7 +6244,7 @@ legitimize_address (x, oldx, mode)
 
   return x;
 }
-
+
 /* Print an integer constant expression in assembler syntax.  Addition
    and subtraction are the only arithmetic that may appear in these
    expressions.  FILE is the stdio stream to write to, X is the rtx, and
@@ -6509,7 +6509,7 @@ i386_simplify_dwarf_addr (orig_x)
 
   return orig_x;
 }
-
+
 static void
 put_condition_code (code, mode, reverse, fp, file)
      enum rtx_code code;
@@ -7124,7 +7124,7 @@ print_operand (file, x, code)
 	output_addr_const (file, x);
     }
 }
-
+
 /* Print a memory operand whose address is ADDR.  */
 
 void
@@ -7319,7 +7319,7 @@ output_addr_const_extra (file, x)
 
   return true;
 }
-
+
 /* Split one or more DImode RTL references into pairs of SImode
    references.  The RTL can be REG, offsettable MEM, integer constant, or
    CONST_DOUBLE.  "operands" is a pointer to an array of DImode RTL to
@@ -7384,7 +7384,7 @@ split_ti (operands, num, lo_half, hi_half)
 	}
     }
 }
-
+
 /* Output code to perform a 387 binary operation in INSN, one of PLUS,
    MINUS, MULT or DIV.  OPERANDS are the insn operands, where operands[3]
    is the expression of the binary operation.  The output may either be
@@ -7831,7 +7831,7 @@ ix86_output_addr_diff_elt (file, value, rel)
     asm_fprintf (file, "%s%U%s+[.-%s%d]\n",
 		 ASM_LONG, GOT_SYMBOL_NAME, LPREFIX, value);
 }
-
+
 /* Generate either "mov $0, reg" or "xor reg, reg", as appropriate
    for the target.  */
 
@@ -11102,7 +11102,7 @@ ix86_expand_call (retval, fnaddr, callarg1, callarg2, pop)
     CALL_INSN_FUNCTION_USAGE (call) = use;
 }
 
-
+
 /* Clear stack slot assignments remembered from previous functions.
    This is called from INIT_EXPANDERS once before RTL is emitted for each
    function.  */
@@ -11151,7 +11151,7 @@ ix86_tls_get_addr ()
 
   return ix86_tls_symbol;
 }
-
+
 /* Calculate the length of the memory address in the instruction
    encoding.  Does not include the one-byte modrm, opcode, or prefix.  */
 
@@ -11303,7 +11303,7 @@ ix86_attr_length_address_default (insn)
       }
   return 0;
 }
-
+
 /* Return the maximum number of instructions a cpu can issue.  */
 
 static int
@@ -11830,7 +11830,7 @@ ia32_multipass_dfa_lookahead ()
    return 0;
 }
 
-
+
 /* Walk through INSNS and look for MEM references whose address is DSTREG or
    SRCREG and set the memory attribute to those of DSTREF and SRCREF, as
    appropriate.  */
@@ -11876,7 +11876,7 @@ ix86_set_move_mem_attrs_1 (x, dstref, srcref, dstreg, srcreg)
 				     dstreg, srcreg);
     }
 }
-
+
 /* Compute the alignment given to a constant that is being placed in memory.
    EXP is the constant and ALIGN is the alignment that the object would
    ordinarily have.
@@ -12024,7 +12024,7 @@ ix86_local_alignment (type, align)
     }
   return align;
 }
-
+
 /* Emit RTL insns to initialize the variable parts of a trampoline.
    FNADDR is an RTX for the address of the function's pure code.
    CXT is an RTX for the static chain value for the function.  */
@@ -12089,7 +12089,7 @@ x86_initialize_trampoline (tramp, fnaddr, cxt)
 		     LCT_NORMAL, VOIDmode, 1, tramp, Pmode);
 #endif
 }
-
+
 #define def_builtin(MASK, NAME, TYPE, CODE)			\
 do {								\
   if ((MASK) & target_flags					\
@@ -14144,7 +14144,7 @@ ix86_register_move_cost (mode, class1, class2)
      enum reg_class class1, class2;
 {
   /* In case we require secondary memory, compute cost of the store followed
-     by load.  In order to avoid bad register allocation choices, we need
+     by load.  In order to avoid bad register allocation choices, we need 
      for this to be *at least* as high as the symmetric MEMORY_MOVE_COST.  */
 
   if (ix86_secondary_memory_needed (class1, class2, mode, 0))
@@ -14155,7 +14155,7 @@ ix86_register_move_cost (mode, class1, class2)
 		   MEMORY_MOVE_COST (mode, class1, 1));
       cost += MAX (MEMORY_MOVE_COST (mode, class2, 0),
 		   MEMORY_MOVE_COST (mode, class2, 1));
-
+      
       /* In case of copying from general_purpose_register we may emit multiple
          stores followed by single load causing memory size mismatch stall.
          Count this as arbitarily high cost of 20.  */
@@ -14367,9 +14367,9 @@ machopic_output_stub (file, symb, stub)
     }
   else
     fprintf (file, "\tjmp *%s\n", lazy_ptr_name);
-
+  
   fprintf (file, "%s:\n", binder_name);
-
+  
   if (MACHOPIC_PURE)
     {
       fprintf (file, "\tlea %s-LPC$%d(%%eax),%%eax\n", lazy_ptr_name, label);
@@ -14679,7 +14679,7 @@ x86_function_profiler (file, labelno)
     }
 }
 
-/* Implement machine specific optimizations.
+/* Implement machine specific optimizations.  
    At the moment we implement single transformation: AMD Athlon works faster
    when RET is not destination of conditional jump or directly preceeded
    by other jump instruction.  We avoid the penalty by inserting NOP just

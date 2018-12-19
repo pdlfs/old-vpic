@@ -15,24 +15,24 @@ pipeline( pipeline_args_t * args,
           int n_pipeline ) {
   const field_t * ALIGNED(128) f = args->f;
   const grid_t  *              g = args->g;
-
+    
   const field_t * ALIGNED(16) f0;
   const field_t * ALIGNED(16) fx,  * ALIGNED(16) fy,  * ALIGNED(16) fz;
   const field_t * ALIGNED(16) fyz, * ALIGNED(16) fzx, * ALIGNED(16) fxy;
   int x, y, z, n_voxel;
-
+  
   const int nx = g->nx;
   const int ny = g->ny;
   const int nz = g->nz;
 
   double en_ex, en_ey, en_ez, en_bx, en_by, en_bz;
-
+  
   // Process voxels assigned to this pipeline
-
+  
   n_voxel = distribute_voxels( 1,nx, 1,ny, 1,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
-
+  
 # define LOAD_STENCIL()  \
   f0  = &f(x,  y,  z  ); \
   fx  = &f(x+1,y,  z  ); \
@@ -41,7 +41,7 @@ pipeline( pipeline_args_t * args,
   fyz = &f(x,  y+1,z+1); \
   fzx = &f(x+1,y,  z+1); \
   fxy = &f(x+1,y+1,z  )
-
+  
   LOAD_STENCIL();
 
   // FOR VACUUM REGIONS, THIS COULD BE ACCELERATED
@@ -52,15 +52,15 @@ pipeline( pipeline_args_t * args,
 
     en_ex += 0.25*( f0->ex * f0->ex +
                     fy->ex * fy->ex +
-                    fz->ex * fz->ex +
+                    fz->ex * fz->ex + 
                     fyz->ex*fyz->ex );
     en_ey += 0.25*( f0->ey * f0->ey +
                     fz->ey * fz->ey +
-                    fx->ey * fx->ey +
+                    fx->ey * fx->ey + 
                     fzx->ey*fzx->ey );
     en_ez += 0.25*( f0->ez * f0->ez +
                     fx->ez * fx->ez +
-                    fy->ez * fy->ez +
+                    fy->ez * fy->ez + 
                     fxy->ez*fxy->ez );
 
     en_bx += 0.5 *( f0->cbx* f0->cbx +
@@ -71,7 +71,7 @@ pipeline( pipeline_args_t * args,
                     fz->cbz* fz->cbz );
 
     f0++; fx++; fy++; fz++; fyz++; fzx++; fxy++;
-
+    
     x++;
     if( x>nx ) {
       x=1, y++;
@@ -98,7 +98,7 @@ vfa_energy_f( double                       *              global,
   pipeline_args_t args[1];
   double v0;
   int p;
-
+  
   if( global==NULL ) ERROR(("Bad energy"));
   if( f==NULL )      ERROR(("Bad field"));
   if( g==NULL )      ERROR(("Bad grid"));
@@ -115,24 +115,24 @@ vfa_energy_f( double                       *              global,
       fzx = &f(2,y,  z+1);
       fxy = &f(2,y+1,z  );
       for( x=1; x<=nx; x++ ) {
-
+      
         // FIXME: CHECK IF THIS IS THE CORRECT LAGRANGIAN DEFINITION
-
+         
          en_ex += 0.25*(  f0->ex * f0->ex +
                           fy->ex * fy->ex +
-                          fz->ex * fz->ex +
+                          fz->ex * fz->ex + 
                          fyz->ex *fyz->ex );
 
          en_ey += 0.25*(  f0->ey * f0->ey +
                           fz->ey * fz->ey +
-                          fx->ey * fx->ey +
+                          fx->ey * fx->ey + 
                          fzx->ey *fzx->ey );
-
+                            
          en_ez += 0.25*(  f0->ez * f0->ez +
                           fx->ez * fx->ez +
-                          fy->ez * fy->ez +
+                          fy->ez * fy->ez + 
                          fxy->ez *fxy->ez );
-
+         
          en_bx += 0.5 *(  f0->cbx* f0->cbx +
                           fx->cbx* fx->cbx );
 
@@ -141,7 +141,7 @@ vfa_energy_f( double                       *              global,
 
          en_bz += 0.5 *(  f0->cbz* f0->cbz +
                           fz->cbz* fz->cbz );
-
+                            
          f0++; fx++; fy++; fz++; fyz++; fzx++; fxy++;
       }
     }
@@ -149,7 +149,7 @@ vfa_energy_f( double                       *              global,
 # endif
 
   // Have each pipelines work on a portion of the local voxels
-
+  
   args->f = f;
   args->g = g;
 
@@ -157,15 +157,15 @@ vfa_energy_f( double                       *              global,
   WAIT_PIPELINES();
 
   // Reduce results from each pipelines
-
+  
   for( p=1; p<=N_PIPELINE; p++ ) {
     args->en[0][0] += args->en[p][0]; args->en[0][1] += args->en[p][1];
     args->en[0][2] += args->en[p][2]; args->en[0][3] += args->en[p][3];
     args->en[0][4] += args->en[p][4]; args->en[0][5] += args->en[p][5];
   }
-
+    
   // Convert to physical units and reduce results between nodes
-
+  
   v0 = 0.5*g->eps0*g->dx*g->dy*g->dz;
   args->en[0][0] *= v0; args->en[0][1] *= v0;
   args->en[0][2] *= v0; args->en[0][3] *= v0;

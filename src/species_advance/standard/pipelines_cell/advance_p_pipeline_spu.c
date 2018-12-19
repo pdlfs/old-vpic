@@ -163,7 +163,7 @@ voxel_cache_init( void ) {
 // called.  WARNING: This routine may silently overwrite cached data
 // if used naively.  Read the guarantee that "voxel_cache_wait"
 // provides _carefully_.
-//
+// 
 // The user has the option of providing the hash of the
 // voxel_cache_fetch in case it they can use vector instructions to
 // produce the hash faster.
@@ -181,15 +181,15 @@ _voxel_cache_fetch( uint32_t addr,
   // Lookup addr in the cache - O(1)
 
   hash_i = hash_addr;
-  while( UNLIKELY( (voxel_cache_key[hash_i]!=addr      ) & // YES! A BIT AND
+  while( UNLIKELY( (voxel_cache_key[hash_i]!=addr      ) & // YES! A BIT AND 
                    (voxel_cache_key[hash_i]!=0xffffffff) ) )
     hash_i = ( hash_i + 1 ) & ( VOXEL_CACHE_N_HASH - 1 );
   line = voxel_cache_val[hash_i];
 
   if( LIKELY( line!=0xffffffff ) ) { // Cache hit
-
+    
     // Mark this cache line as the most recently used
-
+    
     if( UNLIKELY( voxel_cache_next[line]!=voxel_cache_lru ) ) {
       if( UNLIKELY( line==voxel_cache_lru ) ) {
         voxel_cache_lru = voxel_cache_next[voxel_cache_lru];
@@ -198,12 +198,12 @@ _voxel_cache_fetch( uint32_t addr,
         // Remove this cache line from the cache line replacement
         // sequence.  Then insert this cache line just before the
         // least recently used line in the replacement sequence.
-
+      
         next = voxel_cache_next[line];
         prev = voxel_cache_prev[line];
         voxel_cache_next[prev] = next;
         voxel_cache_prev[next] = prev;
-
+           
         next = voxel_cache_lru;
         prev = voxel_cache_prev[next];
         voxel_cache_next[line] = next;
@@ -213,7 +213,7 @@ _voxel_cache_fetch( uint32_t addr,
 
       }
     }
-
+    
   } else { // Cache miss
 
     // We will fill the least recently used line with the data at addr
@@ -263,13 +263,13 @@ _voxel_cache_fetch( uint32_t addr,
     // need to wait until the channel used for the writeback is free.
 
     // Flush out the old accumulator as necessary.
-
+   
     old_addr = voxel_cache_addr[line];
 
     if( LIKELY( old_addr!=0xffffffff ) ) {
 
-      uint32_t channel = A_CACHE_DMA_CHANNEL(old_addr);
-
+      uint32_t channel = A_CACHE_DMA_CHANNEL(old_addr);     
+      
       // Wait for the writeback channel to become free
 
       mfc_write_tag_mask( 1 << channel );
@@ -299,7 +299,7 @@ _voxel_cache_fetch( uint32_t addr,
     voxel_cache_lru = voxel_cache_next[line];
 
     // Update the cache tag
-
+    
     voxel_cache_addr[line] = addr;
 
     // If we had to flush previously cached data, remove the map of
@@ -310,7 +310,7 @@ _voxel_cache_fetch( uint32_t addr,
 
       hash_i = VOXEL_CACHE_HASH(old_addr);
       while( UNLIKELY( voxel_cache_key[hash_i]!=old_addr ) )
-        hash_i = ( hash_i + 1 ) & ( VOXEL_CACHE_N_HASH - 1 );
+        hash_i = ( hash_i + 1 ) & ( VOXEL_CACHE_N_HASH - 1 );     
 
       hash_j = hash_i;
       for(;;) {
@@ -340,7 +340,7 @@ _voxel_cache_fetch( uint32_t addr,
       hash_i = ( hash_i + 1 ) & ( VOXEL_CACHE_N_HASH - 1 );
     voxel_cache_key[hash_i] = addr;
     voxel_cache_val[hash_i] = line;
-
+  
   }
 
   return line;
@@ -377,7 +377,7 @@ voxel_cache_writeback( void ) {
   uint32_t addr;
   uint32_t line;
   uint32_t channel;
-
+  
   // Wait for all DMA channels to become clear to begin
   // writing out the cache accumulators
 
@@ -473,13 +473,13 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
   vec_uint4 vp;                                                                  vec_uint4 vp_1;                                                                vec_uint4 vp_2;                                                                vec_uint4 vp_3;
 
   vec_float4 dx,   dy,   dz;   vec_uint4 i;                                      vec_float4 dx_1, dy_1, dz_1; vec_uint4 i_1;                                    vec_float4 dx_2, dy_2, dz_2; vec_uint4 i_2;                                    vec_float4 dx_3, dy_3, dz_3; vec_uint4 i_3;
-  vec_float4 ux,   uy,   uz,   q;                                                vec_float4 ux_1, uy_1, uz_1, q_1;                                              vec_float4 ux_2, uy_2, uz_2, q_2;                                              vec_float4 ux_3, uy_3, uz_3, q_3;
+  vec_float4 ux,   uy,   uz,   q;                                                vec_float4 ux_1, uy_1, uz_1, q_1;                                              vec_float4 ux_2, uy_2, uz_2, q_2;                                              vec_float4 ux_3, uy_3, uz_3, q_3; 
 
   vec_float4 ex0,    dexdy,    dexdz,   d2exdydz;                                vec_float4 ex0_1,  dexdy_1,  dexdz_1, d2exdydz_1;                              vec_float4 ex0_2,  dexdy_2,  dexdz_2, d2exdydz_2;                              vec_float4 ex0_3,  dexdy_3,  dexdz_3, d2exdydz_3;
   vec_float4 ey0,    deydz,    deydx,   d2eydzdx;                                vec_float4 ey0_1,  deydz_1,  deydx_1, d2eydzdx_1;                              vec_float4 ey0_2,  deydz_2,  deydx_2, d2eydzdx_2;                              vec_float4 ey0_3,  deydz_3,  deydx_3, d2eydzdx_3;
   vec_float4 ez0,    dezdx,    dezdy,   d2ezdxdy;                                vec_float4 ez0_1,  dezdx_1,  dezdy_1, d2ezdxdy_1;                              vec_float4 ez0_2,  dezdx_2,  dezdy_2, d2ezdxdy_2;                              vec_float4 ez0_3,  dezdx_3,  dezdy_3, d2ezdxdy_3;
   vec_float4 cbx0,   dcbxdx,   cby0,    dcbydy;                                  vec_float4 cbx0_1, dcbxdx_1, cby0_1,  dcbydy_1;                                vec_float4 cbx0_2, dcbxdx_2, cby0_2,  dcbydy_2;                                vec_float4 cbx0_3, dcbxdx_3, cby0_3,  dcbydy_3;
-  vec_float4 cbz0,   dcbzdz,   v12,     v13;                                     vec_float4 cbz0_1, dcbzdz_1, v12_1,   v13_1;                                   vec_float4 cbz0_2, dcbzdz_2, v12_2,   v13_2;                                   vec_float4 cbz0_3, dcbzdz_3, v12_3,   v13_3;
+  vec_float4 cbz0,   dcbzdz,   v12,     v13;                                     vec_float4 cbz0_1, dcbzdz_1, v12_1,   v13_1;                                   vec_float4 cbz0_2, dcbzdz_2, v12_2,   v13_2;                                   vec_float4 cbz0_3, dcbzdz_3, v12_3,   v13_3; 
 
   vec_float4 hax,   hay,   haz;                                                  vec_float4 hax_1, hay_1, haz_1;                                                vec_float4 hax_2, hay_2, haz_2;                                                vec_float4 hax_3, hay_3, haz_3;
   vec_float4 cbx,   cby,   cbz;                                                  vec_float4 cbx_1, cby_1, cbz_1;                                                vec_float4 cbx_2, cby_2, cbz_2;                                                vec_float4 cbx_3, cby_3, cbz_3;
@@ -489,15 +489,15 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
   vec_float4 wx0,   wy0,   wz0;                                                  vec_float4 wx0_1, wy0_1, wz0_1;                                                vec_float4 wx0_2, wy0_2, wz0_2;                                                vec_float4 wx0_3, wy0_3, wz0_3;
   vec_float4 uxh,   uyh,   uzh;                                                  vec_float4 uxh_1, uyh_1, uzh_1;                                                vec_float4 uxh_2, uyh_2, uzh_2;                                                vec_float4 uxh_3, uyh_3, uzh_3;
 
-  vec_float4 rgamma;                                                             vec_float4 rgamma_1;                                                           vec_float4 rgamma_2;                                                           vec_float4 rgamma_3;
+  vec_float4 rgamma;                                                             vec_float4 rgamma_1;                                                           vec_float4 rgamma_2;                                                           vec_float4 rgamma_3; 
   vec_float4 ddx,   ddy,   ddz;                                                  vec_float4 ddx_1, ddy_1, ddz_1;                                                vec_float4 ddx_2, ddy_2, ddz_2;                                                vec_float4 ddx_3, ddy_3, ddz_3;
   vec_float4 dxh,   dyh,   dzh;                                                  vec_float4 dxh_1, dyh_1, dzh_1;                                                vec_float4 dxh_2, dyh_2, dzh_2;                                                vec_float4 dxh_3, dyh_3, dzh_3;
   vec_float4 dx1,   dy1,   dz1;                                                  vec_float4 dx1_1, dy1_1, dz1_1;                                                vec_float4 dx1_2, dy1_2, dz1_2;                                                vec_float4 dx1_3, dy1_3, dz1_3;
-  vec_uint4  outbnd;                                                             vec_uint4  outbnd_1;                                                           vec_uint4  outbnd_2;                                                           vec_uint4  outbnd_3;
+  vec_uint4  outbnd;                                                             vec_uint4  outbnd_1;                                                           vec_uint4  outbnd_2;                                                           vec_uint4  outbnd_3; 
   uint32_t gather;                                                               uint32_t gather_1;                                                             uint32_t gather_2;                                                             uint32_t gather_3;
 
   vec_float4 qa,   ccc;                                                          vec_float4 qa_1, ccc_1;                                                        vec_float4 qa_2, ccc_2;                                                        vec_float4 qa_3, ccc_3;
-
+ 
   vec_float4 a0x,   a1x,   a2x,   a3x,   a4x;                                    vec_float4 a0x_1, a1x_1, a2x_1, a3x_1, a4x_1;                                  vec_float4 a0x_2, a1x_2, a2x_2, a3x_2, a4x_2;                                  vec_float4 a0x_3, a1x_3, a2x_3, a3x_3, a4x_3;
   vec_float4 a0y,   a1y,   a2y,   a3y,   a4y;                                    vec_float4 a0y_1, a1y_1, a2y_1, a3y_1, a4y_1;                                  vec_float4 a0y_2, a1y_2, a2y_2, a3y_2, a4y_2;                                  vec_float4 a0y_3, a1y_3, a2y_3, a3y_3, a4y_3;
   vec_float4 a0z,   a1z,   a2z,   a3z,   a4z;                                    vec_float4 a0z_1, a1z_1, a2z_1, a3z_1, a4z_1;                                  vec_float4 a0z_2, a1z_2, a2z_2, a3z_2, a4z_2;                                  vec_float4 a0z_3, a1z_3, a2z_3, a3z_3, a4z_3;
@@ -551,10 +551,10 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
     LOAD_4x1( &fi->ez,  c );                    \
     LOAD_4x1( &fi->cbx, d );                    \
     LOAD_4x1( &fi->cbz, e )
-
+     
     vp   = ADD( v_i_cache, ADD(i,  i  ) );                                         vp_1 = ADD( v_i_cache, ADD(i_1,i_1) );                                         vp_2 = ADD( v_i_cache, ADD(i_2,i_2) );                                         vp_3 = ADD( v_i_cache, ADD(i_3,i_3) );
 
-    LOAD_INTERPOLATOR( vp,   0, ex0,        ey0,        ez0,        cbx0,     cbz0     );
+    LOAD_INTERPOLATOR( vp,   0, ex0,        ey0,        ez0,        cbx0,     cbz0     ); 
     LOAD_INTERPOLATOR( vp,   1, dexdy,      deydz,      dezdx,      dcbxdx,   dcbzdz   );
     LOAD_INTERPOLATOR( vp,   2, dexdz,      deydx,      dezdy,      cby0,     v12      );
     LOAD_INTERPOLATOR( vp,   3, d2exdydz,   d2eydzdx,   d2ezdxdy,   dcbydy,   v13      );
@@ -564,7 +564,7 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
     LOAD_INTERPOLATOR( vp_1, 2, dexdz_1,    deydx_1,    dezdy_1,    cby0_1,   v12_1    );
     LOAD_INTERPOLATOR( vp_1, 3, d2exdydz_1, d2eydzdx_1, d2ezdxdy_1, dcbydy_1, v13_1    );
 
-    LOAD_INTERPOLATOR( vp_2, 0, ex0_2,      ey0_2,      ez0_2,      cbx0_2,   cbz0_2   );
+    LOAD_INTERPOLATOR( vp_2, 0, ex0_2,      ey0_2,      ez0_2,      cbx0_2,   cbz0_2   ); 
     LOAD_INTERPOLATOR( vp_2, 1, dexdy_2,    deydz_2,    dezdx_2,    dcbxdx_2, dcbzdz_2 );
     LOAD_INTERPOLATOR( vp_2, 2, dexdz_2,    deydx_2,    dezdy_2,    cby0_2,   v12_2    );
     LOAD_INTERPOLATOR( vp_2, 3, d2exdydz_2, d2eydzdx_2, d2ezdxdy_2, dcbydy_2, v13_2    );
@@ -619,7 +619,7 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
     v14_1 = MUL( qdt_2mc, RSQRT( ADD( one, FMA( ux0_1,ux0_1, FMA( uy0_1,uy0_1, MUL( uz0_1,uz0_1 ) ) ) ) ) );
     v14_2 = MUL( qdt_2mc, RSQRT( ADD( one, FMA( ux0_2,ux0_2, FMA( uy0_2,uy0_2, MUL( uz0_2,uz0_2 ) ) ) ) ) );
     v14_3 = MUL( qdt_2mc, RSQRT( ADD( one, FMA( ux0_3,ux0_3, FMA( uy0_3,uy0_3, MUL( uz0_3,uz0_3 ) ) ) ) ) );
-    cbs   = FMA( cbx,  cbx,   FMA( cby,  cby,   MUL(cbz,  cbz  ) ) );              cbs_1 = FMA( cbx_1,cbx_1, FMA( cby_1,cby_1, MUL(cbz_1,cbz_1) ) );              cbs_2 = FMA( cbx_2,cbx_2, FMA( cby_2,cby_2, MUL(cbz_2,cbz_2) ) );              cbs_3 = FMA( cbx_3,cbx_3, FMA( cby_3,cby_3, MUL(cbz_3,cbz_3) ) );
+    cbs   = FMA( cbx,  cbx,   FMA( cby,  cby,   MUL(cbz,  cbz  ) ) );              cbs_1 = FMA( cbx_1,cbx_1, FMA( cby_1,cby_1, MUL(cbz_1,cbz_1) ) );              cbs_2 = FMA( cbx_2,cbx_2, FMA( cby_2,cby_2, MUL(cbz_2,cbz_2) ) );              cbs_3 = FMA( cbx_3,cbx_3, FMA( cby_3,cby_3, MUL(cbz_3,cbz_3) ) ); 
     ths   = MUL( MUL( v14,  v14   ), cbs   );                                      ths_1 = MUL( MUL( v14_1,v14_1 ), cbs_1 );                                      ths_2 = MUL( MUL( v14_2,v14_2 ), cbs_2 );                                      ths_3 = MUL( MUL( v14_3,v14_3 ), cbs_3 );
     v15   = MUL(v14,  FMA(FMA(two_fifteenths,ths,  one_third ),ths,  one));        v15_1 = MUL(v14_1,FMA(FMA(two_fifteenths,ths_1,one_third ),ths_1,one));        v15_2 = MUL(v14_2,FMA(FMA(two_fifteenths,ths_2,one_third ),ths_2,one));        v15_3 = MUL(v14_3,FMA(FMA(two_fifteenths,ths_3,one_third ),ths_3,one));
     v16   = MUL( v15,   RCP( FMA( MUL(v15,  v15  ), cbs,   one ) ) );              v16_1 = MUL( v15_1, RCP( FMA( MUL(v15_1,v15_1), cbs_1, one ) ) );              v16_2 = MUL( v15_2, RCP( FMA( MUL(v15_2,v15_2), cbs_2, one ) ) );              v16_3 = MUL( v15_3, RCP( FMA( MUL(v15_3,v15_3), cbs_3, one ) ) );
@@ -639,7 +639,7 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
     STORE_4x1(  p1u, &p[n+ 1].ux );                                                STORE_4x1(  p5u, &p[n+ 5].ux );                                                STORE_4x1(  p9u, &p[n+ 9].ux );                                                STORE_4x1( p13u, &p[n+13].ux );
     STORE_4x1(  p2u, &p[n+ 2].ux );                                                STORE_4x1(  p6u, &p[n+ 6].ux );                                                STORE_4x1( p10u, &p[n+10].ux );                                                STORE_4x1( p14u, &p[n+14].ux );
     STORE_4x1(  p3u, &p[n+ 3].ux );                                                STORE_4x1(  p7u, &p[n+ 7].ux );                                                STORE_4x1( p11u, &p[n+11].ux );                                                STORE_4x1( p15u, &p[n+15].ux );
-
+    
     // Update the position of inbnd particles
 
     rgamma   = RSQRT( ADD( one, FMA( uxh,  uxh,   FMA( uyh,  uyh,   MUL(uzh,  uzh  ) ) ) ) );
@@ -745,7 +745,7 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
     INCREMENT_ACCUMULATOR( vp_3, 0,  a0x_3,  a0y_3,  a0z_3 );
     INCREMENT_ACCUMULATOR( vp_3, 1,  a1x_3,  a1y_3,  a1z_3 );
     INCREMENT_ACCUMULATOR( vp_3, 2,  a2x_3,  a2y_3,  a2z_3 );
-    INCREMENT_ACCUMULATOR( vp_3, 3,  a3x_3,  a3y_3,  a3z_3 );
+    INCREMENT_ACCUMULATOR( vp_3, 3,  a3x_3,  a3y_3,  a3z_3 ); 
 
   }
 
@@ -778,7 +778,7 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
       //   voxel = local voxel of particle
       // Thus, in the local coordinate system, it is desired to move the
       // particle through all points in the local coordinate system:
-      //   streak_r(s) = r + 2 disp s for s in [0,1]
+      //   streak_r(s) = r + 2 disp s for s in [0,1]   
 
       // Start fetching the voxel needed for this current accumulation
       // and determine the fractional length and type of current
@@ -823,7 +823,7 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
       // accumulator values are 4 times the total physical charge that
       // passed through the appropriate current quadrant in a
       // timestep
-
+      
       sdr = MUL( s, dr );       // sdr = ux,    uy,    uz,    0
       sr  = ADD( r, sdr );      // sr  = dx,    dy,    dz,    0
       dr  = SUB( dr, sdr );     // dr  = p_ddx',p_ddy',p_ddz',0
@@ -877,7 +877,7 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
       r  = INSERT( f0, r, type ); // Avoid roundoff fiascos---put the
       /**/                        // particle _exactly_ on the
       /**/                        // boundary.
-
+      
       // Determine if the particle crossed into a local voxel or if it
       // hit a boundary.  Convert the particle coordinates
       // accordingly.  Note: Crossing into a local voxel should happen
@@ -892,33 +892,33 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
 
       if( LIKELY( (neighbor>=rangel) &
                   (neighbor<=rangeh) ) ) { // Yes, bit ops!
-
+        
         // Crossed into a normal voxel
-
+        
         voxel = neighbor - rangel;
         r = XOR( r, (vec_float4)sign[type] ); // Convert coordinate system
-
+        
       } else if( UNLIKELY( neighbor==reflect_particles ) ) {
-
+        
         // Hit a reflecting boundary condition.  Reflect the particle
         // momentum and remaining displacement and keep moving the
         // particle.
-
+        
         v0 = (vec_float4)sign[type];
         dr = XOR( dr, v0 );
         u  = XOR( u,  v0 );
         STORE_4x1( u, &p[n].ux );
-
+        
       } else {
-
+        
         // Cannot handle the boundary condition here.  Save the
         // remaining particle displacement into a mover for later
         // processing.
-
+        
         STORE_4x1( (vec_float4)INSERT( idx+n, (vec_int4)dr, 3 ),
                    &pm[new_nm++].dispx );
         break;
-
+        
       }
     }
 
@@ -934,7 +934,7 @@ advance_p_pipeline_spu( particle_t       * __restrict ALIGNED(128) p,   // Parti
 // main (workload distribution and data buffering)
 
 // FIXME: Some util functionality is not compiled for the spu
-// FIXME: WHICH SEGMENT HOLDS INITIALIZERS IN THIS FUNCTION?
+// FIXME: WHICH SEGMENT HOLDS INITIALIZERS IN THIS FUNCTION? 
 
 void
 _SPUEAR_advance_p_pipeline_spu( MEM_PTR( advance_p_pipeline_args_t, 128 ) argp,
@@ -997,7 +997,7 @@ _SPUEAR_advance_p_pipeline_spu( MEM_PTR( advance_p_pipeline_args_t, 128 ) argp,
   voxel_cache_key   = _voxel_cache_key;
   voxel_cache_val   = _voxel_cache_val;
   a_cache_writeback = _a_cache_writeback;
-
+      
   // Get the pipeline arguments from the dispatcher
   mfc_get( args,
            argp,
@@ -1005,10 +1005,10 @@ _SPUEAR_advance_p_pipeline_spu( MEM_PTR( advance_p_pipeline_args_t, 128 ) argp,
            31, 0, 0 );
   mfc_write_tag_mask( (1<<31) );
   mfc_read_tag_status_all();
-
+  
   // Determine which particle quads this pipeline processes
   DISTRIBUTE( args->np, 16, pipeline_rank, n_pipeline, next_idx, np );
-
+  
   // Determine which movers are reserved for this pipeline.
   // Movers (16 bytes) are reserved for pipelines in multiples of
   // 8 such that the set of particle movers reserved for a
@@ -1021,15 +1021,15 @@ _SPUEAR_advance_p_pipeline_spu( MEM_PTR( advance_p_pipeline_args_t, 128 ) argp,
   seg->pm        = args->pm + itmp*sizeof(particle_mover_t);
   seg->nm        = 0;
   seg->n_ignored = 0;
-
+  
   // Determine which interpolator and accumulator arrays this
   // pipeline should use
   i_cache_mem = args->f0;
   a_cache_mem = args->a0 + sizeof(accumulator_t)*(1+pipeline_rank)*
     POW2_CEIL((args->nx+2)*(args->ny+2)*(args->nz+2),2);
-
+  
   // Process the particles assigned to this pipeline with triple buffering
-
+  
 # define BEGIN_GET_PBLOCK(buffer) do {                                  \
     /* Determine the start and size of the block */                     \
     idx[buffer]      = next_idx;                                        \
@@ -1045,7 +1045,7 @@ _SPUEAR_advance_p_pipeline_spu( MEM_PTR( advance_p_pipeline_args_t, 128 ) argp,
                np_block[buffer]*sizeof(particle_t),                     \
                2*(buffer)+0, 0, 0 );                                    \
   } while(0)
-
+  
 # define END_GET_PBLOCK(buffer) do {                                    \
     /* If we have a block, stop reading it into the buffer */           \
     if( LIKELY( np_block[buffer]!=0 ) ) {                               \
@@ -1053,14 +1053,14 @@ _SPUEAR_advance_p_pipeline_spu( MEM_PTR( advance_p_pipeline_args_t, 128 ) argp,
       mfc_read_tag_status_all();                                        \
     }                                                                   \
   } while(0)
-
+  
 # define PROCESS_PBLOCK(buffer)                                         \
   nm_block[buffer] = advance_p_pipeline_spu( p_block[buffer],           \
                                              m_block[buffer],           \
                                              idx[buffer],               \
                                              np_block[buffer],          \
                                              args )
-
+  
   // FIXME: mfc list for this??
 # define BEGIN_PUT_PBLOCK(buffer) do {                                  \
     /* If we have a block, begin writing the buffer into the block */   \
@@ -1085,7 +1085,7 @@ _SPUEAR_advance_p_pipeline_spu( MEM_PTR( advance_p_pipeline_args_t, 128 ) argp,
       seg->nm += nm_block[buffer];                                      \
     }                                                                   \
   } while(0)
-
+  
 # define END_PUT_PBLOCK(buffer) do {                                    \
     uint32_t mask = 0;                                                  \
     if( LIKELY( np_block[buffer]!=0 ) ) mask |= 1 << (2*(buffer)+0);    \
@@ -1098,17 +1098,17 @@ _SPUEAR_advance_p_pipeline_spu( MEM_PTR( advance_p_pipeline_args_t, 128 ) argp,
     np_block[buffer] = 0;                                               \
     nm_block[buffer] = 0;                                               \
   } while(0)
-
+  
   p_block[0] = p_stream;              np_block[0] = 0;
   p_block[1] = p_stream + NP_BLOCK;   np_block[1] = 0;
   p_block[2] = p_stream + NP_BLOCK*2; np_block[2] = 0;
-
+  
   m_block[0] = m_stream;              nm_block[0] = 0;
   m_block[1] = m_stream + NP_BLOCK;   nm_block[1] = 0;
   m_block[2] = m_stream + NP_BLOCK*2; nm_block[2] = 0;
-
+  
   voxel_cache_init();
-
+  
   BEGIN_GET_PBLOCK(0);
   // BEGIN_PUT_PBLOCK( 2 );
   for( buffer=0; np_block[buffer]>0; buffer=next[buffer] ) {
@@ -1119,20 +1119,20 @@ _SPUEAR_advance_p_pipeline_spu( MEM_PTR( advance_p_pipeline_args_t, 128 ) argp,
     END_PUT_PBLOCK( prev[buffer] );
   }
   END_PUT_PBLOCK( prev[buffer] );
-
+  
   // Writeback all the cached accumulators
-
+  
   voxel_cache_writeback();
-
+  
   // Write the pipeline return values back
-
+  
   mfc_put( seg,
            args->seg + pipeline_rank*sizeof(particle_mover_seg_t),
            sizeof(particle_mover_seg_t),
            31, 0, 0 );
   mfc_write_tag_mask( (1<<31) );
   mfc_read_tag_status_all();
-
+  
 # ifdef IN_HARNESS
   prof_stop();
 # endif

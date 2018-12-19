@@ -145,7 +145,7 @@ reduce_accumulators( accumulator_t * ALIGNED(128) a,
                      const grid_t  *              g ) {
   reduce_accumulators_pipeline_args_t args[1];
   int na;
-
+  
   if( a==NULL ) ERROR(("Bad accumulator"));
   if( g==NULL ) ERROR(("Bad grid"));
 

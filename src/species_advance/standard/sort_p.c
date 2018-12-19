@@ -1,4 +1,4 @@
-/*
+/* 
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -18,7 +18,7 @@ sort_p( species_t * sp,
         const grid_t * g ) {
   particle_t * ALIGNED(128) p = sp->p;
   //const int32_t * __restrict ALIGNED(128) sfc = g->sfc;
-  const int np                = sp->np;
+  const int np                = sp->np; 
   const int nc                = (g->nx+2)*(g->ny+2)*(g->nz+2);
   const int nc1               = nc+1;
   int * __restrict ALIGNED(128) partition = sp->partition;
@@ -36,7 +36,7 @@ sort_p( species_t * sp,
 
   // Allocate the sorting intermediate
   // Making this into a static is done to avoid heap shredding
-
+ 
   if( max_nc1<nc1 ) {
     int * tmp = next; // Hack around __restrict__ issues
     FREE_ALIGNED(   tmp );
@@ -101,7 +101,7 @@ sort_p( species_t * sp,
   }
 }
 
-#else
+#else 
 
 #if defined(__SSE__)
 #include <xmmintrin.h>
@@ -148,13 +148,13 @@ coarse_count_pipeline( sort_p_pipeline_args_t * args,
                                 spots */
 
   if( pipeline_rank==n_pipeline ) return; /* No straggler cleanup needed */
-
+  
   /* Clear local coarse count */
   for( p=0; p<n_pipeline; p++ ) count[p] = 0;
-
+  
   /* Do local coarse count */
   for( ; i<i1; i++ ) count[ V2P( p_src[i].i, n_pipeline, n_voxel ) ]++;
-
+  
   /* Copy local coarse count to output */
   for( p=0; p<n_pipeline; p++ )
     args->coarse_partition[ pipeline_rank*n_pipeline + p ] = count[p];
@@ -180,7 +180,7 @@ coarse_sort_pipeline( sort_p_pipeline_args_t * args,
   /* Copy local partitioning to next array */
   for( p=0; p<n_pipeline; p++ )
     next[p] = args->coarse_partition[ pipeline_rank*n_pipeline + p ];
-
+  
   /* Copy particles into aux array in coarse sorted order */
   for( ; i<i1; i++ ) {
     p = V2P( p_src[i].i, n_pipeline, n_voxel );
@@ -202,16 +202,16 @@ subsort_pipeline( sort_p_pipeline_args_t * args,
   /*const*/ int n_voxel = args->n_voxel;
   /*const*/ int v0 = P2V( pipeline_rank,   n_pipeline, n_voxel );
   /*const*/ int v1 = P2V( pipeline_rank+1, n_pipeline, n_voxel );
-
+  
   /* Particles in this voxel range in [i0,i1) in the aux array */
   /*const*/ int i0 = args->coarse_partition[pipeline_rank  ];
-  /*const*/ int i1 = args->coarse_partition[pipeline_rank+1];
+  /*const*/ int i1 = args->coarse_partition[pipeline_rank+1];    
   const particle_t * RESTRICT ALIGNED(128) p_src = args->aux_p;
   /**/  particle_t * RESTRICT ALIGNED(128) p_dst = args->p;
-
+  
   int * RESTRICT ALIGNED(128) partition = args->partition;
   int * RESTRICT ALIGNED(128) next      = args->next;
-
+  
   int i, j, v, sum, count;
 
   if( pipeline_rank==n_pipeline ) return; /* No straggler cleanup needed */
@@ -293,11 +293,11 @@ sort_p( species_t * sp,
         args->coarse_partition[ p+ q*n_pipeline ] = sum;
         sum += count;
       }
-
+    
     /* Copy input into aux array in coarse sorted order */
     EXEC_PIPELINES( coarse_sort, args, 0 );
     WAIT_PIPELINES();
-
+    
     /* Do fine grained subsorts */
     args->coarse_partition[n_pipeline] = sum; /* Convert coarse partition into
                                            the particle ranges assigned

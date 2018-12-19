@@ -4,7 +4,7 @@
 #include "sfa_v4_private.h"
 
 #define f(x,y,z) f[INDEX_FORTRAN_3(x,y,z,0,nx+1,0,ny+1,0,nz+1)]
-
+ 
 // WTF!  Under -ffast-math, gcc-4.1.1 thinks it is okay to treat the
 // below as
 //   f0->cbx = ( f0->cbx + py*( blah ) ) - pz*( blah )
@@ -42,7 +42,7 @@ pipeline( pipeline_args_t * args,
   const float pz = (nz>1) ? frac*g->cvac*g->dt*g->rdz : 0;
 
   // Process the voxels assigned to this pipeline
-
+  
   n_voxel = distribute_voxels( 1,nx, 1,ny, 1,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
@@ -59,7 +59,7 @@ pipeline( pipeline_args_t * args,
     UPDATE_CBX();
     UPDATE_CBY();
     UPDATE_CBZ();
-    f0++; fx++; fy++; fz++;
+    f0++; fx++; fy++; fz++;    
 
     x++;
     if( x>nx ) {
@@ -111,13 +111,13 @@ v4_pipeline( pipeline_args_t * args,
   field_t * ALIGNED(16) fx0, * ALIGNED(16) fx1, * ALIGNED(16) fx2, * ALIGNED(16) fx3; // Voxel quad +x neighbors
   field_t * ALIGNED(16) fy0, * ALIGNED(16) fy1, * ALIGNED(16) fy2, * ALIGNED(16) fy3; // Voxel quad +y neighbors
   field_t * ALIGNED(16) fz0, * ALIGNED(16) fz1, * ALIGNED(16) fz2, * ALIGNED(16) fz3; // Voxel quad +z neighbors
-
-  // Process the voxels assigned to this pipeline
-
+  
+  // Process the voxels assigned to this pipeline 
+  
   n_voxel = distribute_voxels( 1,nx, 1,ny, 1,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
-
+  
   // Process the bulk of the voxels 4 at a time
 
 # define LOAD_STENCIL()  \
@@ -167,12 +167,12 @@ v4_advance_b( field_t      * ALIGNED(128) f,
               const grid_t *              g,
               float                       frac ) {
   pipeline_args_t args[1];
-
+  
   float px, py, pz;
   field_t *f0, *fx, *fy, *fz;
   int x, y, z, nx, ny, nz;
 
-  if( f==NULL ) ERROR(("Bad field"));
+  if( f==NULL ) ERROR(("Bad field")); 
   if( g==NULL ) ERROR(("Bad grid"));
 
   // Do the bulk of the magnetic fields in the pipelines.  The host
@@ -194,15 +194,15 @@ v4_advance_b( field_t      * ALIGNED(128) f,
     }
   }
 # endif
-
+  
   args->f    = f;
   args->g    = g;
   args->frac = frac;
 
   EXEC_PIPELINES( pipeline, args, 0 );
-
+  
   // While the pipelines are busy, do surface fields
-
+  
   nx = g->nx;
   ny = g->ny;
   nz = g->nz;
@@ -247,6 +247,6 @@ v4_advance_b( field_t      * ALIGNED(128) f,
   }
 
   local_adjust_norm_b(f,g);
-
+  
   WAIT_PIPELINES(); // FIXME: Check how late this can be done!
 }

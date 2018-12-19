@@ -1,4 +1,4 @@
-/*
+/* 
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -43,7 +43,7 @@ accumulate_hydro_p( hydro_t              * ALIGNED(16)  h0,
   if( n<0      ) ERROR(("Bad number of particles"));
   if( f0==NULL ) ERROR(("Bad field"));
   if( g==NULL  ) ERROR(("Bad grid"));
-
+  
   qdt_2mc  = 0.5*q_m*g->dt/g->cvac;
   qdt_4mc2 = 0.25*q_m*g->dt/(g->cvac*g->cvac);
   c = g->cvac;
@@ -64,7 +64,7 @@ accumulate_hydro_p( hydro_t              * ALIGNED(16)  h0,
     uy = p->uy;
     uz = p->uz;
     q  = p->q;
-
+    
     // Half advance E
     f  = f0 + ii;
     ux += qdt_2mc*((f->ex+dy*f->dexdy) + dz*(f->dexdz+dy*f->d2exdydz));

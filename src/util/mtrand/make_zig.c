@@ -58,7 +58,7 @@ make_zig( long double * x,
 int
 main( int argc,
       char ** argv ) {
-
+  
   int n, N = atoi( argv[1] );
   long double * x = malloc( (N+1)*sizeof(long double) );
   long double * y = malloc( (N+1)*sizeof(long double) );

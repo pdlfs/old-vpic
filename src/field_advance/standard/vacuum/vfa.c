@@ -36,7 +36,7 @@ _vacuum_field_advance[1] = { {
   // Shared face cleaning interface
 
   synchronize_tang_e_norm_b,
-
+  
   // Electric field divergence cleaning interface
 
   vfa_compute_div_e_err,

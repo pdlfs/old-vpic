@@ -44,7 +44,7 @@ pipeline( pipeline_args_t * args,
   const float pz = (nz>1) ? g->cvac*g->dt*g->rdz : 0;
 
   // Process the voxels assigned to this pipeline
-
+  
   n_voxel = distribute_voxels( 2,nx, 2,ny, 2,nz, 16,
                                pipeline_rank, n_pipeline,
                                &x, &y, &z );
@@ -54,15 +54,15 @@ pipeline( pipeline_args_t * args,
   fx = &f(x-1,y,  z  ); \
   fy = &f(x,  y-1,z  ); \
   fz = &f(x,  y,  z-1)
-
+  
   LOAD_STENCIL();
 
   for( ; n_voxel; n_voxel-- ) {
     UPDATE_TCAX();
     UPDATE_TCAY();
-    UPDATE_TCAZ();
+    UPDATE_TCAZ(); 
     f0++; fx++;	fy++; fz++;
-
+    
     x++;
     if( x>nx ) {
       x=2, y++;
@@ -80,7 +80,7 @@ compute_curl_b( field_t                      * ALIGNED(16) f,
                 const material_coefficient_t * ALIGNED(16) m,
                 const grid_t                 *             g ) {
   pipeline_args_t args[1];
-
+  
   float px, py, pz;
   field_t *f0, *fx, *fy, *fz;
   int x, y, z, nx, ny, nz;
@@ -99,7 +99,7 @@ compute_curl_b( field_t                      * ALIGNED(16) f,
   /***************************************************************************
    * Begin tangential B ghost setup
    ***************************************************************************/
-
+  
   begin_remote_ghost_tang_b( f, g );
   local_ghost_tang_b( f, g );
 
@@ -134,13 +134,13 @@ compute_curl_b( field_t                      * ALIGNED(16) f,
     }
   }
 # endif
-
+     
   args->f = f;
   args->m = m;
   args->g = g;
 
   EXEC_PIPELINES( pipeline, args, 0 );
-
+  
   // Do left over interior ex
   for( z=2; z<=nz; z++ ) {
     for( y=2; y<=ny; y++ ) {
@@ -178,7 +178,7 @@ compute_curl_b( field_t                      * ALIGNED(16) f,
   }
 
   WAIT_PIPELINES();
-
+  
   /***************************************************************************
    * Finish tangential B ghost setup
    ***************************************************************************/

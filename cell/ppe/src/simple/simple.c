@@ -15,7 +15,7 @@
 
 extern spe_program_handle_t simple;
 
-int main()
+int main() 
 {
   spe_context_ptr_t speid;
   int rc;
@@ -51,7 +51,7 @@ int main()
         return (stopinfo.result.spe_exit_code);
   }
   else {
-	fprintf(stderr, "stopinfo.stop_reason=%x, stopinfo.spe_exit_code=%x \n",
+	fprintf(stderr, "stopinfo.stop_reason=%x, stopinfo.spe_exit_code=%x \n", 
 		stopinfo.stop_reason,
 		stopinfo.result.spe_exit_code);
         return -1;

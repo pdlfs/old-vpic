@@ -97,3 +97,4 @@ ivory( emitter_t            *              e,      // Actual emitter
 
   }
 }
+

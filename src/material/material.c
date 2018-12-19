@@ -1,4 +1,4 @@
-/*
+/* 
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -43,7 +43,7 @@ new_material( const char * name,
   id = num_materials(*m_list);
   if( id==max_num_materials )
     ERROR(("Cannot create material \"%s\"; too many materials.", name));
-
+  
   // Note: Since a m->name is declared as a 1-element char array, the
   // terminating NULL is included in sizeof(m[0])
   MALLOC( buf, sizeof(m[0])+len ); m = (material_t *)buf;
@@ -54,7 +54,7 @@ new_material( const char * name,
   m->zetax  = zetax,  m->zetay  = zetay,  m->zetaz  = zetaz;
   m->next   = *m_list;
   strcpy( m->name, name );
-
+  
   *m_list = m;
   return m->id;
 }
@@ -71,7 +71,7 @@ delete_material_list( material_t ** m_list ) {
 }
 
 material_t *
-find_material_id( material_id id,
+find_material_id( material_id id, 
                   material_t * m_list ) {
   material_t *m;
   LIST_FIND_FIRST(m,m_list,m->id==id);
@@ -79,7 +79,7 @@ find_material_id( material_id id,
 }
 
 material_t *
-find_material_name( const char * name,
+find_material_name( const char * name, 
                     material_t * m_list ) {
   material_t *m;
   if( name==NULL ) return NULL;

@@ -60,7 +60,7 @@ vfa_compute_curl_b( field_t                      * ALIGNED(128) f,
 void
 vfa_compute_rhob( field_t                      * ALIGNED(128) f,
                   const material_coefficient_t * ALIGNED(128) m, // Ignored
-                  const grid_t                 *              g );
+                  const grid_t                 *              g ); 
 
 // In vfa_compute_div_e_err.cxx
 

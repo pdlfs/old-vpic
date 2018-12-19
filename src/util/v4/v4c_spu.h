@@ -25,7 +25,7 @@
        { 12,13,14,15, 12,13,14,15, 12,13,14,15, 12,13,14,15 } }; \
    vec_float4 _a, _b, _c, _d
 
-/* FIXME: THIS MACRO IS NOT ROBUST!
+/* FIXME: THIS MACRO IS NOT ROBUST! 
    MULTIPLE SEMANTIC STATEMENTS
    MUST DECLARE _a, _b, _c, _d, unpackl = _unpackl, unpackh = _unpackh TO USE
    a, b, c and d ARE REFERENCED THREE TIMES */
@@ -53,7 +53,7 @@
   _b  = spu_shuffle( (b), (d), _unpackl ); /* b =  4 12  5 13 */ \
   /* Step 2: Interleave even and odd rows */                     \
   (a) = spu_shuffle( _a,  _b,  _unpackl ); /* a =  0  4  8 12 */ \
-  (b) = spu_shuffle( _a,  _b,  _unpackh )  /* b =  1  5  9 13 */
+  (b) = spu_shuffle( _a,  _b,  _unpackh )  /* b =  1  5  9 13 */ 
 
 /* FIXME: THIS MACRO MAY HAVE A POTENTIAL STRICT ALIASING ISSUE (PROBABLY
    UNAVOIDABLE THE WAY SIMD WORKS ON GCC AND XLC) */
@@ -69,7 +69,7 @@
    UNAVOIDABLE THE WAY SIMD WORKS ON GCC AND XLC) */
 #define COPY_4x1( d, s ) *((vec_float4 *)(d)) = *((vec_float4 *)(s))
 
-/* FIXME: THIS MACRO IS TECHNICALLY NOT ROBUST! p IS REFERENCED TWICE!
+/* FIXME: THIS MACRO IS TECHNICALLY NOT ROBUST! p IS REFERENCED TWICE! 
    THIS MACRO MAY HAVE A POTENTIAL STRICT ALISING ISSUE (PROBABLY
    UNAVOIDABLE THE WAY SIMD WORKS ON GCC AND XLC) */
 #define INCREMENT_4x1( p, v ) \
@@ -132,13 +132,13 @@
     _b = spu_madd( spu_nmsub( _b, _a, one ), _b, _b ),    \
 */
 
-/* FIXME: THIS MACRO IS NOT ROBUST!
+/* FIXME: THIS MACRO IS NOT ROBUST! 
    MUST DECLARE vec_float4 _a, _b and one = 1 to use. */
 #define RCP( a )                                          \
   ( _a = (a),                                             \
     _b = spu_re( _a ),                                    \
     spu_madd( spu_nmsub( _b, _a, one ), _b, _b ) )
 
-#endif // CELL_SPU_BUILD
-#endif // _v4c_spu_h_
+#endif // CELL_SPU_BUILD 
+#endif // _v4c_spu_h_ 
 

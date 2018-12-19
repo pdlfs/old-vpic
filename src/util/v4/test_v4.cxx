@@ -717,7 +717,7 @@ int main( unsigned long long id ) {
   test_splat();
   test_swap();
   test_transpose();
-
+  
   test_load_4x1();
   test_store_4x1();
   test_stream_4x1();
