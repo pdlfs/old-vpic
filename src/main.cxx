@@ -1,4 +1,4 @@
-/*
+/* 
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -68,7 +68,7 @@ main( int argc,
     else                                    argv[m++] = argv[n];
   argv[m] = NULL; // ANSI - argv is NULL terminated
   argc = m;
-
+  
   thread.boot( tpp, 1 );
   serial.boot( tpp, 1 );
 
@@ -78,15 +78,15 @@ main( int argc,
 
   mp_init(argc, argv);
 
-  vpic_simulation simulation;
+  vpic_simulation simulation; 
 
   if( argc>=3 && strcmp(argv[1],"restart")==0 ) simulation.restart(argv[2]);
   else simulation.initialize(argc,argv);
-
+  
   // Allow us to change a few run variables such as quota, num_step
   // "on the fly"
 
-  if ( argc==4 ) simulation.modify_runparams( argv[3] );
+  if ( argc==4 ) simulation.modify_runparams( argv[3] );  
 
   // Put this here to avoid adding extra garbage to output
   if( simulation.rank() == 0 ) {
@@ -94,7 +94,7 @@ main( int argc,
   } // if
 
   double start = mp_wtime();
-  while( simulation.advance() );
+  while( simulation.advance() ); 
   double stop = mp_wtime();
 
   if( simulation.rank()==0 )
@@ -103,11 +103,11 @@ main( int argc,
   // Let all processors finish up
 
   simulation.finalize();
-
+  
   // Issue a termination message when we exit cleanly.
-
-  if( simulation.rank()==0 )
-    MESSAGE(( "Maximum number of time steps reached.  Job has completed." ));
+  
+  if( simulation.rank()==0 ) 
+    MESSAGE(( "Maximum number of time steps reached.  Job has completed." )); 
 
   mp_finalize( simulation.grid_mp() );
 

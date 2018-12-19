@@ -1,4 +1,4 @@
-/*
+/* 
  * Written by:
  *   Kevin J. Bowers, Ph.D.
  *   Plasma Physics Group (X-1)
@@ -38,7 +38,7 @@ int vpic_simulation::advance(void) {
   if( species_list!=NULL ) clear_accumulators( accumulator, grid );
   p_time += mp_time00(grid->mp) - overhead; overhead = mp_time00(grid->mp);
 
-  // Slight reorder of this loop to treat collisions properly.
+  // Slight reorder of this loop to treat collisions properly. 
 
   LIST_FOR_EACH(sp,species_list) {
     if( sp->sort_interval>0 && step%sp->sort_interval==0 ) {
@@ -47,16 +47,16 @@ int vpic_simulation::advance(void) {
 #endif
       sort_p( sp, grid );
       s_time += mp_time00(grid->mp) - overhead; overhead = mp_time00(grid->mp);
-    }
+    } 
   }
 
   // Collisions need to be done between sort and particle advance.
-  // Tally collision time as user time since collision models live in the
-  // input deck.   Collisions presently are implemented in user input
-  // decks; count their time against "user" time.
-  //
-  // FIXME:  Make a real interface for collisions?
-  // FIXME:  Give collisions their own timer.
+  // Tally collision time as user time since collision models live in the 
+  // input deck.   Collisions presently are implemented in user input 
+  // decks; count their time against "user" time. 
+  // 
+  // FIXME:  Make a real interface for collisions? 
+  // FIXME:  Give collisions their own timer.  
 
 #if VERBOSE
   if(rank == 0) {

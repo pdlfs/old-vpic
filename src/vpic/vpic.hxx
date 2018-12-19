@@ -37,9 +37,9 @@
 #define NVARHISMX 250
 #endif
 //  #include "dumpvars.h"
-
-#define QUIET_RUN
  
+#define QUIET_RUN
+
 typedef FileIO FILETYPE;
 
 const uint32_t all			(0xffffffff);
@@ -449,7 +449,7 @@ private:
   inject_particle( species_t * sp,
                    double x,  double y,  double z,
                    double ux, double uy, double uz,
-                   double q,  int64_t tag, double age = 0, int update_rhob = 1);
+                   double q,  int64_t tag, double age = 0, int update_rhob = 1 );
  
   // Inject particle raw is for power users!
   // No nannyism _at_ _all_:

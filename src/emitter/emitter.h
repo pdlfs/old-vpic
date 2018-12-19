@@ -30,9 +30,9 @@ struct emitter;
 typedef void
 (*emission_model_t)( struct emitter       *              e,
                      const interpolator_t * ALIGNED(128) fi,
-                     field_t              * ALIGNED(16)  f,
-                     accumulator_t        * ALIGNED(128) a,
-                     grid_t               *              g,
+                     field_t              * ALIGNED(16)  f, 
+                     accumulator_t        * ALIGNED(128) a, 
+                     grid_t               *              g, 
                      mt_rng_t             *              rng );
 
 typedef struct emitter {
@@ -40,7 +40,7 @@ typedef struct emitter {
   int n_component, max_component;
   species_t * sp;                  // Species to emit
   emission_model_t emission_model;
-  char model_parameters[MAX_EMISSION_MODEL_SIZE];
+  char model_parameters[MAX_EMISSION_MODEL_SIZE]; 
   struct emitter * next;
   char name[1];                    // Terminal zero of string
 } emitter_t;
@@ -99,9 +99,9 @@ ccube( emitter_t            *              e,
 // In ivory.c
 
 typedef struct ivory {
-  int   n_emit_per_face; // How many particles to emit per face
-  float ut_perp;         // Perpendicular normalized thermal momentum
-  float ut_para;         // Parallel normalized thermal momentum
+  int   n_emit_per_face; // How many particles to emit per face 
+  float ut_perp;         // Perpendicular normalized thermal momentum 
+  float ut_para;         // Parallel normalized thermal momentum 
   float thresh_e_norm;   // Only emit particles if |E| > thresh_e_norm
 } ivory_t;
 

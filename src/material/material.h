@@ -48,7 +48,7 @@ typedef struct material {
   struct material *next;        // Next material in list
   char name[1];                 // Name of the material (resized at alloc)
 } material_t;
-
+  
 BEGIN_C_DECLS
 
 // In material.c
